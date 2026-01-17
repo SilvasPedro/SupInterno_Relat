@@ -451,7 +451,7 @@ button[onclick*="openHistory"]:hover {
 .login-container {
     width: 380px;
     padding: 40px;
-    background: white;
+    background: var(--color-dark-brown);
     border-radius: 12px;
     box-shadow: var(--shadow-soft);
     border-top: 5px solid var(--color-main-red);
