@@ -39,46 +39,60 @@
     <main class="main-content">
 
         <div id="section-dashboard" class="section">
-<div class="header-flex">
-    <div>
-        <h1>Visão Geral da Equipe (Acumulado)</h1>
-        <p style="color: #666; font-size: 13px; margin-top: 5px;">
-            Médias e somatórios de todo o período histórico.
-        </p>
-    </div>
-    
-    <button onclick="forceDashboardRefresh()" class="btn-primary" title="Recalcular Dados" style="padding: 10px 15px;">
-        <i class="material-icons" style="font-size: 20px; vertical-align: middle;">sync</i>
-    </button>
-</div>
+            <div class="header-flex">
+                <div>
+                    <h1>Visão Geral da Equipe (Acumulado)</h1>
+                    <p style="color: #666; font-size: 13px; margin-top: 5px;">
+                        Médias e somatórios de todo o período histórico.
+                    </p>
+                </div>
+
+                <button onclick="forceDashboardRefresh()" class="btn-primary" title="Recalcular Dados"
+                    style="padding: 10px 15px;">
+                    <i class="material-icons" style="font-size: 20px; vertical-align: middle;">sync</i>
+                </button>
+            </div>
 
             <div class="metrics-grid">
+                <div class="metrics-grid">
+    
+    <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')" style="border-left: 5px solid #007bff;">
+        <h3>📞 TMA Médio (Equipe Tel)</h3>
+        <h1 id="kpi-team-tel">--:--</h1>
+        <p>Clique para ver detalhes</p>
+    </div>
 
-                <div class="metric-card kpi-card" onclick="openDetailModal('tma')">
-                    <h3>⏱️ TMA Médio (Equipe)</h3>
-                    <h1 id="kpi-tma-avg">--:--</h1>
-                    <p>Meta: 05:00 min</p>
-                </div>
+    <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')" style="border-left: 5px solid #17a2b8;">
+        <h3>💬 TMA Médio (Equipe Chat)</h3>
+        <h1 id="kpi-team-chat">--:--</h1>
+        <p>Clique para ver detalhes</p>
+    </div>
 
-                <div class="metric-card kpi-card" onclick="openDetailModal('monitoria')">
-                    <h3>🏆 Melhor Qualidade</h3>
-                    <h1 id="kpi-best-qa" style="font-size: 1.5em;">--</h1>
-                    <p id="kpi-best-qa-name" style="color: #28a745; font-weight:bold;">--</p>
-                </div>
+    <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')" style="border-left: 5px solid #6f42c1;">
+        <h3>✅ Média Finalizados</h3>
+        <h1 id="kpi-team-vol">0</h1>
+        <p>Média de chamados por agente</p>
+    </div>
 
-                <div class="metric-card kpi-card" onclick="openDetailModal('worst-tma')"
-                    style="border-left: 5px solid #dc3545;">
-                    <h3>⚠️ Maior TMA (Atenção)</h3>
-                    <h1 id="kpi-worst-tma" style="font-size: 1.5em;">--:--</h1>
-                    <p id="kpi-worst-tma-name" style="color: #dc3545; font-weight:bold;">--</p>
-                </div>
+    <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')" style="border-left: 5px solid #28a745;">
+        <h3>🏆 Melhor Monitoria</h3>
+        <h1 id="kpi-best-qa">--</h1>
+        <p id="kpi-best-qa-name" style="color: #28a745; font-weight:bold;">--</p>
+    </div>
 
-                <div class="metric-card kpi-card" onclick="openDetailModal('volume')">
-                    <h3>📊 Volume Total</h3>
-                    <h1 id="kpi-volume">0</h1>
-                    <p>Atendimentos na semana</p>
-                </div>
-            </div>
+    <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')" style="border-left: 5px solid #dc3545;">
+        <h3>⚠️ Maior TMA (Tel)</h3>
+        <h1 id="kpi-max-tel">--:--</h1>
+        <p id="kpi-max-tel-name" style="color: #dc3545; font-weight:bold;">--</p>
+    </div>
+
+    <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')" style="border-left: 5px solid #dc3545;">
+        <h3>⚠️ Maior TMA (Chat)</h3>
+        <h1 id="kpi-max-chat">--:--</h1>
+        <p id="kpi-max-chat-name" style="color: #dc3545; font-weight:bold;">--</p>
+    </div>
+</div>
+</div>
 
             <br>
             <hr><br>

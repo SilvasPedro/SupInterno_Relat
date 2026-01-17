@@ -385,7 +385,7 @@ window.openMetricDetail = (index) => {
             <p><strong>Perdidas:</strong> <span style="color:red">${data.ligacoesPerdidas || 0}</span></p>
             <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ccc;">
             <p><strong>TMA (Tempo Médio):</strong> ${data.tmaTelefonia || 0} min</p>
-            <p><strong>TME (Espera):</strong> ${data.tmeTelefonia || 0} min</p>
+            <p><strong>TME (Espera):</strong> ${data.tmeTelefonia || 0} seg</p>
         </div>
 
         <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; border-left: 4px solid #28a745;">

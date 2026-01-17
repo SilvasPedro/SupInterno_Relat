@@ -1,87 +1,80 @@
 /**
  * ============================================================================
- * ERP GESTÃO DE COLABORADORES - MÓDULO ADMINISTRATIVO (BACKEND FRONT-END)
- * Data: Janeiro/2026
- * Stack: Firebase Modular SDK (v9+)
+ * ERP GESTÃO DE COLABORADORES - MÓDULO ADMINISTRATIVO COMPLETO
+ * Versão: 3.0 (KPIs Específicos e Detalhamento)
  * ============================================================================
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import {
-    getAuth,
-    onAuthStateChanged,
-    signOut,
-    createUserWithEmailAndPassword
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signOut, 
+    createUserWithEmailAndPassword 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import {
-    getFirestore,
-    collection,
-    getDocs,
-    doc,
-    setDoc,
-    getDoc,
-    addDoc,
-    deleteDoc,
-    updateDoc,
-    query,
-    where
+import { 
+    getFirestore, 
+    collection, 
+    getDocs, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    deleteDoc, 
+    updateDoc, 
+    query, 
+    where 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// ============================================================
-// 1. CONFIGURAÇÃO E INICIALIZAÇÃO
-// ============================================================
-const firebaseConfig = {
+// 1. CONFIGURAÇÃO (MANTENHA A SUA)
+  const firebaseConfig = {
     apiKey: "AIzaSyCWve8E4PIwEeBf5nATJnFnlJkSe9YkbPE",
     authDomain: "suporte-interno-ece8c.firebaseapp.com",
     projectId: "suporte-interno-ece8c",
     storageBucket: "suporte-interno-ece8c.firebasestorage.app",
     messagingSenderId: "154422890108",
     appId: "1:154422890108:web:efe6f03bc4c55dc11483f9"
-};
+  };
 
-// App Principal (Sessão do Admin Logado)
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-// App Secundária (Utilizada APENAS para criar novos usuários sem deslogar o admin)
 const secondaryApp = initializeApp(firebaseConfig, "Secondary");
 const secondaryAuth = getAuth(secondaryApp);
 
 // --- ESTADO GLOBAL ---
-let usersCache = {};        // Cache para evitar leituras repetidas de nomes de usuários
-let isEditingMetric = false; // Flag para saber se o form está em modo de edição
-let editingMetricId = null;  // ID do documento que está sendo editado
+let usersCache = {};        
+let allMetricsCache = [];   // Cache dos dados brutos
+let globalAggregatedData = []; // Cache dos dados calculados (Médias)
+let isEditingMetric = false; 
+let editingMetricId = null;  
+let adminChart1 = null;
+let adminChart2 = null;
 
 // ============================================================
-// 2. MIDDLEWARE DE SEGURANÇA (GUARD)
+// 2. AUTH & INICIALIZAÇÃO
 // ============================================================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
             const userRef = doc(db, "users", user.uid);
             const docSnap = await getDoc(userRef);
-
-            // Verifica se documento existe e se o cargo é admin
+            
             if (docSnap.exists() && docSnap.data().cargo === 'admin') {
                 document.getElementById('admin-name').innerText = "Gestor: " + (docSnap.data().nome || "Admin");
-                loadDashboardData(); // <--- IMPORTANTE
-                loadCollaborators();
-
-                // Inicializa os módulos do dashboard
-                console.log("Admin autenticado. Carregando módulos...");
-                loadCollaborators();
-                loadUserSelectOptions();   // Select do Form de Métricas
-                loadOccurrenceUserSelect(); // Select do Form de Ocorrências
+                
+                // Inicializa Módulos
+                loadCollaborators();       
+                loadUserSelectOptions();   
+                loadOccurrenceUserSelect(); 
+                loadDashboardData(); // Carrega os KPIs
 
             } else {
-                alert("ACESSO NEGADO: Área restrita a gestores.");
+                alert("Acesso restrito.");
                 await signOut(auth);
                 window.location.href = "index.html";
             }
         } catch (error) {
-            console.error("Erro crítico de autenticação:", error);
-            alert("Erro de conexão com o servidor.");
+            console.error("Erro auth:", error);
         }
     } else {
         window.location.href = "index.html";
@@ -89,542 +82,98 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ============================================================
-// 3. NAVEGAÇÃO E UTILITÁRIOS DE INTERFACE
+// 3. UTILITÁRIOS GERAIS
 // ============================================================
 window.showSection = (sectionId) => {
-    // 1. Esconde todas as seções
     document.querySelectorAll('.section').forEach(el => el.style.display = 'none');
-
-    // 2. Remove estado ativo do menu
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
-
-    // 3. Mostra a seção alvo
     const target = document.getElementById('section-' + sectionId);
-    if (target) target.style.display = 'block';
-
-    // 4. Se sair da tela de lançamentos, reseta o form de edição por segurança
-    if (sectionId !== 'lancamentos' && isEditingMetric) {
-        resetMetricFormState();
-    }
+    if(target) target.style.display = 'block';
+    
+    // Reset form se sair da edição
+    if (sectionId !== 'lancamentos' && isEditingMetric) resetMetricFormState();
 };
 
 window.openModal = () => document.getElementById('modal-new-user').style.display = 'block';
 window.closeModal = () => document.getElementById('modal-new-user').style.display = 'none';
 
-// Helper para formatar data (YYYY-MM-DD -> DD/MM/YYYY)
-const formatDateBr = (dateString) => {
-    if (!dateString) return "-";
-    return dateString.split('-').reverse().join('/');
-};
-
 window.logout = () => {
-    if (confirm("Deseja realmente sair do sistema?")) {
-        signOut(auth).then(() => window.location.href = "index.html");
-    }
+    if(confirm("Sair do sistema?")) signOut(auth).then(() => window.location.href = "index.html");
 };
 
 // ============================================================
-// 4. MÓDULO: GESTÃO DE COLABORADORES
+// 4. GESTÃO DE COLABORADORES
 // ============================================================
-
-// A. Carregar Lista na Tabela
 async function loadCollaborators() {
     const listBody = document.getElementById('colaboradores-list');
-    listBody.innerHTML = "<tr><td colspan='5'>Carregando dados...</td></tr>";
+    listBody.innerHTML = "<tr><td colspan='5'>Carregando...</td></tr>";
 
     try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        listBody.innerHTML = ""; // Limpa
+        const q = await getDocs(collection(db, "users"));
+        listBody.innerHTML = ""; 
 
-        querySnapshot.forEach((docSnap) => {
+        q.forEach((docSnap) => {
             const user = docSnap.data();
-            // Guarda no cache para uso global
             usersCache[docSnap.id] = user.nome;
 
-            if (user.cargo !== 'admin') {
-                const row = `
+            if (user.cargo !== 'admin') { 
+                listBody.innerHTML += `
                     <tr>
                         <td>${user.nome}</td>
                         <td>${user.cargo}</td>
                         <td>${user.departamento || '-'}</td>
-                        <td><span style="color: green; font-weight:bold;">Ativo</span></td>
-                        <td>
-                            <button onclick="openHistory('${docSnap.id}', '${user.nome}')" 
-                                style="cursor:pointer; background:#17a2b8; color:white; border:none; padding:5px 10px; border-radius:4px;">
-                                📂 Histórico
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                listBody.innerHTML += row;
+                        <td><span style="color:green;font-weight:bold;">Ativo</span></td>
+                        <td><button onclick="openHistory('${docSnap.id}', '${user.nome}')" style="cursor:pointer;border:none;background:none;">📂 Histórico</button></td>
+                    </tr>`;
             }
         });
-    } catch (error) {
-        console.error(error);
-        listBody.innerHTML = "<tr><td colspan='5' style='color:red'>Erro ao carregar lista.</td></tr>";
-    }
+    } catch (e) { listBody.innerHTML = "<tr><td colspan='5'>Erro ao carregar.</td></tr>"; }
 }
 
-// B. Cadastrar Novo Colaborador
 const formAddUser = document.getElementById('form-add-user');
 if (formAddUser) {
     formAddUser.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const nome = document.getElementById('new-name').value;
         const email = document.getElementById('new-email').value;
         const cargo = document.getElementById('new-cargo').value;
         const dept = document.getElementById('new-dept').value;
-        const defaultPass = "mudar123";
 
         try {
-            // Cria no Auth Secundário
-            const userCred = await createUserWithEmailAndPassword(secondaryAuth, email, defaultPass);
-            const newUid = userCred.user.uid;
-
-            // Cria no Firestore Principal
-            await setDoc(doc(db, "users", newUid), {
-                nome: nome,
-                email: email,
-                cargo: cargo,
-                departamento: dept,
-                primeiroAcesso: true,
-                dataCadastro: new Date()
+            const userCred = await createUserWithEmailAndPassword(secondaryAuth, email, "mudar123");
+            await setDoc(doc(db, "users", userCred.user.uid), {
+                nome, email, cargo, departamento: dept, primeiroAcesso: true, dataCadastro: new Date()
             });
-
-            alert(`Colaborador ${nome} cadastrado com sucesso!`);
+            alert("Cadastrado com sucesso!");
             closeModal();
-            document.getElementById('form-add-user').reset();
-
-            // Atualiza interfaces
             loadCollaborators();
             loadUserSelectOptions();
             loadOccurrenceUserSelect();
-
-            signOut(secondaryAuth); // Limpa sessão secundária
-
-        } catch (error) {
-            console.error(error);
-            if (error.code === 'auth/email-already-in-use') {
-                alert("Erro: Este e-mail já está em uso.");
-            } else {
-                alert("Erro no cadastro: " + error.message);
-            }
-        }
+            signOut(secondaryAuth);
+        } catch (error) { alert("Erro: " + error.message); }
     });
 }
 
 // ============================================================
-// 5. MÓDULO: LANÇAMENTO DE MÉTRICAS (CRUD COMPLETO)
+// 5. DASHBOARD - LÓGICA DE AGREGAÇÃO E KPIs
 // ============================================================
 
-// A. Preencher Select
-async function loadUserSelectOptions() {
-    const select = document.getElementById('metric-user-select');
-    if (!select) return;
-    select.innerHTML = '<option value="">Selecione...</option>';
-
-    // Reutiliza cache se possível, senão busca
-    if (Object.keys(usersCache).length > 0) {
-        for (const [uid, nome] of Object.entries(usersCache)) {
-            const option = document.createElement('option');
-            option.value = uid;
-            option.innerText = nome;
-            select.appendChild(option);
-        }
-    } else {
-        const q = await getDocs(collection(db, "users"));
-        q.forEach((docSnap) => {
-            const data = docSnap.data();
-            if (data.cargo !== 'admin') {
-                usersCache[docSnap.id] = data.nome;
-                const option = document.createElement('option');
-                option.value = docSnap.id;
-                option.innerText = data.nome;
-                select.appendChild(option);
-            }
-        });
-    }
-}
-
-// B. Submit do Formulário (Criação ou Edição)
-const formMetrics = document.getElementById('form-metrics');
-if (formMetrics) {
-    formMetrics.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const userId = document.getElementById('metric-user-select').value;
-        const dateInput = document.getElementById('metric-date').value;
-
-        if (!userId || !dateInput) {
-            alert("Erro: Usuário e Data são obrigatórios.");
-            return;
-        }
-
-        // Objeto de Dados
-        const metricsData = {
-            userId: userId,
-            userName: usersCache[userId] || "Colaborador",
-            weekStart: dateInput,
-            createdAt: new Date(), // Em edição, isso poderia ser mantido original, mas atualizar é aceitável
-
-            // Parsing numérico seguro
-            atendimentosAbertos: Number(document.getElementById('at-abertos').value) || 0,
-            atendimentosFinalizados: Number(document.getElementById('at-finalizados').value) || 0,
-            ligacoesRealizadas: Number(document.getElementById('lig-realizadas').value) || 0,
-            ligacoesRecebidas: Number(document.getElementById('lig-recebidas').value) || 0,
-            ligacoesPerdidas: Number(document.getElementById('lig-perdidas').value) || 0,
-            tmeTelefonia: Number(document.getElementById('tme-tel').value) || 0,
-            tmaTelefonia: Number(document.getElementById('tma-tel').value) || 0,
-            atendimentosHuggy: Number(document.getElementById('at-huggy').value) || 0,
-            tmaHuggy: Number(document.getElementById('tma-huggy').value) || 0,
-            notaMonitoria: Number(document.getElementById('nota-monitoria').value) || 0
-        };
-
-        try {
-            if (isEditingMetric) {
-                // --- MODO EDIÇÃO ---
-                if (!editingMetricId) throw new Error("ID do documento perdido.");
-
-                const docRef = doc(db, "weekly_metrics", editingMetricId);
-                await updateDoc(docRef, metricsData);
-
-                alert("Métricas atualizadas com sucesso!");
-                resetMetricFormState(); // Volta ao estado normal
-
-            } else {
-                // --- MODO CRIAÇÃO ---
-                // ID Composto: UID_Data (Evita duplicidade na mesma semana)
-                const docId = `${userId}_${dateInput}`;
-                await setDoc(doc(db, "weekly_metrics", docId), metricsData);
-
-                alert("Métricas salvas com sucesso!");
-                formMetrics.reset();
-            }
-
-        } catch (error) {
-            console.error("Erro ao salvar métricas:", error);
-            alert("Falha ao salvar: " + error.message);
-        }
-    });
-}
-
-// Helper: Resetar formulário após edição
-function resetMetricFormState() {
-    isEditingMetric = false;
-    editingMetricId = null;
-
-    // Reseta visual do botão
-    const btn = document.querySelector('#form-metrics button[type="submit"]');
-    btn.innerText = "Salvar Métricas da Semana";
-    btn.style.backgroundColor = "#007bff";
-    btn.style.color = "white";
-
-    // Libera campos bloqueados
-    document.getElementById('metric-user-select').disabled = false;
-    document.getElementById('metric-date').disabled = false;
-
-    document.getElementById('form-metrics').reset();
-}
-
-// ============================================================
-// 6. MÓDULO: REGISTRO DE OCORRÊNCIAS (CORRIGIDO)
-// ============================================================
-
-// A. Carregar lista de usuários (Chamada no inicio do arquivo)
-async function loadOccurrenceUserSelect() {
-    const select = document.getElementById('occur-user-select');
-    if(!select) return;
-
-    select.innerHTML = '<option value="">Selecione...</option>'; 
-
-    // Tenta usar cache
-    if (Object.keys(usersCache).length > 0) {
-        for (const [uid, nome] of Object.entries(usersCache)) {
-            const option = document.createElement('option');
-            option.value = uid;
-            option.innerText = nome;
-            select.appendChild(option);
-        }
-    } else {
-        // Fallback: busca no banco
-        const q = await getDocs(collection(db, "users"));
-        q.forEach((docSnap) => {
-            if (docSnap.data().cargo !== 'admin') {
-                usersCache[docSnap.id] = docSnap.data().nome;
-                const option = document.createElement('option');
-                option.value = docSnap.id;
-                option.innerText = docSnap.data().nome;
-                select.appendChild(option);
-            }
-        });
-    }
-}
-
-// B. Submit do Formulário (Onde estava o erro)
-const formOccur = document.getElementById('form-ocorrencias');
-
-if (formOccur) {
-    // Removemos listeners antigos para evitar duplicação (boa prática em SPAs simples)
-    const newFormOccur = formOccur.cloneNode(true);
-    formOccur.parentNode.replaceChild(newFormOccur, formOccur);
-    
-    // Adiciona o evento no novo elemento limpo
-    newFormOccur.addEventListener('submit', async (e) => {
-        // 1. IMPEDE O RECARREGAMENTO DA PÁGINA (CRUCIAL)
-        e.preventDefault(); 
-        console.log("Tentando registrar ocorrência...");
-
-        const uid = document.getElementById('occur-user-select').value;
-        const date = document.getElementById('occur-date').value;
-        const title = document.getElementById('occur-title').value;
-        const desc = document.getElementById('occur-desc').value;
-        
-        // Validação de Radio Button
-        const typeEl = document.querySelector('input[name="occur-type"]:checked');
-        
-        if (!uid || !date || !title || !typeEl) {
-            alert("Por favor, preencha: Colaborador, Data, Tipo e Título.");
-            return;
-        }
-
-        try {
-            // Referência para novo documento com ID automático
-            const newDocRef = doc(collection(db, "occurrences")); 
-
-            const payload = {
-                userId: uid,
-                userName: usersCache[uid] || "Colaborador",
-                date: date,
-                type: typeEl.value, // 'positive' ou 'negative'
-                title: title,
-                description: desc || "",
-                read: false,
-                readAt: null,
-                createdAt: new Date()
-            };
-
-            console.log("Enviando dados:", payload);
-
-            await setDoc(newDocRef, payload);
-
-            alert("Feedback registrado com sucesso!");
-            newFormOccur.reset();
-            
-        } catch (error) {
-            console.error("Erro ao registrar ocorrência:", error);
-            alert("Erro no sistema: " + error.message);
-        }
-    });
-} else {
-    console.error("ERRO CRÍTICO: Formulário 'form-ocorrencias' não encontrado no HTML.");
-}
-
-// ============================================================
-// 7. MÓDULO: HISTÓRICO GERENCIAL (EDITAR E EXCLUIR)
-// ============================================================
-
-// A. Abrir Modal e Carregar Dados
-window.openHistory = async (uid, nome) => {
-    const modal = document.getElementById('modal-user-history');
-    if (modal) modal.style.display = 'block';
-
-    document.getElementById('history-user-name').innerText = "Histórico: " + nome;
-
-    loadHistoryMetrics(uid);
-    loadHistoryOccurrences(uid);
-};
-
-window.closeHistoryModal = () => {
-    document.getElementById('modal-user-history').style.display = 'none';
-};
-
-// B. Renderizar Lista de Métricas
-async function loadHistoryMetrics(uid) {
-    const div = document.getElementById('history-metrics-list');
-    div.innerHTML = "<p>Carregando...</p>";
-
-    try {
-        const q = query(collection(db, "weekly_metrics"), where("userId", "==", uid));
-        const querySnapshot = await getDocs(q);
-
-        let html = "";
-
-        // Converter para array para ordenar (opcional, se não tiver index)
-        let docs = [];
-        querySnapshot.forEach(d => docs.push({ id: d.id, ...d.data() }));
-        docs.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
-
-        if (docs.length === 0) {
-            div.innerHTML = "<p>Nenhuma métrica lançada.</p>";
-            return;
-        }
-
-        docs.forEach((data) => {
-            html += `
-                <div class="history-item" style="border-left-color: #007bff;">
-                    <div class="history-info">
-                        <strong>Semana ${formatDateBr(data.weekStart)}</strong>
-                        <small>Monitoria: ${data.notaMonitoria} | TMA: ${data.tmaTelefonia}</small>
-                    </div>
-                    <div class="history-actions">
-                        <button class="btn-icon btn-edit" title="Editar" onclick="prepareEditMetric('${data.id}')">✏️</button>
-                        <button class="btn-icon btn-delete" title="Excluir" onclick="deleteItem('weekly_metrics', '${data.id}', '${uid}')">🗑️</button>
-                    </div>
-                </div>`;
-        });
-        div.innerHTML = html;
-
-    } catch (e) {
-        console.error(e);
-        div.innerHTML = "Erro ao carregar.";
-    }
-}
-
-// C. Renderizar Lista de Ocorrências
-async function loadHistoryOccurrences(uid) {
-    const div = document.getElementById('history-occurrences-list');
-    div.innerHTML = "<p>Carregando...</p>";
-
-    try {
-        const q = query(collection(db, "occurrences"), where("userId", "==", uid));
-        const querySnapshot = await getDocs(q);
-
-        let docs = [];
-        querySnapshot.forEach(d => docs.push({ id: d.id, ...d.data() }));
-        docs.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        if (docs.length === 0) {
-            div.innerHTML = "<p>Nenhum feedback registrado.</p>";
-            return;
-        }
-
-        let html = "";
-        docs.forEach((data) => {
-            const color = data.type === 'positive' ? '#28a745' : '#dc3545';
-            html += `
-                <div class="history-item" style="border-left-color: ${color};">
-                    <div class="history-info">
-                        <strong>${data.title}</strong>
-                        <small>${formatDateBr(data.date)} - ${data.read ? 'Lido ✅' : 'Não lido'}</small>
-                    </div>
-                    <div class="history-actions">
-                        <button class="btn-icon btn-delete" title="Excluir" onclick="deleteItem('occurrences', '${data.id}', '${uid}')">🗑️</button>
-                    </div>
-                </div>`;
-        });
-        div.innerHTML = html;
-
-    } catch (e) {
-        console.error(e);
-        div.innerHTML = "Erro ao carregar.";
-    }
-}
-
-// D. Função Genérica de Excluir
-window.deleteItem = async (colName, docId, uid) => {
-    if (!confirm("⚠️ ATENÇÃO: Deseja excluir este registro permanentemente?\nEssa ação não pode ser desfeita.")) return;
-
-    try {
-        await deleteDoc(doc(db, colName, docId));
-        alert("Registro excluído com sucesso!");
-
-        // Recarrega a lista correta
-        if (colName === 'weekly_metrics') loadHistoryMetrics(uid);
-        else loadHistoryOccurrences(uid);
-
-    } catch (error) {
-        console.error(error);
-        alert("Erro ao excluir: " + error.message);
-    }
-};
-
-// E. Preparar Edição de Métrica
-window.prepareEditMetric = async (docId) => {
-    try {
-        // 1. Busca os dados atuais
-        const docRef = doc(db, "weekly_metrics", docId);
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
-            alert("Erro: Registro não encontrado no banco de dados.");
-            return;
-        }
-        const data = docSnap.data();
-
-        // 2. Fecha modal e navega para aba de lançamentos
-        closeHistoryModal();
-        showSection('lancamentos');
-
-        // 3. Preenche o formulário
-        document.getElementById('metric-user-select').value = data.userId;
-        document.getElementById('metric-date').value = data.weekStart;
-
-        document.getElementById('at-abertos').value = data.atendimentosAbertos;
-        document.getElementById('at-finalizados').value = data.atendimentosFinalizados;
-        document.getElementById('lig-realizadas').value = data.ligacoesRealizadas;
-        document.getElementById('lig-recebidas').value = data.ligacoesRecebidas;
-        document.getElementById('lig-perdidas').value = data.ligacoesPerdidas;
-        document.getElementById('tme-tel').value = data.tmeTelefonia;
-        document.getElementById('tma-tel').value = data.tmaTelefonia;
-        document.getElementById('at-huggy').value = data.atendimentosHuggy;
-        document.getElementById('tma-huggy').value = data.tmaHuggy;
-        document.getElementById('nota-monitoria').value = data.notaMonitoria;
-
-        // 4. Bloqueia campos-chave (Usuário e Data) para evitar inconsistências
-        document.getElementById('metric-user-select').disabled = true;
-        document.getElementById('metric-date').disabled = true;
-
-        // 5. Altera visual do botão de salvar
-        const btn = document.querySelector('#form-metrics button[type="submit"]');
-        btn.innerText = "🔄 Atualizar Dados";
-        btn.style.backgroundColor = "#ffc107"; // Amarelo
-        btn.style.color = "#333";
-
-        // 6. Atualiza Estado Global
-        isEditingMetric = true;
-        editingMetricId = docId;
-
-        alert("✏️ Modo de Edição Ativado.\nFaça as alterações e clique em 'Atualizar Dados'.");
-
-    } catch (error) {
-        console.error(error);
-        alert("Erro ao carregar dados para edição.");
-    }
-};
-
-// ============================================================
-// 8. DASHBOARD PRINCIPAL (ACUMULADO / MÉDIAS GERAIS)
-// ============================================================
-
-// Cache global
-let allMetricsCache = []; 
-let adminChart1 = null;
-let adminChart2 = null;
-
-// A. Função Principal de Carregamento
+// A. Carregar e Calcular Dados
 async function loadDashboardData() {
-    console.log("Calculando Visão Geral Acumulada...");
+    console.log("Calculando Dashboard...");
     
-    // 1. Busca dados no banco se cache vazio
+    // 1. Busca dados (se cache vazio)
     if (allMetricsCache.length === 0) {
         try {
             const q = await getDocs(collection(db, "weekly_metrics"));
             allMetricsCache = []; 
             q.forEach(doc => allMetricsCache.push(doc.data()));
-        } catch (e) {
-            console.error("Erro dashboard:", e);
-            return;
-        }
+        } catch (e) { console.error(e); return; }
     }
 
-    if (allMetricsCache.length === 0) {
-        resetKpis();
-        return;
-    }
+    if (allMetricsCache.length === 0) { resetKpis(); return; }
 
-    // 2. PROCESSAMENTO DE DADOS (AGREGAÇÃO POR USUÁRIO)
-    // Aqui está a mágica: transformamos várias semanas em um resumo por pessoa
+    // 2. Agregação por Usuário (Calcula Médias Históricas)
     const userStats = {};
 
     allMetricsCache.forEach(entry => {
@@ -634,214 +183,346 @@ async function loadDashboardData() {
         if (!userStats[uid]) {
             userStats[uid] = {
                 name: name,
-                count: 0, // Quantas semanas lançadas
-                totalTmaTel: 0,
-                totalMonitoria: 0,
-                volTel: 0,
-                volChat: 0
+                count: 0,
+                accTmaTel: 0,
+                accTmaChat: 0,
+                accMonitoria: 0,
+                accFinalizados: 0 // Soma de Tel + Chat Finalizados
             };
         }
 
         userStats[uid].count += 1;
-        userStats[uid].totalTmaTel += (entry.tmaTelefonia || 0);
-        userStats[uid].totalMonitoria += (entry.notaMonitoria || 0);
-        userStats[uid].volTel += (entry.atendimentosFinalizados || 0);
-        userStats[uid].volChat += (entry.atendimentosHuggy || 0);
+        userStats[uid].accTmaTel += (entry.tmaTelefonia || 0);
+        userStats[uid].accTmaChat += (entry.tmaHuggy || 0);
+        userStats[uid].accMonitoria += (entry.notaMonitoria || 0);
+        userStats[uid].accFinalizados += (entry.atendimentosFinalizados || 0);
     });
 
-    // Calcula as médias finais para cada usuário
-    const aggregatedData = Object.values(userStats).map(u => ({
+    // Gera lista consolidada
+    globalAggregatedData = Object.values(userStats).map(u => ({
         name: u.name,
-        avgTma: (u.totalTmaTel / u.count).toFixed(2),     // Média de todas as semanas
-        avgMonitoria: (u.totalMonitoria / u.count).toFixed(1), // Média de todas as notas
-        totalVol: u.volTel + u.volChat,
-        totalTel: u.volTel,
-        totalChat: u.volChat
+        avgTmaTel: (u.accTmaTel / u.count).toFixed(2),
+        avgTmaChat: (u.accTmaChat / u.count).toFixed(2),
+        avgMonitoria: (u.accMonitoria / u.count).toFixed(1),
+        // Média de volume por semana (Produtividade média semanal)
+        // Se quiser volume TOTAL acumulado, tire o / u.count
+        avgVolume: (u.accFinalizados / u.count).toFixed(0), 
+        totalVolume: u.accFinalizados // Volume total histórico
     }));
 
-    // 3. Renderiza KPIs e Gráficos com os dados consolidados
-    processGlobalKPIs(aggregatedData);
-    renderGlobalCharts(aggregatedData);
+    // 3. Renderiza
+    processGlobalKPIs(globalAggregatedData);
+    // renderGlobalCharts(globalAggregatedData); // (Opcional: se tiver os canvas no HTML)
 }
 
-// B. Processamento dos KPIs Gerais
-function processGlobalKPIs(usersData) {
-    if(usersData.length === 0) { resetKpis(); return; }
+// B. Processar os 6 Cards Específicos
+function processGlobalKPIs(users) {
+    if(users.length === 0) { resetKpis(); return; }
 
-    // KPI 1: TMA Médio da Equipe (Média das Médias dos usuários)
-    const sumAvgTma = usersData.reduce((acc, u) => acc + parseFloat(u.avgTma), 0);
-    const teamTma = (sumAvgTma / usersData.length).toFixed(2);
-    document.getElementById('kpi-tma-avg').innerText = teamTma + " min";
+    // 1. TMA Equipe Telefonia (Média das médias)
+    const sumTmaTel = users.reduce((acc, u) => acc + parseFloat(u.avgTmaTel), 0);
+    const teamTmaTel = (sumTmaTel / users.length).toFixed(2);
+    updateCard('kpi-team-tel', teamTmaTel + " min");
 
-    // KPI 2: Melhor Qualidade (Quem tem a maior média histórica)
-    const bestQa = [...usersData].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
-    document.getElementById('kpi-best-qa').innerText = bestQa.avgMonitoria;
-    document.getElementById('kpi-best-qa-name').innerText = bestQa.name.split(' ')[0]; // Só primeiro nome
+    // 2. TMA Equipe Chat (Média das médias)
+    const sumTmaChat = users.reduce((acc, u) => acc + parseFloat(u.avgTmaChat), 0);
+    const teamTmaChat = (sumTmaChat / users.length).toFixed(2);
+    updateCard('kpi-team-chat', teamTmaChat + " min");
 
-    // KPI 3: Maior TMA (O mais lento na média histórica)
-    const worstTma = [...usersData].sort((a, b) => b.avgTma - a.avgTma)[0];
-    document.getElementById('kpi-worst-tma').innerText = worstTma.avgTma + " min";
-    document.getElementById('kpi-worst-tma-name').innerText = worstTma.name.split(' ')[0];
+    // 3. Média Finalizados da Equipe (Média de produtividade por agente)
+    // Soma o volume total de todos e divide pelo número de agentes
+    const grandTotalVol = users.reduce((acc, u) => acc + u.totalVolume, 0);
+    const teamAvgVol = (grandTotalVol / users.length).toFixed(0);
+    updateCard('kpi-team-vol', teamAvgVol);
 
-    // KPI 4: Volume Total da Empresa (Soma de tudo)
-    const grandTotalVol = usersData.reduce((acc, u) => acc + u.totalVol, 0);
-    document.getElementById('kpi-volume').innerText = grandTotalVol;
+    // 4. Melhor Qualidade
+    const bestQa = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
+    updateCard('kpi-best-qa', bestQa.avgMonitoria);
+    updateCard('kpi-best-qa-name', bestQa.name.split(' ')[0]);
+
+    // 5. Maior TMA Telefonia
+    const maxTel = [...users].sort((a, b) => b.avgTmaTel - a.avgTmaTel)[0];
+    updateCard('kpi-max-tel', maxTel.avgTmaTel + " min");
+    updateCard('kpi-max-tel-name', maxTel.name.split(' ')[0]);
+
+    // 6. Maior TMA Chat
+    const maxChat = [...users].sort((a, b) => b.avgTmaChat - a.avgTmaChat)[0];
+    updateCard('kpi-max-chat', maxChat.avgTmaChat + " min");
+    updateCard('kpi-max-chat-name', maxChat.name.split(' ')[0]);
 }
 
-// Helper para zerar
+function updateCard(id, val) {
+    const el = document.getElementById(id);
+    if(el) el.innerText = val;
+}
+
 function resetKpis() {
-    document.getElementById('kpi-tma-avg').innerText = "--";
-    document.getElementById('kpi-best-qa').innerText = "--";
-    document.getElementById('kpi-worst-tma').innerText = "--";
-    document.getElementById('kpi-volume').innerText = "0";
+    ['kpi-team-tel','kpi-team-chat','kpi-team-vol','kpi-best-qa','kpi-max-tel','kpi-max-chat'].forEach(id => updateCard(id, '--'));
 }
 
-// C. Renderização dos Gráficos Gerais
-function renderGlobalCharts(usersData) {
-    const ctx1 = document.getElementById('adminChartMonitoria');
-    const ctx2 = document.getElementById('adminChartVolume');
-
-    if(!ctx1 || !ctx2) return;
-
-    // Gráfico 1: Ranking de Qualidade (Média Histórica)
-    // Ordena do melhor para o pior para ficar bonito no gráfico
-    const sortedByQa = [...usersData].sort((a, b) => b.avgMonitoria - a.avgMonitoria);
-
-    const labels = sortedByQa.map(u => u.name.split(' ')[0]);
-    const grades = sortedByQa.map(u => u.avgMonitoria);
-    
-    if (adminChart1) adminChart1.destroy();
-    adminChart1 = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Média de Monitoria',
-                data: grades,
-                backgroundColor: grades.map(g => g >= 90 ? '#28a745' : '#ffc107'), // Verde se >90, senao amarelo
-                borderRadius: 4
-            }]
-        },
-        options: { 
-            responsive: true, 
-            scales: { y: { beginAtZero: true, max: 100 } },
-            plugins: { legend: { display: false } }
-        }
-    });
-
-    // Gráfico 2: Pizza de Canais (Total Histórico)
-    const totalTel = usersData.reduce((acc, u) => acc + u.totalTel, 0);
-    const totalChat = usersData.reduce((acc, u) => acc + u.totalChat, 0);
-
-    if (adminChart2) adminChart2.destroy();
-    adminChart2 = new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-            labels: ['Telefonia Total', 'Chat Total'],
-            datasets: [{
-                data: [totalTel, totalChat],
-                backgroundColor: ['#007bff', '#17a2b8'],
-                borderWidth: 0
-            }]
-        },
-        options: { cutout: '70%' }
-    });
-}
-
-// --- FUNÇÃO DE FORÇAR ATUALIZAÇÃO ---
-window.forceDashboardRefresh = async () => {
-    const btnIcon = document.querySelector('button[title="Recalcular Dados"] i');
-    if(btnIcon) btnIcon.innerText = "hourglass_empty"; 
-
-    resetKpis();
-    
-    // Limpa cache e força recarregamento
-    allMetricsCache = []; 
-    await new Promise(r => setTimeout(r, 500)); // Delay visual
-    await loadDashboardData();
-    
-    if(btnIcon) btnIcon.innerText = "sync";
-};
-
-// ============================================================
-// 9. MODAL DE DETALHES (DRILL-DOWN)
-// ============================================================
+// C. Modal de Detalhes (Clique no Card)
 window.openDetailModal = (type) => {
     const modal = document.getElementById('modal-kpi-details');
     const title = document.getElementById('modal-kpi-title');
     const tbody = document.getElementById('modal-kpi-body');
-    const headerVal = document.getElementById('modal-kpi-col-value');
-
-    // Pega a semana selecionada no select
-    const weekSelect = document.getElementById('dash-week-select');
-    if (!weekSelect.value) return;
-
-    const data = allMetricsCache.filter(d => d.weekStart === weekSelect.value);
-
+    const thVal = document.getElementById('modal-kpi-col-value');
+    
     modal.style.display = 'block';
     tbody.innerHTML = "";
+    
+    let data = [...globalAggregatedData]; // Cópia para ordenar
 
-    let sortedData = [];
+    // Configuração da Tabela baseada no card clicado
+    if (type === 'team-tel') {
+        title.innerText = "TMA Telefonia (Todos)";
+        thVal.innerText = "Média (min)";
+        data.sort((a, b) => b.avgTmaTel - a.avgTmaTel); // Do maior para menor
+        data.forEach(u => appendRow(tbody, u.name, u.avgTmaTel));
+    
+    } else if (type === 'team-chat') {
+        title.innerText = "TMA Chat (Todos)";
+        thVal.innerText = "Média (min)";
+        data.sort((a, b) => b.avgTmaChat - a.avgTmaChat);
+        data.forEach(u => appendRow(tbody, u.name, u.avgTmaChat));
 
-    if (type === 'monitoria') {
+    } else if (type === 'team-vol') {
+        title.innerText = "Volume Total Acumulado";
+        thVal.innerText = "Total Atendimentos";
+        data.sort((a, b) => b.totalVolume - a.totalVolume);
+        data.forEach(u => appendRow(tbody, u.name, u.totalVolume));
+
+    } else if (type === 'best-qa') {
         title.innerText = "Ranking de Qualidade";
-        headerVal.innerText = "Nota";
-        sortedData = data.sort((a, b) => b.notaMonitoria - a.notaMonitoria);
+        thVal.innerText = "Nota Média";
+        data.sort((a, b) => b.avgMonitoria - a.avgMonitoria);
+        data.forEach((u, i) => appendRow(tbody, `${i+1}º ${u.name}`, u.avgMonitoria, i===0));
 
-        sortedData.forEach((d, index) => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${index + 1}º ${d.userName}</td>
-                    <td><strong>${d.notaMonitoria}</strong></td>
-                </tr>`;
-        });
+    } else if (type === 'max-tel') {
+        title.innerText = "Ranking TMA Telefonia (Ofensores)";
+        thVal.innerText = "Tempo Médio";
+        data.sort((a, b) => b.avgTmaTel - a.avgTmaTel);
+        data.forEach((u, i) => appendRow(tbody, u.name, u.avgTmaTel, i===0));
 
-    } else if (type === 'worst-tma' || type === 'tma') {
-        title.innerText = "Detalhamento de TMA";
-        headerVal.innerText = "Tempo (min)";
-        sortedData = data.sort((a, b) => b.tmaTelefonia - a.tmaTelefonia); // Do maior para menor
-
-        sortedData.forEach(d => {
-            // Se for o pior, pinta de vermelho
-            const style = (d === sortedData[0]) ? "color:red; font-weight:bold;" : "";
-            tbody.innerHTML += `
-                <tr>
-                    <td>${d.userName}</td>
-                    <td style="${style}">${d.tmaTelefonia}</td>
-                </tr>`;
-        });
-
-    } else if (type === 'volume') {
-        title.innerText = "Volume Individual";
-        headerVal.innerText = "Total (Tel + Chat)";
-
-        // Calcula total por pessoa e ordena
-        sortedData = data.map(d => ({
-            name: d.userName,
-            vol: (d.atendimentosFinalizados || 0) + (d.atendimentosHuggy || 0)
-        })).sort((a, b) => b.vol - a.vol);
-
-        sortedData.forEach(d => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${d.name}</td>
-                    <td>${d.vol}</td>
-                </tr>`;
-        });
+    } else if (type === 'max-chat') {
+        title.innerText = "Ranking TMA Chat (Ofensores)";
+        thVal.innerText = "Tempo Médio";
+        data.sort((a, b) => b.avgTmaChat - a.avgTmaChat);
+        data.forEach((u, i) => appendRow(tbody, u.name, u.avgTmaChat, i===0));
     }
 };
 
-// --- FUNÇÃO DE FORÇAR ATUALIZAÇÃO (ADMIN) ---
+function appendRow(tbody, name, val, isHighlight=false) {
+    const style = isHighlight ? "color:var(--color-main-red); font-weight:bold;" : "";
+    tbody.innerHTML += `<tr><td>${name}</td><td style="${style}">${val}</td></tr>`;
+}
+
+// D. Refresh Manual
 window.forceDashboardRefresh = async () => {
-    // 1. Limpa o cache local
     allMetricsCache = [];
-
-    // 2. Limpa o select para forçar reconstrução
-    const select = document.getElementById('dash-week-select');
-    if (select) select.innerHTML = "<option value=''>Atualizando...</option>";
-
-    // 3. Chama a função principal novamente
+    resetKpis();
     await loadDashboardData();
+    alert("Dados atualizados!");
+};
 
-    alert("Dashboard atualizado com os dados mais recentes!");
+// ============================================================
+// 6. FORMULÁRIOS E CADASTROS (MÉTRICAS E OCORRÊNCIAS)
+// ============================================================
+
+// Select de Usuários para Métricas
+async function loadUserSelectOptions() {
+    const select = document.getElementById('metric-user-select');
+    if(!select) return;
+    select.innerHTML = '<option value="">Selecione...</option>'; 
+    
+    // Fallback simples se cache vazio
+    const q = await getDocs(collection(db, "users"));
+    q.forEach(d => {
+        if(d.data().cargo !== 'admin') {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.innerText = d.data().nome;
+            select.appendChild(opt);
+        }
+    });
+}
+
+// Select de Usuários para Ocorrências
+async function loadOccurrenceUserSelect() {
+    const select = document.getElementById('occur-user-select');
+    if(!select) return;
+    select.innerHTML = '<option value="">Selecione...</option>'; 
+    
+    // Reutiliza lógica de busca
+    const q = await getDocs(collection(db, "users"));
+    q.forEach(d => {
+        if(d.data().cargo !== 'admin') {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.innerText = d.data().nome;
+            select.appendChild(opt);
+        }
+    });
+}
+
+// Submit Métricas
+const formMetrics = document.getElementById('form-metrics');
+if (formMetrics) {
+    formMetrics.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userId = document.getElementById('metric-user-select').value;
+        const weekStart = document.getElementById('metric-date').value;
+        
+        // Pega nome do select
+        const sel = document.getElementById('metric-user-select');
+        const userName = sel.options[sel.selectedIndex].text;
+
+        const data = {
+            userId, userName, weekStart, createdAt: new Date(),
+            atendimentosAbertos: Number(document.getElementById('at-abertos').value),
+            atendimentosFinalizados: Number(document.getElementById('at-finalizados').value),
+            ligacoesRealizadas: Number(document.getElementById('lig-realizadas').value),
+            ligacoesRecebidas: Number(document.getElementById('lig-recebidas').value),
+            ligacoesPerdidas: Number(document.getElementById('lig-perdidas').value),
+            tmeTelefonia: Number(document.getElementById('tme-tel').value),
+            tmaTelefonia: Number(document.getElementById('tma-tel').value),
+            atendimentosHuggy: Number(document.getElementById('at-huggy').value),
+            tmaHuggy: Number(document.getElementById('tma-huggy').value),
+            notaMonitoria: Number(document.getElementById('nota-monitoria').value)
+        };
+
+        try {
+            if (isEditingMetric) {
+                await updateDoc(doc(db, "weekly_metrics", editingMetricId), data);
+                alert("Atualizado!");
+                resetMetricFormState();
+            } else {
+                await setDoc(doc(db, "weekly_metrics", `${userId}_${weekStart}`), data);
+                alert("Salvo!");
+                formMetrics.reset();
+            }
+            // Limpa cache para forçar recálculo na dashboard
+            allMetricsCache = [];
+        } catch (e) { alert("Erro: " + e.message); }
+    });
+}
+
+function resetMetricFormState() {
+    isEditingMetric = false;
+    editingMetricId = null;
+    const btn = document.querySelector('#form-metrics button[type="submit"]');
+    btn.innerText = "Salvar Métricas";
+    btn.style.backgroundColor = "";
+    document.getElementById('metric-user-select').disabled = false;
+    document.getElementById('metric-date').disabled = false;
+    document.getElementById('form-metrics').reset();
+}
+
+// Submit Ocorrências
+const formOccur = document.getElementById('form-ocorrencias');
+if (formOccur) {
+    const newForm = formOccur.cloneNode(true);
+    formOccur.parentNode.replaceChild(newForm, formOccur);
+    
+    newForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const uid = document.getElementById('occur-user-select').value;
+        const typeEl = document.querySelector('input[name="occur-type"]:checked');
+        
+        if(!uid || !typeEl) return alert("Preencha todos os campos.");
+
+        try {
+            const sel = document.getElementById('occur-user-select');
+            await setDoc(doc(collection(db, "occurrences")), {
+                userId: uid,
+                userName: sel.options[sel.selectedIndex].text,
+                date: document.getElementById('occur-date').value,
+                type: typeEl.value,
+                title: document.getElementById('occur-title').value,
+                description: document.getElementById('occur-desc').value,
+                read: false, createdAt: new Date()
+            });
+            alert("Feedback registrado!");
+            newForm.reset();
+        } catch (e) { alert("Erro: " + e.message); }
+    });
+}
+
+// ============================================================
+// 7. HISTÓRICO GERENCIAL (EDITAR/EXCLUIR)
+// ============================================================
+window.openHistory = async (uid, nome) => {
+    document.getElementById('modal-user-history').style.display = 'block';
+    document.getElementById('history-user-name').innerText = "Histórico: " + nome;
+    loadHistoryData(uid, 'weekly_metrics', 'history-metrics-list');
+    loadHistoryData(uid, 'occurrences', 'history-occurrences-list');
+};
+
+window.closeHistoryModal = () => document.getElementById('modal-user-history').style.display = 'none';
+
+async function loadHistoryData(uid, colName, divId) {
+    const div = document.getElementById(divId);
+    div.innerHTML = "Carregando...";
+    const q = query(collection(db, colName), where("userId", "==", uid));
+    const snap = await getDocs(q);
+    
+    if(snap.empty) { div.innerHTML = "<p>Vazio.</p>"; return; }
+    
+    div.innerHTML = "";
+    snap.forEach(d => {
+        const data = d.data();
+        let title = colName === 'weekly_metrics' ? `Semana ${data.weekStart}` : data.title;
+        
+        div.innerHTML += `
+            <div class="history-item">
+                <div class="history-info"><strong>${title}</strong></div>
+                <div class="history-actions">
+                    ${colName === 'weekly_metrics' ? `<button class="btn-icon btn-edit" onclick="prepareEditMetric('${d.id}')">✏️</button>` : ''}
+                    <button class="btn-icon btn-delete" onclick="deleteItem('${colName}', '${d.id}', '${uid}')">🗑️</button>
+                </div>
+            </div>`;
+    });
+}
+
+window.deleteItem = async (col, id, uid) => {
+    if(confirm("Excluir permanentemente?")) {
+        await deleteDoc(doc(db, col, id));
+        // Recarrega lista e limpa cache global
+        loadHistoryData(uid, col, col === 'weekly_metrics' ? 'history-metrics-list' : 'history-occurrences-list');
+        allMetricsCache = []; 
+    }
+};
+
+window.prepareEditMetric = async (id) => {
+    const snap = await getDoc(doc(db, "weekly_metrics", id));
+    if(!snap.exists()) return;
+    const data = snap.data();
+    
+    closeHistoryModal();
+    showSection('lancamentos');
+    
+    // Preenche Form
+    document.getElementById('metric-user-select').value = data.userId;
+    document.getElementById('metric-date').value = data.weekStart;
+    document.getElementById('at-abertos').value = data.atendimentosAbertos;
+    document.getElementById('at-finalizados').value = data.atendimentosFinalizados;
+    document.getElementById('lig-realizadas').value = data.ligacoesRealizadas;
+    document.getElementById('lig-recebidas').value = data.ligacoesRecebidas;
+    document.getElementById('lig-perdidas').value = data.ligacoesPerdidas;
+    document.getElementById('tme-tel').value = data.tmeTelefonia;
+    document.getElementById('tma-tel').value = data.tmaTelefonia;
+    document.getElementById('at-huggy').value = data.atendimentosHuggy;
+    document.getElementById('tma-huggy').value = data.tmaHuggy;
+    document.getElementById('nota-monitoria').value = data.notaMonitoria;
+
+    // Bloqueia chaves
+    document.getElementById('metric-user-select').disabled = true;
+    document.getElementById('metric-date').disabled = true;
+
+    // Modo Edição
+    isEditingMetric = true;
+    editingMetricId = id;
+    const btn = document.querySelector('#form-metrics button[type="submit"]');
+    btn.innerText = "Atualizar Dados";
+    btn.style.backgroundColor = "#ffc107";
+    btn.style.color = "#333";
 };
