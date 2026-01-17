@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Colaboradores - Login</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="login-container">
+        <div id="login-box">
+            <h2>Acesso ao Sistema</h2>
+            <form id="login-form">
+                <input type="email" id="email" placeholder="Seu E-mail" required>
+                <input type="password" id="password" placeholder="Sua Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <p id="error-msg" class="error"></p>
+            <a href="#" id="forgot-password">Esqueci minha senha</a>
+        </div>
+
+        <div id="first-access-box" style="display: none;">
+            <h2>Bem-vindo!</h2>
+            <p>Este é seu primeiro acesso. Por segurança, defina uma nova senha.</p>
+            <form id="new-password-form">
+                <input type="password" id="new-pass" placeholder="Nova Senha (mín 6 caracteres)" required>
+                <input type="password" id="confirm-pass" placeholder="Confirme a Nova Senha" required>
+                <button type="submit">Atualizar Senha e Entrar</button>
+            </form>
+            <p id="first-access-error" class="error"></p>
+        </div>
+    </div>
+
+    <script type="module" src="js/auth.js"></script>
+</body>
+</html>

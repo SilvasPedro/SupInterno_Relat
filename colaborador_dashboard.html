@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal do Colaborador</title>
+    
+    <link rel="stylesheet" href="css/style.css"> 
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h3>Portal Colaborador</h3>
+            <p id="user-name">Carregando...</p>
+        </div>
+        <ul class="nav-links">
+            <li class="active" onclick="showSection('dashboard')">
+                <i class="material-icons">show_chart</i> Minha Performance
+            </li>
+            
+            <li onclick="showSection('feedbacks')">
+                <i class="material-icons">history</i> Feedbacks
+            </li>
+
+            <li onclick="showSection('history')">
+                <i class="material-icons">table_view</i> Histórico Completo
+            </li>
+
+            <li onclick="logout()" class="logout-btn">
+                <i class="material-icons">logout</i> Sair
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        
+        <div id="section-dashboard" class="section">
+            <div class="header-flex">
+                <h1>Meu Desempenho</h1>
+                <span id="current-date" style="color: #666;"></span>
+            </div>
+
+            <div class="metrics-grid" id="cards-container">
+                <p>Carregando dados...</p>
+            </div>
+
+            <br><hr><br>
+
+            <div class="charts-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="metric-card">
+                    <h3>Evolução da Monitoria</h3>
+                    <canvas id="chartMonitoria"></canvas>
+                </div>
+                <div class="metric-card">
+                    <h3>Produtividade (Atendimentos)</h3>
+                    <canvas id="chartProdutividade"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-feedbacks" class="section" style="display:none;">
+            <h1>Histórico de Feedbacks</h1>
+            <p style="color: #666; margin-bottom: 20px;">Confirme a leitura dos apontamentos abaixo.</p>
+            <div id="feedbacks-list" class="timeline-container">
+                <p>Carregando...</p>
+            </div>
+        </div>
+
+        <div id="section-history" class="section" style="display:none;">
+            <div class="header-flex">
+                <h1>Meus Dados Completos</h1>
+                <button onclick="loadFullHistory()" class="btn-primary" style="padding: 8px 15px; font-size: 12px;">
+                    <i class="material-icons" style="font-size:14px; vertical-align:middle;">refresh</i> Atualizar Tabela
+                </button>
+            </div>
+
+            <div class="metric-card" style="margin-bottom: 30px;">
+                <h3 style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
+                    📊 Histórico de Métricas
+                </h3>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Semana</th>
+                                <th>Monitoria</th>
+                                <th>TMA Tel</th>
+                                <th>TMA Chat</th>
+                                <th>Vol. Total</th>
+                                <th>Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-metrics-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <h3 style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
+                    💬 Histórico de Feedbacks
+                </h3>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Título</th>
+                                <th>Descrição</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-occurrences-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module" src="js/colaborador.js"></script>
+</body>
+
+</html>

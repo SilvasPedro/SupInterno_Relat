@@ -1,0 +1,521 @@
+/* ============================================================
+   1. VARIÁVEIS E RESET (PALETA DE CORES DA MARCA)
+   ============================================================ */
+:root {
+    /* Paleta Oficial */
+    --color-dark-brown: #332D27;  /* Sidebar, Textos Fortes */
+    --color-deep-red:   #8A0015;  /* Hover, Headers, Bordas Ativas */
+    --color-main-red:   #E30224;  /* Cor Principal, Botões, Destaques */
+    --color-taupe:      #85725F;  /* Textos Secundários, Bordas Suaves */
+    --color-cream:      #FAE1C0;  /* Detalhes, Ícones no escuro */
+    
+    /* Cores de Interface */
+    --bg-body:          #F8F6F4;  /* Off-white quente */
+    --bg-card:          #FFFFFF;
+    --text-main:        #332D27;
+    --text-light:       #7a6b5d;
+    
+    /* Utilitários */
+    --shadow-soft:      0 8px 24px rgba(51, 45, 39, 0.06);
+    --shadow-hover:     0 12px 32px rgba(227, 2, 36, 0.15);
+    --radius:           10px;
+    --transition:       all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    display: flex;
+    min-height: 100vh;
+    font-size: 15px;
+}
+
+/* ============================================================
+   2. SIDEBAR (MENU LATERAL)
+   ============================================================ */
+.sidebar {
+    width: 260px;
+    background: var(--color-dark-brown);
+    color: var(--color-cream);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-header {
+    padding: 30px 25px;
+    border-bottom: 1px solid rgba(250, 225, 192, 0.1);
+}
+
+.sidebar-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-main-red);
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.sidebar-header p {
+    font-size: 13px;
+    opacity: 0.8;
+    color: var(--color-cream);
+}
+
+.nav-links {
+    list-style: none;
+    margin-top: 20px;
+    padding: 0 15px;
+}
+
+.nav-links li {
+    padding: 14px 20px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border-radius: var(--radius);
+    transition: var(--transition);
+    color: #e0dcd8;
+    font-weight: 500;
+}
+
+.nav-links li i {
+    margin-right: 15px;
+    font-size: 20px;
+    color: var(--color-cream);
+}
+
+.nav-links li:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.nav-links li.active {
+    background: linear-gradient(90deg, var(--color-deep-red) 0%, var(--color-main-red) 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(227, 2, 36, 0.3);
+}
+
+.nav-links li.active i {
+    color: white;
+}
+
+.logout-btn {
+    margin-top: auto;
+    margin-bottom: 20px !important;
+    border: 1px solid rgba(227, 2, 36, 0.3);
+}
+
+.logout-btn:hover {
+    background: rgba(227, 2, 36, 0.1) !important;
+    color: var(--color-main-red) !important;
+}
+
+.logout-btn:hover i { color: var(--color-main-red) !important; }
+
+/* ============================================================
+   3. CONTEÚDO PRINCIPAL (LAYOUT)
+   ============================================================ */
+.main-content {
+    margin-left: 260px;
+    padding: 40px 50px;
+    width: calc(100% - 260px); /* Garante que não estoure a tela */
+    max-width: 1600px;
+}
+
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-dark-brown);
+    position: relative;
+}
+
+h1::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--color-main-red);
+    margin-top: 8px;
+    border-radius: 2px;
+}
+
+/* ============================================================
+   4. CARDS DE KPI (DASHBOARD)
+   ============================================================ */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.metric-card {
+    background: var(--bg-card);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(133, 114, 95, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(227, 2, 36, 0.2);
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--color-taupe);
+}
+
+.metric-card.kpi-card h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--color-taupe);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.metric-card.kpi-card h1 {
+    font-size: 36px;
+    color: var(--color-dark-brown);
+    margin: 0;
+}
+.metric-card.kpi-card h1::after { display: none; }
+
+.metric-card p {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-top: 5px;
+}
+
+/* ============================================================
+   5. FORMULÁRIOS MODERNOS
+   ============================================================ */
+.metrics-form {
+    background: var(--bg-card);
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+}
+
+.form-group-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.input-block {
+    margin-bottom: 20px;
+}
+
+.input-block label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-dark-brown);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="password"],
+textarea,
+select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    color: var(--color-dark-brown);
+    background: #fdfdfd;
+    transition: var(--transition);
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--color-main-red);
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(227, 2, 36, 0.1);
+}
+
+.radio-group {
+    display: flex;
+    gap: 15px;
+}
+
+.radio-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #f9f9f9;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.radio-label input { margin-right: 10px; width: auto; }
+
+.radio-label.positive:hover { background: #e8f5e9; border-color: #28a745; color: #1e7e34; }
+.radio-label.negative:hover { background: #fee2e2; border-color: var(--color-main-red); color: var(--color-main-red); }
+
+/* ============================================================
+   6. BOTÕES
+   ============================================================ */
+button, .btn-primary, .btn-save-metrics {
+    background-color: var(--color-main-red);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 6px rgba(227, 2, 36, 0.2);
+}
+
+button:hover, .btn-primary:hover, .btn-save-metrics:hover {
+    background-color: var(--color-deep-red);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(138, 0, 21, 0.3);
+}
+
+button[onclick*="openHistory"] {
+    background-color: transparent !important;
+    color: var(--color-taupe) !important;
+    border: 1px solid var(--color-taupe) !important;
+    box-shadow: none !important;
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+    text-transform: none !important;
+}
+
+button[onclick*="openHistory"]:hover {
+    background-color: var(--color-taupe) !important;
+    color: white !important;
+}
+
+/* ============================================================
+   7. TABELAS
+   ============================================================ */
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+}
+
+.data-table th {
+    background-color: var(--color-dark-brown);
+    color: var(--color-cream);
+    padding: 18px;
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+.data-table td {
+    padding: 18px;
+    border-bottom: 1px solid #eee;
+    color: var(--text-main);
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover { background-color: #fcfcfc; }
+
+/* ============================================================
+   8. TIMELINE (FEEDBACKS)
+   ============================================================ */
+.timeline-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-soft);
+    border-left: 5px solid var(--color-taupe);
+    position: relative;
+    transition: var(--transition);
+}
+
+.timeline-card:hover { transform: translateX(5px); }
+.timeline-card.positive { border-left-color: #28a745; }
+.timeline-card.negative { border-left-color: var(--color-main-red); }
+
+.card-title {
+    color: var(--color-dark-brown);
+    font-weight: 700;
+}
+
+.card-date {
+    background: #f0f0f0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+}
+
+/* ============================================================
+   9. MODAL (CORRIGIDO!)
+   ============================================================ */
+.modal {
+    display: none; /* ESSENCIAL: Esconde o modal por padrão */
+    position: fixed; /* Fixa na tela */
+    z-index: 2000; /* Garante que fique acima de tudo */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Permite rolagem se o modal for grande */
+    background-color: rgba(51, 45, 39, 0.7); /* Fundo escuro transparente */
+    backdrop-filter: blur(4px); /* Blur no fundo */
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto; /* Centraliza verticalmente */
+    padding: 40px;
+    border: none;
+    width: 50%; /* Largura ajustável */
+    max-width: 600px; /* Largura máxima */
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+.close {
+    color: var(--color-taupe);
+    float: right; /* Joga o X para a direita */
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.close:hover {
+    color: var(--color-main-red);
+}
+
+/* ============================================================
+   10. LOGIN PAGE
+   ============================================================ */
+.login-container {
+    width: 380px;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+    border-top: 5px solid var(--color-main-red);
+    text-align: center;
+}
+
+.login-container h2 {
+    color: var(--color-dark-brown);
+    margin-bottom: 30px;
+}
+
+.login-container input {
+    margin-bottom: 15px; /* Espaço entre inputs */
+}
+
+.login-container a {
+    display: block;
+    margin-top: 20px;
+    color: var(--color-taupe);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.login-container a:hover {
+    color: var(--color-main-red);
+    text-decoration: underline;
+}
+
+/* ============================================================
+   11. HISTORY LIST (GERENCIAL)
+   ============================================================ */
+.history-item {
+    background: white;
+    border: 1px solid #eee;
+    border-left-width: 4px;
+    box-shadow: none;
+    margin-bottom: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+}
+
+.history-item:hover {
+    background: #fafafa;
+}
+
+.history-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.btn-icon.btn-edit { background-color: var(--color-cream); color: var(--color-dark-brown); }
+.btn-icon.btn-edit:hover { background-color: #e6ceac; }
+
+.btn-icon.btn-delete { background-color: #fff0f0; color: var(--color-main-red); }
+.btn-icon.btn-delete:hover { background-color: var(--color-main-red); color: white; }
