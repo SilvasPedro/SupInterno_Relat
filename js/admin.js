@@ -328,61 +328,96 @@ function resetMetricFormState() {
 }
 
 // ============================================================
-// 6. MÓDULO: REGISTRO DE OCORRÊNCIAS
+// 6. MÓDULO: REGISTRO DE OCORRÊNCIAS (CORRIGIDO)
 // ============================================================
 
+// A. Carregar lista de usuários (Chamada no inicio do arquivo)
 async function loadOccurrenceUserSelect() {
     const select = document.getElementById('occur-user-select');
-    if (!select) return;
-    select.innerHTML = '<option value="">Selecione...</option>';
+    if(!select) return;
 
-    // Reutiliza cache
-    for (const [uid, nome] of Object.entries(usersCache)) {
-        const option = document.createElement('option');
-        option.value = uid;
-        option.innerText = nome;
-        select.appendChild(option);
+    select.innerHTML = '<option value="">Selecione...</option>'; 
+
+    // Tenta usar cache
+    if (Object.keys(usersCache).length > 0) {
+        for (const [uid, nome] of Object.entries(usersCache)) {
+            const option = document.createElement('option');
+            option.value = uid;
+            option.innerText = nome;
+            select.appendChild(option);
+        }
+    } else {
+        // Fallback: busca no banco
+        const q = await getDocs(collection(db, "users"));
+        q.forEach((docSnap) => {
+            if (docSnap.data().cargo !== 'admin') {
+                usersCache[docSnap.id] = docSnap.data().nome;
+                const option = document.createElement('option');
+                option.value = docSnap.id;
+                option.innerText = docSnap.data().nome;
+                select.appendChild(option);
+            }
+        });
     }
 }
 
+// B. Submit do Formulário (Onde estava o erro)
 const formOccur = document.getElementById('form-ocorrencias');
+
 if (formOccur) {
-    formOccur.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // Removemos listeners antigos para evitar duplicação (boa prática em SPAs simples)
+    const newFormOccur = formOccur.cloneNode(true);
+    formOccur.parentNode.replaceChild(newFormOccur, formOccur);
+    
+    // Adiciona o evento no novo elemento limpo
+    newFormOccur.addEventListener('submit', async (e) => {
+        // 1. IMPEDE O RECARREGAMENTO DA PÁGINA (CRUCIAL)
+        e.preventDefault(); 
+        console.log("Tentando registrar ocorrência...");
 
         const uid = document.getElementById('occur-user-select').value;
         const date = document.getElementById('occur-date').value;
         const title = document.getElementById('occur-title').value;
         const desc = document.getElementById('occur-desc').value;
-
-        // Check radio button
+        
+        // Validação de Radio Button
         const typeEl = document.querySelector('input[name="occur-type"]:checked');
-        if (!typeEl) { alert("Selecione o tipo (Positiva/Negativa)"); return; }
+        
+        if (!uid || !date || !title || !typeEl) {
+            alert("Por favor, preencha: Colaborador, Data, Tipo e Título.");
+            return;
+        }
 
         try {
             // Referência para novo documento com ID automático
-            const newDocRef = doc(collection(db, "occurrences"));
+            const newDocRef = doc(collection(db, "occurrences")); 
 
-            await setDoc(newDocRef, {
+            const payload = {
                 userId: uid,
                 userName: usersCache[uid] || "Colaborador",
                 date: date,
-                type: typeEl.value,
+                type: typeEl.value, // 'positive' ou 'negative'
                 title: title,
-                description: desc,
+                description: desc || "",
                 read: false,
                 readAt: null,
                 createdAt: new Date()
-            });
+            };
+
+            console.log("Enviando dados:", payload);
+
+            await setDoc(newDocRef, payload);
 
             alert("Feedback registrado com sucesso!");
-            formOccur.reset();
-
+            newFormOccur.reset();
+            
         } catch (error) {
-            console.error("Erro ocorrência:", error);
-            alert("Erro: " + error.message);
+            console.error("Erro ao registrar ocorrência:", error);
+            alert("Erro no sistema: " + error.message);
         }
     });
+} else {
+    console.error("ERRO CRÍTICO: Formulário 'form-ocorrencias' não encontrado no HTML.");
 }
 
 // ============================================================
@@ -559,22 +594,23 @@ window.prepareEditMetric = async (docId) => {
 };
 
 // ============================================================
-// 8. DASHBOARD PRINCIPAL (KPIS E GRÁFICOS)
+// 8. DASHBOARD PRINCIPAL (ACUMULADO / MÉDIAS GERAIS)
 // ============================================================
 
-// Variável para guardar dados brutos e não consultar banco toda hora ao trocar semana
-let allMetricsCache = [];
+// Cache global
+let allMetricsCache = []; 
 let adminChart1 = null;
 let adminChart2 = null;
 
-// Função principal chamada ao logar (adicione a chamada no onAuthStateChanged!)
+// A. Função Principal de Carregamento
 async function loadDashboardData() {
-    console.log("Carregando Dashboard...");
-
-    // 1. Busca TUDO se o cache estiver vazio
+    console.log("Calculando Visão Geral Acumulada...");
+    
+    // 1. Busca dados no banco se cache vazio
     if (allMetricsCache.length === 0) {
         try {
             const q = await getDocs(collection(db, "weekly_metrics"));
+            allMetricsCache = []; 
             q.forEach(doc => allMetricsCache.push(doc.data()));
         } catch (e) {
             console.error("Erro dashboard:", e);
@@ -583,106 +619,149 @@ async function loadDashboardData() {
     }
 
     if (allMetricsCache.length === 0) {
-        document.getElementById('kpi-volume').innerText = "Sem dados";
+        resetKpis();
         return;
     }
 
-    // 2. Popula o Select de Semanas (apenas datas únicas)
-    const weekSelect = document.getElementById('dash-week-select');
-    const uniqueWeeks = [...new Set(allMetricsCache.map(item => item.weekStart))];
+    // 2. PROCESSAMENTO DE DADOS (AGREGAÇÃO POR USUÁRIO)
+    // Aqui está a mágica: transformamos várias semanas em um resumo por pessoa
+    const userStats = {};
 
-    // Ordena datas (mais recente primeiro)
-    uniqueWeeks.sort((a, b) => new Date(b) - new Date(a));
+    allMetricsCache.forEach(entry => {
+        const uid = entry.userId;
+        const name = entry.userName;
 
-    // Se o select estiver vazio, preenche. Se já tiver, mantém (para não resetar seleção do usuário)
-    if (weekSelect.options.length <= 1) {
-        weekSelect.innerHTML = "";
-        uniqueWeeks.forEach(date => {
-            const opt = document.createElement('option');
-            opt.value = date;
-            opt.innerText = "Semana: " + date.split('-').reverse().join('/');
-            weekSelect.appendChild(opt);
-        });
-    }
+        if (!userStats[uid]) {
+            userStats[uid] = {
+                name: name,
+                count: 0, // Quantas semanas lançadas
+                totalTmaTel: 0,
+                totalMonitoria: 0,
+                volTel: 0,
+                volChat: 0
+            };
+        }
 
-    // 3. Define qual semana processar (Selecionada ou a mais recente)
-    const selectedWeek = weekSelect.value || uniqueWeeks[0];
+        userStats[uid].count += 1;
+        userStats[uid].totalTmaTel += (entry.tmaTelefonia || 0);
+        userStats[uid].totalMonitoria += (entry.notaMonitoria || 0);
+        userStats[uid].volTel += (entry.atendimentosFinalizados || 0);
+        userStats[uid].volChat += (entry.atendimentosHuggy || 0);
+    });
 
-    // 4. Filtra dados da semana
-    const weekData = allMetricsCache.filter(d => d.weekStart === selectedWeek);
+    // Calcula as médias finais para cada usuário
+    const aggregatedData = Object.values(userStats).map(u => ({
+        name: u.name,
+        avgTma: (u.totalTmaTel / u.count).toFixed(2),     // Média de todas as semanas
+        avgMonitoria: (u.totalMonitoria / u.count).toFixed(1), // Média de todas as notas
+        totalVol: u.volTel + u.volChat,
+        totalTel: u.volTel,
+        totalChat: u.volChat
+    }));
 
-    processKPIs(weekData);
-    renderAdminCharts(weekData);
+    // 3. Renderiza KPIs e Gráficos com os dados consolidados
+    processGlobalKPIs(aggregatedData);
+    renderGlobalCharts(aggregatedData);
 }
 
-function processKPIs(data) {
-    if (data.length === 0) return;
+// B. Processamento dos KPIs Gerais
+function processGlobalKPIs(usersData) {
+    if(usersData.length === 0) { resetKpis(); return; }
 
-    // --- KPI 1: TMA MÉDIO (Equipe) ---
-    // Soma todos os TMAs ponderados ou média simples? Vamos de média simples dos TMAs lançados
-    const totalTma = data.reduce((acc, curr) => acc + (curr.tmaTelefonia || 0), 0);
-    const avgTma = (totalTma / data.length).toFixed(2);
-    document.getElementById('kpi-tma-avg').innerText = avgTma + " min";
+    // KPI 1: TMA Médio da Equipe (Média das Médias dos usuários)
+    const sumAvgTma = usersData.reduce((acc, u) => acc + parseFloat(u.avgTma), 0);
+    const teamTma = (sumAvgTma / usersData.length).toFixed(2);
+    document.getElementById('kpi-tma-avg').innerText = teamTma + " min";
 
-    // --- KPI 2: MELHOR MONITORIA ---
-    // Ordena por nota descrescente
-    const sortedByGrade = [...data].sort((a, b) => b.notaMonitoria - a.notaMonitoria);
-    const best = sortedByGrade[0];
-    document.getElementById('kpi-best-qa').innerText = best.notaMonitoria;
-    document.getElementById('kpi-best-qa-name').innerText = best.userName;
+    // KPI 2: Melhor Qualidade (Quem tem a maior média histórica)
+    const bestQa = [...usersData].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
+    document.getElementById('kpi-best-qa').innerText = bestQa.avgMonitoria;
+    document.getElementById('kpi-best-qa-name').innerText = bestQa.name.split(' ')[0]; // Só primeiro nome
 
-    // --- KPI 3: MAIOR TMA (Pior caso) ---
-    const sortedByTma = [...data].sort((a, b) => b.tmaTelefonia - a.tmaTelefonia);
-    const worst = sortedByTma[0];
-    document.getElementById('kpi-worst-tma').innerText = worst.tmaTelefonia + " min";
-    document.getElementById('kpi-worst-tma-name').innerText = worst.userName;
+    // KPI 3: Maior TMA (O mais lento na média histórica)
+    const worstTma = [...usersData].sort((a, b) => b.avgTma - a.avgTma)[0];
+    document.getElementById('kpi-worst-tma').innerText = worstTma.avgTma + " min";
+    document.getElementById('kpi-worst-tma-name').innerText = worstTma.name.split(' ')[0];
 
-    // --- KPI 4: VOLUME TOTAL ---
-    const totalVol = data.reduce((acc, curr) => {
-        return acc + (curr.atendimentosFinalizados || 0) + (curr.atendimentosHuggy || 0);
-    }, 0);
-    document.getElementById('kpi-volume').innerText = totalVol;
+    // KPI 4: Volume Total da Empresa (Soma de tudo)
+    const grandTotalVol = usersData.reduce((acc, u) => acc + u.totalVol, 0);
+    document.getElementById('kpi-volume').innerText = grandTotalVol;
 }
 
-function renderAdminCharts(data) {
+// Helper para zerar
+function resetKpis() {
+    document.getElementById('kpi-tma-avg').innerText = "--";
+    document.getElementById('kpi-best-qa').innerText = "--";
+    document.getElementById('kpi-worst-tma').innerText = "--";
+    document.getElementById('kpi-volume').innerText = "0";
+}
+
+// C. Renderização dos Gráficos Gerais
+function renderGlobalCharts(usersData) {
     const ctx1 = document.getElementById('adminChartMonitoria');
     const ctx2 = document.getElementById('adminChartVolume');
 
-    // Prepara Arrays
-    const labels = data.map(d => d.userName.split(' ')[0]); // Apenas primeiro nome
-    const grades = data.map(d => d.notaMonitoria);
+    if(!ctx1 || !ctx2) return;
 
-    // Gráfico 1: Barras de Qualidade
+    // Gráfico 1: Ranking de Qualidade (Média Histórica)
+    // Ordena do melhor para o pior para ficar bonito no gráfico
+    const sortedByQa = [...usersData].sort((a, b) => b.avgMonitoria - a.avgMonitoria);
+
+    const labels = sortedByQa.map(u => u.name.split(' ')[0]);
+    const grades = sortedByQa.map(u => u.avgMonitoria);
+    
     if (adminChart1) adminChart1.destroy();
     adminChart1 = new Chart(ctx1, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Nota Monitoria',
+                label: 'Média de Monitoria',
                 data: grades,
-                backgroundColor: '#28a745'
+                backgroundColor: grades.map(g => g >= 90 ? '#28a745' : '#ffc107'), // Verde se >90, senao amarelo
+                borderRadius: 4
             }]
         },
-        options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
+        options: { 
+            responsive: true, 
+            scales: { y: { beginAtZero: true, max: 100 } },
+            plugins: { legend: { display: false } }
+        }
     });
 
-    // Gráfico 2: Pizza de Volume (Total Tel vs Total Huggy)
-    const totalTel = data.reduce((acc, c) => acc + (c.atendimentosFinalizados || 0), 0);
-    const totalHuggy = data.reduce((acc, c) => acc + (c.atendimentosHuggy || 0), 0);
+    // Gráfico 2: Pizza de Canais (Total Histórico)
+    const totalTel = usersData.reduce((acc, u) => acc + u.totalTel, 0);
+    const totalChat = usersData.reduce((acc, u) => acc + u.totalChat, 0);
 
     if (adminChart2) adminChart2.destroy();
     adminChart2 = new Chart(ctx2, {
         type: 'doughnut',
         data: {
-            labels: ['Telefonia', 'Huggy (Chat)'],
+            labels: ['Telefonia Total', 'Chat Total'],
             datasets: [{
-                data: [totalTel, totalHuggy],
-                backgroundColor: ['#007bff', '#17a2b8']
+                data: [totalTel, totalChat],
+                backgroundColor: ['#007bff', '#17a2b8'],
+                borderWidth: 0
             }]
-        }
+        },
+        options: { cutout: '70%' }
     });
 }
+
+// --- FUNÇÃO DE FORÇAR ATUALIZAÇÃO ---
+window.forceDashboardRefresh = async () => {
+    const btnIcon = document.querySelector('button[title="Recalcular Dados"] i');
+    if(btnIcon) btnIcon.innerText = "hourglass_empty"; 
+
+    resetKpis();
+    
+    // Limpa cache e força recarregamento
+    allMetricsCache = []; 
+    await new Promise(r => setTimeout(r, 500)); // Delay visual
+    await loadDashboardData();
+    
+    if(btnIcon) btnIcon.innerText = "sync";
+};
 
 // ============================================================
 // 9. MODAL DE DETALHES (DRILL-DOWN)
@@ -750,4 +829,19 @@ window.openDetailModal = (type) => {
                 </tr>`;
         });
     }
+};
+
+// --- FUNÇÃO DE FORÇAR ATUALIZAÇÃO (ADMIN) ---
+window.forceDashboardRefresh = async () => {
+    // 1. Limpa o cache local
+    allMetricsCache = [];
+
+    // 2. Limpa o select para forçar reconstrução
+    const select = document.getElementById('dash-week-select');
+    if (select) select.innerHTML = "<option value=''>Atualizando...</option>";
+
+    // 3. Chama a função principal novamente
+    await loadDashboardData();
+
+    alert("Dashboard atualizado com os dados mais recentes!");
 };

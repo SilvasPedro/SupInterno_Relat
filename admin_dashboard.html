@@ -38,12 +38,18 @@
     <main class="main-content">
 
         <div id="section-dashboard" class="section">
-            <div class="header-flex">
-                <h1>Visão Geral da Equipe</h1>
-                <select id="dash-week-select" onchange="loadDashboardData()" style="padding: 5px; border-radius: 4px;">
-                    <option value="">Carregando semanas...</option>
-                </select>
-            </div>
+<div class="header-flex">
+    <div>
+        <h1>Visão Geral da Equipe (Acumulado)</h1>
+        <p style="color: #666; font-size: 13px; margin-top: 5px;">
+            Médias e somatórios de todo o período histórico.
+        </p>
+    </div>
+    
+    <button onclick="forceDashboardRefresh()" class="btn-primary" title="Recalcular Dados" style="padding: 10px 15px;">
+        <i class="material-icons" style="font-size: 20px; vertical-align: middle;">sync</i>
+    </button>
+</div>
 
             <div class="metrics-grid">
 

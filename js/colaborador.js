@@ -5,14 +5,14 @@ import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 
 // ============================================================
 // 1. CONFIGURAÇÃO (PREENCHA COM SEUS DADOS)
 // ============================================================
-  const firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyCWve8E4PIwEeBf5nATJnFnlJkSe9YkbPE",
     authDomain: "suporte-interno-ece8c.firebaseapp.com",
     projectId: "suporte-interno-ece8c",
     storageBucket: "suporte-interno-ece8c.firebasestorage.app",
     messagingSenderId: "154422890108",
     appId: "1:154422890108:web:efe6f03bc4c55dc11483f9"
-  };
+};
 
 // Inicialização
 const app = initializeApp(firebaseConfig);
@@ -27,11 +27,11 @@ const db = getFirestore(app);
 window.showSection = (sectionId) => {
     document.querySelectorAll('.section').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
-    
+
     // Atualiza menu visualmente (opcional, simples)
     // Nota: Para destacar o menu corretamente, precisaria passar o 'this' do click, 
     // mas o foco aqui é a navegação funcionar.
-    
+
     const target = document.getElementById('section-' + sectionId);
     if (target) target.style.display = 'block';
 };
@@ -43,7 +43,7 @@ window.logout = () => {
 
 // C. Confirmar Leitura de Ocorrência
 window.confirmRead = async (docId) => {
-    if(!confirm("Deseja marcar este apontamento como lido?")) return;
+    if (!confirm("Deseja marcar este apontamento como lido?")) return;
 
     try {
         const docRef = doc(db, "occurrences", docId);
@@ -52,7 +52,7 @@ window.confirmRead = async (docId) => {
             readAt: new Date()
         });
         alert("Confirmação registrada!");
-        if(auth.currentUser) loadMyOccurrences(auth.currentUser.uid);
+        if (auth.currentUser) loadMyOccurrences(auth.currentUser.uid);
     } catch (error) {
         console.error("Erro ao confirmar leitura:", error);
         alert("Erro ao salvar: " + error.message);
@@ -62,10 +62,10 @@ window.confirmRead = async (docId) => {
 // D. Mostrar Detalhes (CORREÇÃO DO BUG)
 window.showMetricDetails = (rec, real, perd, tme) => {
     const msg = `📞 DETALHES DE TELEFONIA:\n\n` +
-                `• Recebidas (Atendidas): ${rec}\n` +
-                `• Realizadas (Atendidas): ${real}\n` +
-                `• Perdidas: ${perd}\n` +
-                `• TME (Espera): ${tme}`;
+        `• Recebidas (Atendidas): ${rec}\n` +
+        `• Realizadas (Atendidas): ${real}\n` +
+        `• Perdidas: ${perd}\n` +
+        `• TME (Espera): ${tme}`;
     alert(msg);
 };
 
@@ -76,12 +76,12 @@ window.showMetricDetails = (rec, real, perd, tme) => {
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         const nameEl = document.getElementById('user-name');
-        if(nameEl) nameEl.innerText = user.email;
+        if (nameEl) nameEl.innerText = user.email;
 
         // Carrega os módulos
         loadMyMetrics(user.uid);
         loadMyOccurrences(user.uid);
-        
+
         // Deixa a tabela pronta (ou carrega quando clica na aba, mas aqui garante os dados)
         // O HTML chama loadFullHistory() sem argumentos, que pega o current user.
     } else {
@@ -94,23 +94,23 @@ onAuthStateChanged(auth, async (user) => {
 // ============================================================
 async function loadMyMetrics(uid) {
     const container = document.getElementById('cards-container');
-    if(container) container.innerHTML = "<p>Carregando métricas...</p>";
+    if (container) container.innerHTML = "<p>Carregando métricas...</p>";
 
     try {
         const q = query(collection(db, "weekly_metrics"), where("userId", "==", uid));
         const querySnapshot = await getDocs(q);
-        
+
         let rawData = [];
         querySnapshot.forEach((doc) => rawData.push(doc.data()));
         rawData.sort((a, b) => new Date(a.weekStart) - new Date(b.weekStart));
 
         if (rawData.length === 0) {
-            if(container) container.innerHTML = "<p>Nenhuma métrica lançada ainda.</p>";
+            if (container) container.innerHTML = "<p>Nenhuma métrica lançada ainda.</p>";
             return;
         }
 
         let labels = [];
-        let dataMonitoria = []; 
+        let dataMonitoria = [];
         let dataAtendimentos = [];
 
         rawData.forEach(d => {
@@ -126,13 +126,13 @@ async function loadMyMetrics(uid) {
 
     } catch (error) {
         console.error("Erro Metrics:", error);
-        if(container) container.innerText = "Erro ao carregar dados.";
+        if (container) container.innerText = "Erro ao carregar dados.";
     }
 }
 
 function updateCardsHTML(data) {
     const container = document.getElementById('cards-container');
-    if(!container) return;
+    if (!container) return;
     const totalAtendimentos = (data.atendimentosFinalizados || 0) + (data.atendimentosHuggy || 0);
 
     container.innerHTML = `
@@ -202,30 +202,30 @@ function renderCharts(labels, monitoria, atendimentos) {
 // ============================================================
 async function loadMyOccurrences(uid) {
     const listContainer = document.getElementById('feedbacks-list');
-    if(!listContainer) return;
+    if (!listContainer) return;
     listContainer.innerHTML = "<p>Carregando histórico...</p>";
 
     try {
         const q = query(collection(db, "occurrences"), where("userId", "==", uid));
         const querySnapshot = await getDocs(q);
-        
+
         let docs = [];
         querySnapshot.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
-        docs.sort((a, b) => new Date(b.date) - new Date(a.date)); 
+        docs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         if (docs.length === 0) {
             listContainer.innerHTML = "<p>Nenhum registro encontrado.</p>";
             return;
         }
 
-        listContainer.innerHTML = ""; 
+        listContainer.innerHTML = "";
 
         docs.forEach(item => {
             const dateStr = item.date ? item.date.split('-').reverse().join('/') : '-';
             const isPositive = item.type === 'positive';
             const cardClass = isPositive ? 'positive' : 'negative';
             const icon = isPositive ? '👏' : '⚠️';
-            
+
             let footerHtml = '';
             if (item.read) {
                 const readDate = item.readAt ? new Date(item.readAt.seconds * 1000).toLocaleDateString() : 'data desc.';
@@ -254,10 +254,13 @@ async function loadMyOccurrences(uid) {
 }
 
 // ============================================================
-// 6. MÓDULO: HISTÓRICO COMPLETO (TABELAS)
+// 6. MÓDULO: HISTÓRICO COMPLETO (COM MODAL ESTILIZADO)
 // ============================================================
+
+// Variável para guardar os dados da tabela e usar no modal
+let historyMetricsCache = [];
+
 window.loadFullHistory = async (uid) => {
-    // Se o HTML chamar sem argumentos, pega do Auth
     if (!uid) {
         const user = auth.currentUser;
         if (user) uid = user.uid;
@@ -268,27 +271,28 @@ window.loadFullHistory = async (uid) => {
     const tbodyOccur = document.getElementById('history-occurrences-body');
 
     if (tbodyMetrics) tbodyMetrics.innerHTML = "<tr><td colspan='6'>Carregando dados...</td></tr>";
-    if (tbodyOccur) tbodyOccur.innerHTML = "<tr><td colspan='5'>Carregando dados...</td></tr>";
 
     try {
-        // --- MÉTRICAS ---
+        // --- 1. BUSCAR MÉTRICAS ---
         const qMetrics = query(collection(db, "weekly_metrics"), where("userId", "==", uid));
         const snapMetrics = await getDocs(qMetrics);
-        let listMetrics = [];
-        snapMetrics.forEach(d => listMetrics.push(d.data()));
-        listMetrics.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
+
+        historyMetricsCache = []; // Limpa cache antigo
+        snapMetrics.forEach(d => historyMetricsCache.push(d.data()));
+
+        // Ordena: Mais recente primeiro
+        historyMetricsCache.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
 
         if (tbodyMetrics) {
             tbodyMetrics.innerHTML = "";
-            if (listMetrics.length === 0) {
+            if (historyMetricsCache.length === 0) {
                 tbodyMetrics.innerHTML = "<tr><td colspan='6'>Nenhum registro encontrado.</td></tr>";
             } else {
-                listMetrics.forEach(m => {
+                // Renderiza a tabela usando o INDEX do array para identificar o item
+                historyMetricsCache.forEach((m, index) => {
                     const dataFmt = m.weekStart ? m.weekStart.split('-').reverse().join('/') : '-';
                     const volTotal = (m.atendimentosFinalizados || 0) + (m.atendimentosHuggy || 0);
-                    
-                    // CORREÇÃO: Passamos os valores numéricos para a função auxiliar
-                    // Isso evita quebra de linha dentro do HTML
+
                     const row = `
                         <tr>
                             <td><strong>${dataFmt}</strong></td>
@@ -297,9 +301,9 @@ window.loadFullHistory = async (uid) => {
                             <td>${m.tmaHuggy || '-'} min</td>
                             <td>${volTotal}</td>
                             <td>
-                                <button onclick="showMetricDetails(${m.ligacoesRecebidas||0}, ${m.ligacoesRealizadas||0}, ${m.ligacoesPerdidas||0}, '${m.tmeTelefonia||0}')" 
-                                style="padding:6px 10px; font-size:11px; background:var(--color-taupe); border:none; color:white; border-radius:4px; cursor:pointer;">
-                                    + INFO
+                                <button onclick="openMetricDetail(${index})" 
+                                style="padding:6px 12px; font-size:11px; background:var(--color-taupe); border:none; color:white; border-radius:4px; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                                    <i class="material-icons" style="font-size:12px">visibility</i> Ver Tudo
                                 </button>
                             </td>
                         </tr>
@@ -309,7 +313,7 @@ window.loadFullHistory = async (uid) => {
             }
         }
 
-        // --- OCORRÊNCIAS ---
+        // --- 2. BUSCAR OCORRÊNCIAS (Código mantido igual) ---
         const qOccur = query(collection(db, "occurrences"), where("userId", "==", uid));
         const snapOccur = await getDocs(qOccur);
         let listOccur = [];
@@ -343,7 +347,60 @@ window.loadFullHistory = async (uid) => {
         }
 
     } catch (error) {
-        console.error("Erro histórico completo:", error);
+        console.error("Erro histórico:", error);
         if (tbodyMetrics) tbodyMetrics.innerHTML = "<tr><td colspan='6' style='color:red'>Erro ao carregar.</td></tr>";
     }
+};
+
+// --- FUNÇÕES DO MODAL DE DETALHES ---
+
+window.openMetricDetail = (index) => {
+    const data = historyMetricsCache[index];
+    if (!data) return;
+
+    const modal = document.getElementById('modal-metric-details');
+    const content = document.getElementById('metric-modal-content');
+    
+    // Formata Data
+    const dataFmt = data.weekStart.split('-').reverse().join('/');
+
+    // HTML Interno do Modal
+    content.innerHTML = `
+        <div style="grid-column: span 2; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; display:flex; justify-content: space-around; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+            <div style="text-align:center;">
+                <p style="margin:0; font-size:11px; color:#666; text-transform:uppercase; letter-spacing:1px;">📂 Atendimentos Abertos</p>
+                <p style="margin:5px 0 0 0; font-size:24px; font-weight:bold; color:#28a745;">${data.atendimentosAbertos || 0}</p>
+            </div>
+            
+            <div style="height: 40px; border-left: 1px solid #eee;"></div> <div style="text-align:center;">
+                <p style="margin:0; font-size:11px; color:#666; text-transform:uppercase; letter-spacing:1px;">✅ Atendimentos Finalizados</p>
+                <p style="margin:5px 0 0 0; font-size:24px; font-weight:bold; color:#28a745;">${data.atendimentosFinalizados || 0}</p>
+            </div>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; border-left: 4px solid #007bff;">
+            <h4 style="color: #007bff; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">📞 Telefonia</h4>
+            <p><strong>Recebidas:</strong> ${data.ligacoesRecebidas || 0}</p>
+            <p><strong>Realizadas:</strong> ${data.ligacoesRealizadas || 0}</p>
+            <p><strong>Perdidas:</strong> <span style="color:red">${data.ligacoesPerdidas || 0}</span></p>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ccc;">
+            <p><strong>TMA (Tempo Médio):</strong> ${data.tmaTelefonia || 0} min</p>
+            <p><strong>TME (Espera):</strong> ${data.tmeTelefonia || 0} min</p>
+        </div>
+
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; border-left: 4px solid #28a745;">
+            <h4 style="color: #28a745; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">💬 Chat & Qualidade</h4>
+            <p><strong>Atendimentos Chat:</strong> ${data.atendimentosHuggy || 0}</p>
+            <p><strong>TMA Chat:</strong> ${data.tmaHuggy || 0} min</p>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ccc;">
+            <p><strong>Monitoria:</strong> <span style="font-size: 1.2em; font-weight: bold;">${data.notaMonitoria || 0}</span></p>
+            <p style="font-size: 0.9em; color: #666; margin-top: 5px;">Semana de ${dataFmt}</p>
+        </div>
+    `;
+
+    modal.style.display = 'block';
+};
+
+window.closeMetricModal = () => {
+    document.getElementById('modal-metric-details').style.display = 'none';
 };
