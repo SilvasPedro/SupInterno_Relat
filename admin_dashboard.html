@@ -97,16 +97,39 @@
             <br>
             <hr><br>
 
-            <div class="charts-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="metric-card">
-                    <h3>Ranking de Qualidade (Monitoria)</h3>
-                    <canvas id="adminChartMonitoria"></canvas>
-                </div>
-                <div class="metric-card">
-                    <h3>Distribuição de Volume (Telefonia vs Huggy)</h3>
-                    <canvas id="adminChartVolume"></canvas>
-                </div>
-            </div>
+<h3 style="margin-top: 40px; margin-bottom: 20px; color: var(--color-dark-brown);">📈 Análise Gráfica</h3>
+
+<div class="charts-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
+    
+    <div class="metric-card">
+        <h4 style="margin-bottom: 15px; color: #666;">Ranking Qualidade (Monitoria)</h4>
+        <div style="height: 300px;">
+            <canvas id="chartRankingMonitoria"></canvas>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <h4 style="margin-bottom: 15px; color: #666;">Ranking Agilidade (Chat)</h4>
+        <div style="height: 300px;">
+            <canvas id="chartRankingChat"></canvas>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <h4 style="margin-bottom: 15px; color: #666;">Evolução do TMA Médio (Semanas)</h4>
+        <div style="height: 300px;">
+            <canvas id="chartEvolucaoTma"></canvas>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <h4 style="margin-bottom: 15px; color: #666;">Evolução da Produtividade (Média por Agente)</h4>
+        <div style="height: 300px;">
+            <canvas id="chartEvolucaoVol"></canvas>
+        </div>
+    </div>
+
+</div>
         </div>
 
         <div id="modal-kpi-details" class="modal">
