@@ -198,49 +198,73 @@ function renderCharts(labels, monitoria, atendimentos) {
 }
 
 // ============================================================
-// 5. MÓDULO DE OCORRÊNCIAS (TIMELINE)
+// 5. MÓDULO DE OCORRÊNCIAS (VISUAL APRIMORADO)
 // ============================================================
 async function loadMyOccurrences(uid) {
     const listContainer = document.getElementById('feedbacks-list');
-    if (!listContainer) return;
-    listContainer.innerHTML = "<p>Carregando histórico...</p>";
+    if(!listContainer) return;
+    
+    listContainer.innerHTML = `
+        <div style="text-align:center; padding:40px; color:#999;">
+            <i class="material-icons spinning">sync</i><br>Buscando feedbacks...
+        </div>`;
 
     try {
         const q = query(collection(db, "occurrences"), where("userId", "==", uid));
         const querySnapshot = await getDocs(q);
-
+        
         let docs = [];
         querySnapshot.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
-        docs.sort((a, b) => new Date(b.date) - new Date(a.date));
+        docs.sort((a, b) => new Date(b.date) - new Date(a.date)); 
+
+        listContainer.innerHTML = ""; 
 
         if (docs.length === 0) {
-            listContainer.innerHTML = "<p>Nenhum registro encontrado.</p>";
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:40px; background:#f9f9f9; border-radius:10px;">
+                    <i class="material-icons" style="font-size:48px; color:#ddd;">sentiment_satisfied</i>
+                    <p style="color:#666; margin-top:10px;">Nenhum feedback registrado.</p>
+                </div>`;
             return;
         }
-
-        listContainer.innerHTML = "";
 
         docs.forEach(item => {
             const dateStr = item.date ? item.date.split('-').reverse().join('/') : '-';
             const isPositive = item.type === 'positive';
             const cardClass = isPositive ? 'positive' : 'negative';
-            const icon = isPositive ? '👏' : '⚠️';
-
+            // Ícones mais modernos
+            const icon = isPositive ? '<span style="color:#28a745">👍 Elogio</span>' : '<span style="color:#dc3545">⚠️ Ponto de Atenção</span>';
+            
             let footerHtml = '';
             if (item.read) {
                 const readDate = item.readAt ? new Date(item.readAt.seconds * 1000).toLocaleDateString() : 'data desc.';
-                footerHtml = `<span class="status-lido" style="color: green; display: flex; align-items: center; justify-content: flex-end; gap:5px;"><i class="material-icons" style="font-size:16px">check_circle</i> Lido em ${readDate}</span>`;
+                footerHtml = `
+                    <div style="display:flex; justify-content:flex-end; border-top:1px solid #eee; padding-top:15px;">
+                        <span class="status-lido" style="color: #28a745; font-weight:600; font-size:0.9em; display:flex; align-items:center; gap:5px;">
+                            <i class="material-icons" style="font-size:18px">check_circle</i> Lido em ${readDate}
+                        </span>
+                    </div>`;
             } else {
-                footerHtml = `<div style="text-align: right;"><button onclick="confirmRead('${item.id}')" class="btn-ciente">Marcar como Ciente</button></div>`;
+                footerHtml = `
+                    <div style="text-align: right; border-top:1px solid #eee; padding-top:15px;">
+                        <button onclick="confirmRead('${item.id}')" class="btn-ciente" style="background:#dc3545; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:8px; transition:0.2s;">
+                            <i class="material-icons" style="font-size:18px">check</i> MARCAR COMO CIENTE
+                        </button>
+                    </div>`;
             }
 
+            // HTML Estruturado para melhor espaçamento
             const html = `
                 <div class="timeline-card ${cardClass}">
                     <div class="card-header">
-                        <h3 class="card-title">${icon} ${item.title}</h3>
-                        <span class="card-date">${dateStr}</span>
+                        <div class="card-title">${icon} <span style="color:#999; margin:0 5px;">|</span> ${item.title}</div>
+                        <div class="card-date"><i class="material-icons" style="font-size:12px; vertical-align:middle; margin-right:4px;">event</i> ${dateStr}</div>
                     </div>
-                    <div class="card-body">${item.description}</div>
+                    
+                    <div class="card-body">
+                        ${item.description}
+                    </div>
+                    
                     ${footerHtml}
                 </div>
             `;
@@ -249,10 +273,9 @@ async function loadMyOccurrences(uid) {
 
     } catch (error) {
         console.error("Erro Feedbacks:", error);
-        listContainer.innerHTML = "Erro ao carregar lista.";
+        listContainer.innerHTML = "<p>Erro ao carregar lista.</p>";
     }
 }
-
 // ============================================================
 // 6. MÓDULO: HISTÓRICO COMPLETO (COM MODAL ESTILIZADO)
 // ============================================================

@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * ERP GESTÃO DE COLABORADORES - MÓDULO ADMINISTRATIVO
+ * ERP GESTÃO DE COLABORADORES - MÓDULO ADMINISTRATIVO (CLEAN VERSION)
  * ============================================================================
  */
 
@@ -18,24 +18,24 @@ import {
     doc, 
     setDoc, 
     getDoc, 
-    deleteDoc, 
     updateDoc, 
     query, 
     where 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// IMPORTAÇÃO DOS GRÁFICOS (ESSENCIAL)
-import { renderDashboardCharts } from "./charts.js";
+// --- IMPORTAÇÕES DOS MÓDULOS AUXILIARES ---
+import { renderDashboardCharts } from "./charts.js"; // Gráficos
+import "./history.js"; // Histórico e Visualização (Carrega as funções globais)
 
 // 1. CONFIGURAÇÃO
-  const firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyCWve8E4PIwEeBf5nATJnFnlJkSe9YkbPE",
     authDomain: "suporte-interno-ece8c.firebaseapp.com",
     projectId: "suporte-interno-ece8c",
     storageBucket: "suporte-interno-ece8c.firebasestorage.app",
     messagingSenderId: "154422890108",
     appId: "1:154422890108:web:efe6f03bc4c55dc11483f9"
-  };
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -62,6 +62,7 @@ onAuthStateChanged(auth, async (user) => {
             if (docSnap.exists() && docSnap.data().cargo === 'admin') {
                 document.getElementById('admin-name').innerText = "Gestor: " + (docSnap.data().nome || "Admin");
                 
+                // Inicializa os módulos
                 loadCollaborators();       
                 loadUserSelectOptions();   
                 loadOccurrenceUserSelect(); 
@@ -88,6 +89,8 @@ window.showSection = (sectionId) => {
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
     const target = document.getElementById('section-' + sectionId);
     if(target) target.style.display = 'block';
+    
+    // Se sair da tela de lançamentos, reseta o formulário de edição
     if (sectionId !== 'lancamentos' && isEditingMetric) resetMetricFormState();
 };
 
@@ -120,7 +123,11 @@ async function loadCollaborators() {
                         <td>${user.cargo}</td>
                         <td>${user.departamento || '-'}</td>
                         <td><span style="color:green;font-weight:bold;">Ativo</span></td>
-                        <td><button onclick="openHistory('${docSnap.id}', '${user.nome}')" style="cursor:pointer;border:none;background:none;">📂 Histórico</button></td>
+                        <td>
+                            <button onclick="openHistory('${docSnap.id}', '${user.nome}')" style="cursor:pointer;border:none;background:none; color:#007bff; font-weight:bold;">
+                                📂 Histórico
+                            </button>
+                        </td>
                     </tr>`;
             }
         });
@@ -158,7 +165,7 @@ if (formAddUser) {
 async function loadDashboardData() {
     console.log("Calculando Dashboard...");
     
-    // 1. Busca dados
+    // 1. Busca dados (se cache vazio)
     if (allMetricsCache.length === 0) {
         try {
             const q = await getDocs(collection(db, "weekly_metrics"));
@@ -191,7 +198,7 @@ async function loadDashboardData() {
         userStats[uid].accTmaTel += (entry.tmaTelefonia || 0);
         userStats[uid].accTmaChat += (entry.tmaHuggy || 0);
         userStats[uid].accMonitoria += (entry.notaMonitoria || 0);
-        userStats[uid].accFinalizados += (entry.atendimentosFinalizados || 0);
+        userStats[uid].accFinalizados += (entry.atendimentosFinalizados || 0); // Ajuste conforme sua regra de negócio para volume
     });
 
     globalAggregatedData = Object.values(userStats).map(u => ({
@@ -203,11 +210,13 @@ async function loadDashboardData() {
         totalVolume: u.accFinalizados
     }));
 
-    // 3. Renderiza KPIs
+    // 3. Renderiza KPIs (Cards)
     processGlobalKPIs(globalAggregatedData);
     
-    // 4. Renderiza Gráficos (CHAMADA CORRIGIDA)
-    renderDashboardCharts(globalAggregatedData, allMetricsCache);
+    // 4. Renderiza Gráficos (Chama o módulo charts.js)
+    if (typeof renderDashboardCharts === "function") {
+        renderDashboardCharts(globalAggregatedData, allMetricsCache);
+    }
 }
 
 function processGlobalKPIs(users) {
@@ -247,8 +256,15 @@ function resetKpis() {
     ['kpi-team-tel','kpi-team-chat','kpi-team-vol','kpi-best-qa','kpi-max-tel','kpi-max-chat'].forEach(id => updateCard(id, '--'));
 }
 
+window.forceDashboardRefresh = async () => {
+    allMetricsCache = [];
+    resetKpis();
+    await loadDashboardData();
+    alert("Dados atualizados!");
+};
+
 // ============================================================
-// 6. MODAL DE DETALHES & OUTRAS FUNÇÕES
+// 6. MODAL DE DETALHES (DRILL-DOWN DOS KPIS)
 // ============================================================
 window.openDetailModal = (type) => {
     const modal = document.getElementById('modal-kpi-details');
@@ -304,16 +320,167 @@ function appendRow(tbody, name, val, isHighlight=false) {
     tbody.innerHTML += `<tr><td>${name}</td><td style="${style}">${val}</td></tr>`;
 }
 
-window.forceDashboardRefresh = async () => {
-    allMetricsCache = [];
-    resetKpis();
-    await loadDashboardData();
-    alert("Dados atualizados!");
+// ============================================================
+// 7. FORMULÁRIOS E CADASTROS
+// ============================================================
+
+// Select de Usuários para Métricas
+async function loadUserSelectOptions() {
+    const select = document.getElementById('metric-user-select');
+    if(!select) return;
+    select.innerHTML = '<option value="">Selecione...</option>'; 
+    
+    const q = await getDocs(collection(db, "users"));
+    q.forEach(d => {
+        if(d.data().cargo !== 'admin') {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.innerText = d.data().nome;
+            select.appendChild(opt);
+        }
+    });
+}
+
+// Select de Usuários para Ocorrências
+async function loadOccurrenceUserSelect() {
+    const select = document.getElementById('occur-user-select');
+    if(!select) return;
+    select.innerHTML = '<option value="">Selecione...</option>'; 
+    
+    const q = await getDocs(collection(db, "users"));
+    q.forEach(d => {
+        if(d.data().cargo !== 'admin') {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.innerText = d.data().nome;
+            select.appendChild(opt);
+        }
+    });
+}
+
+// SUBMIT: Métricas (Inserir e Editar)
+const formMetrics = document.getElementById('form-metrics');
+if (formMetrics) {
+    formMetrics.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userId = document.getElementById('metric-user-select').value;
+        const weekStart = document.getElementById('metric-date').value;
+        
+        const sel = document.getElementById('metric-user-select');
+        const userName = sel.options[sel.selectedIndex].text;
+
+        const data = {
+            userId, userName, weekStart, createdAt: new Date(),
+            atendimentosAbertos: Number(document.getElementById('at-abertos').value),
+            atendimentosFinalizados: Number(document.getElementById('at-finalizados').value),
+            ligacoesRealizadas: Number(document.getElementById('lig-realizadas').value),
+            ligacoesRecebidas: Number(document.getElementById('lig-recebidas').value),
+            ligacoesPerdidas: Number(document.getElementById('lig-perdidas').value),
+            tmeTelefonia: Number(document.getElementById('tme-tel').value),
+            tmaTelefonia: Number(document.getElementById('tma-tel').value),
+            atendimentosHuggy: Number(document.getElementById('at-huggy').value),
+            tmaHuggy: Number(document.getElementById('tma-huggy').value),
+            notaMonitoria: Number(document.getElementById('nota-monitoria').value)
+        };
+
+        try {
+            if (isEditingMetric) {
+                await updateDoc(doc(db, "weekly_metrics", editingMetricId), data);
+                alert("Atualizado com sucesso!");
+                resetMetricFormState();
+            } else {
+                await setDoc(doc(db, "weekly_metrics", `${userId}_${weekStart}`), data);
+                alert("Salvo com sucesso!");
+                formMetrics.reset();
+            }
+            allMetricsCache = []; // Limpa cache para atualizar dash
+        } catch (e) { alert("Erro: " + e.message); }
+    });
+}
+
+function resetMetricFormState() {
+    isEditingMetric = false;
+    editingMetricId = null;
+    const btn = document.querySelector('#form-metrics button[type="submit"]');
+    btn.innerText = "Salvar Métricas da Semana";
+    btn.style.backgroundColor = ""; // Volta cor original
+    
+    document.getElementById('metric-user-select').disabled = false;
+    document.getElementById('metric-date').disabled = false;
+    document.getElementById('form-metrics').reset();
+}
+
+// SUBMIT: Ocorrências
+const formOccur = document.getElementById('form-ocorrencias');
+if (formOccur) {
+    const newForm = formOccur.cloneNode(true);
+    formOccur.parentNode.replaceChild(newForm, formOccur);
+    
+    newForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const uid = document.getElementById('occur-user-select').value;
+        const typeEl = document.querySelector('input[name="occur-type"]:checked');
+        
+        if(!uid || !typeEl) return alert("Preencha todos os campos.");
+
+        try {
+            const sel = document.getElementById('occur-user-select');
+            await setDoc(doc(collection(db, "occurrences")), {
+                userId: uid,
+                userName: sel.options[sel.selectedIndex].text,
+                date: document.getElementById('occur-date').value,
+                type: typeEl.value,
+                title: document.getElementById('occur-title').value,
+                description: document.getElementById('occur-desc').value,
+                read: false, createdAt: new Date()
+            });
+            alert("Feedback registrado!");
+            newForm.reset();
+        } catch (e) { alert("Erro: " + e.message); }
+    });
+}
+
+// ============================================================
+// 8. FUNÇÕES DE SUPORTE AO HISTÓRICO (EDITAR)
+// ============================================================
+// Esta função é chamada PELO history.js quando clica no lápis
+window.prepareEditMetric = async (id) => {
+    // Fecha o modal de histórico
+    if(typeof closeHistoryModal === 'function') closeHistoryModal();
+    else document.getElementById('modal-user-history').style.display = 'none';
+
+    // Busca dados para preencher
+    const snap = await getDoc(doc(db, "weekly_metrics", id));
+    if(!snap.exists()) return;
+    const data = snap.data();
+    
+    // Muda para tela de lançamentos
+    showSection('lancamentos');
+    
+    // Preenche Campos
+    document.getElementById('metric-user-select').value = data.userId;
+    document.getElementById('metric-date').value = data.weekStart;
+    document.getElementById('at-abertos').value = data.atendimentosAbertos;
+    document.getElementById('at-finalizados').value = data.atendimentosFinalizados;
+    document.getElementById('lig-realizadas').value = data.ligacoesRealizadas;
+    document.getElementById('lig-recebidas').value = data.ligacoesRecebidas;
+    document.getElementById('lig-perdidas').value = data.ligacoesPerdidas;
+    document.getElementById('tme-tel').value = data.tmeTelefonia;
+    document.getElementById('tma-tel').value = data.tmaTelefonia;
+    document.getElementById('at-huggy').value = data.atendimentosHuggy;
+    document.getElementById('tma-huggy').value = data.tmaHuggy;
+    document.getElementById('nota-monitoria').value = data.notaMonitoria;
+
+    // Trava chaves primárias
+    document.getElementById('metric-user-select').disabled = true;
+    document.getElementById('metric-date').disabled = true;
+
+    // Ativa Modo Edição
+    isEditingMetric = true;
+    editingMetricId = id;
+    
+    const btn = document.querySelector('#form-metrics button[type="submit"]');
+    btn.innerText = "Atualizar Dados";
+    btn.style.backgroundColor = "#ffc107"; // Amarelo
+    btn.style.color = "#333";
 };
-
-// ... (MANTENHA O RESTO DAS FUNÇÕES DE CADASTRO E HISTÓRICO IGUAIS AO ARQUIVO ANTERIOR) ...
-// (Para economizar espaço aqui, as funções loadUserSelectOptions, loadOccurrenceUserSelect, 
-// submits de formulário e histórico não foram alteradas e devem continuar no arquivo).
-// Certifique-se de copiar as funções de formulário que estavam no código anterior.
-
-// SE PRECISAR DAS FUNÇÕES FINAIS NOVAMENTE, ME AVISE.

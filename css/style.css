@@ -519,3 +519,118 @@ button[onclick*="openHistory"]:hover {
 
 .btn-icon.btn-delete { background-color: #fff0f0; color: var(--color-main-red); }
 .btn-icon.btn-delete:hover { background-color: var(--color-main-red); color: white; }
+/* --- BOTÕES DE AÇÃO (HISTÓRICO) --- */
+.history-actions {
+    display: flex;
+    gap: 8px; /* Espaço entre os botões */
+}
+
+.action-btn {
+    width: 35px;           /* Largura fixa */
+    height: 35px;          /* Altura fixa */
+    border: none;
+    border-radius: 8px;    /* Cantos levemente arredondados (moderno) */
+    display: flex;         /* O segredo do alinhamento */
+    align-items: center;   /* Centraliza verticalmente */
+    justify-content: center; /* Centraliza horizontalmente */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
+}
+
+/* Tamanho do ícone */
+.action-btn i {
+    font-size: 18px !important; 
+    line-height: 0; /* Remove altura de linha extra que atrapalha centralização */
+}
+
+/* Efeito ao passar o mouse (Hover) */
+.action-btn:hover {
+    transform: translateY(-2px); /* Sobe um pouquinho */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Efeito ao clicar */
+.action-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* --- CORES ESPECÍFICAS --- */
+.btn-view { 
+    background-color: #17a2b8; /* Ciano */
+    color: white; 
+}
+.btn-view:hover { background-color: #138496; }
+
+.btn-edit { 
+    background-color: #ffc107; /* Amarelo */
+    color: #444; /* Texto escuro para contraste */
+}
+.btn-edit:hover { background-color: #e0a800; }
+
+.btn-delete { 
+    background-color: #dc3545; /* Vermelho */
+    color: white; 
+}
+.btn-delete:hover { background-color: #c82333; }
+
+/* --- ESTILO DOS CARDS DE FEEDBACK (MELHORADO) --- */
+.timeline-card {
+    background: #fff;
+    border-radius: 12px;       /* Bordas mais arredondadas */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06); /* Sombra suave e difusa */
+    padding: 25px;             /* MAIS ESPAÇO INTERNO (O segredo do respiro) */
+    margin-bottom: 25px;
+    border-left-width: 6px;    /* Tarja lateral mais grossa */
+    transition: transform 0.2s ease;
+}
+
+.timeline-card:hover {
+    transform: translateY(-3px); /* Leve flutuação ao passar o mouse */
+}
+
+/* Cabeçalho do Card (Título e Data) */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;       /* Separa o título do texto principal */
+    border-bottom: 1px solid #f0f0f0; /* Linha divisória sutil */
+    padding-bottom: 15px;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d3436;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Badge de Data (Estilo "Pílula") */
+.card-date {
+    font-size: 0.8rem;
+    color: #636e72;
+    background-color: #f1f2f6;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Corpo do Texto (A correção principal) */
+.card-body {
+    font-size: 0.95rem;
+    line-height: 1.8;          /* AUMENTA O ESPAÇO ENTRE LINHAS */
+    color: #4b6584;            /* Cinza azulado (menos cansativo que preto puro) */
+    margin-bottom: 25px;       /* Espaço antes do botão */
+    overflow-wrap: break-word; /* QUEBRA PALAVRAS LONGAS (Corrige o erro da imagem) */
+    text-align: left;
+}
+
+/* Cores das Bordas */
+.timeline-card.positive { border-left-color: #28a745; }
+.timeline-card.negative { border-left-color: #dc3545; }
