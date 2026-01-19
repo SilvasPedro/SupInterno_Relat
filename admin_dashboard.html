@@ -30,6 +30,9 @@
             <li onclick="showSection('ocorrencias')">
                 <i class="material-icons">feedback</i> Nova Ocorrência
             </li>
+            <li onclick="showSection('all-occurrences'); loadAllOccurrences()">
+                <i class="material-icons">view_list</i> Todas Ocorrências
+            </li>
             <li onclick="logout()" class="logout-btn">
                 <i class="material-icons">logout</i> Sair
             </li>
@@ -55,81 +58,88 @@
 
             <div class="metrics-grid">
                 <div class="metrics-grid">
-    
-    <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')" style="border-left: 5px solid #007bff;">
-        <h3>📞 TMA Médio (Equipe Tel)</h3>
-        <h1 id="kpi-team-tel">--:--</h1>
-        <p>Clique para ver detalhes</p>
-    </div>
 
-    <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')" style="border-left: 5px solid #17a2b8;">
-        <h3>💬 TMA Médio (Equipe Chat)</h3>
-        <h1 id="kpi-team-chat">--:--</h1>
-        <p>Clique para ver detalhes</p>
-    </div>
+                    <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')"
+                        style="border-left: 5px solid #007bff;">
+                        <h3>📞 TMA Médio (Equipe Tel)</h3>
+                        <h1 id="kpi-team-tel">--:--</h1>
+                        <p>Clique para ver detalhes</p>
+                    </div>
 
-    <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')" style="border-left: 5px solid #6f42c1;">
-        <h3>✅ Média Finalizados</h3>
-        <h1 id="kpi-team-vol">0</h1>
-        <p>Média de chamados por agente</p>
-    </div>
+                    <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')"
+                        style="border-left: 5px solid #17a2b8;">
+                        <h3>💬 TMA Médio (Equipe Chat)</h3>
+                        <h1 id="kpi-team-chat">--:--</h1>
+                        <p>Clique para ver detalhes</p>
+                    </div>
 
-    <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')" style="border-left: 5px solid #28a745;">
-        <h3>🏆 Melhor Monitoria</h3>
-        <h1 id="kpi-best-qa">--</h1>
-        <p id="kpi-best-qa-name" style="color: #28a745; font-weight:bold;">--</p>
-    </div>
+                    <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')"
+                        style="border-left: 5px solid #6f42c1;">
+                        <h3>✅ Média Finalizados</h3>
+                        <h1 id="kpi-team-vol">0</h1>
+                        <p>Média de chamados por agente</p>
+                    </div>
 
-    <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')" style="border-left: 5px solid #dc3545;">
-        <h3>⚠️ Maior TMA (Tel)</h3>
-        <h1 id="kpi-max-tel">--:--</h1>
-        <p id="kpi-max-tel-name" style="color: #dc3545; font-weight:bold;">--</p>
-    </div>
+                    <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')"
+                        style="border-left: 5px solid #28a745;">
+                        <h3>🏆 Melhor Monitoria</h3>
+                        <h1 id="kpi-best-qa">--</h1>
+                        <p id="kpi-best-qa-name" style="color: #28a745; font-weight:bold;">--</p>
+                    </div>
 
-    <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')" style="border-left: 5px solid #dc3545;">
-        <h3>⚠️ Maior TMA (Chat)</h3>
-        <h1 id="kpi-max-chat">--:--</h1>
-        <p id="kpi-max-chat-name" style="color: #dc3545; font-weight:bold;">--</p>
-    </div>
-</div>
-</div>
+                    <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')"
+                        style="border-left: 5px solid #dc3545;">
+                        <h3>⚠️ Maior TMA (Tel)</h3>
+                        <h1 id="kpi-max-tel">--:--</h1>
+                        <p id="kpi-max-tel-name" style="color: #dc3545; font-weight:bold;">--</p>
+                    </div>
+
+                    <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')"
+                        style="border-left: 5px solid #dc3545;">
+                        <h3>⚠️ Maior TMA (Chat)</h3>
+                        <h1 id="kpi-max-chat">--:--</h1>
+                        <p id="kpi-max-chat-name" style="color: #dc3545; font-weight:bold;">--</p>
+                    </div>
+                </div>
+            </div>
 
             <br>
             <hr><br>
 
-<h3 style="margin-top: 40px; margin-bottom: 20px; color: var(--color-dark-brown);">📈 Análise Gráfica</h3>
+            <h3 style="margin-top: 40px; margin-bottom: 20px; color: var(--color-dark-brown);">📈 Análise Gráfica</h3>
 
-<div class="charts-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
-    
-    <div class="metric-card">
-        <h4 style="margin-bottom: 15px; color: #666;">Ranking Qualidade (Monitoria)</h4>
-        <div style="height: 300px;">
-            <canvas id="chartRankingMonitoria"></canvas>
-        </div>
-    </div>
+            <div class="charts-container"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
 
-    <div class="metric-card">
-        <h4 style="margin-bottom: 15px; color: #666;">Ranking Agilidade (Chat)</h4>
-        <div style="height: 300px;">
-            <canvas id="chartRankingChat"></canvas>
-        </div>
-    </div>
+                <div class="metric-card">
+                    <h4 style="margin-bottom: 15px; color: #666;">Ranking Qualidade (Monitoria)</h4>
+                    <div style="height: 300px;">
+                        <canvas id="chartRankingMonitoria"></canvas>
+                    </div>
+                </div>
 
-    <div class="metric-card">
-        <h4 style="margin-bottom: 15px; color: #666;">Evolução do TMA Médio (Semanas)</h4>
-        <div style="height: 300px;">
-            <canvas id="chartEvolucaoTma"></canvas>
-        </div>
-    </div>
+                <div class="metric-card">
+                    <h4 style="margin-bottom: 15px; color: #666;">Ranking Agilidade (Chat)</h4>
+                    <div style="height: 300px;">
+                        <canvas id="chartRankingChat"></canvas>
+                    </div>
+                </div>
 
-    <div class="metric-card">
-        <h4 style="margin-bottom: 15px; color: #666;">Evolução da Produtividade (Média por Agente)</h4>
-        <div style="height: 300px;">
-            <canvas id="chartEvolucaoVol"></canvas>
-        </div>
-    </div>
+                <div class="metric-card">
+                    <h4 style="margin-bottom: 15px; color: #666;">Evolução do TMA Médio (Semanas)</h4>
+                    <div style="height: 300px;">
+                        <canvas id="chartEvolucaoTma"></canvas>
+                    </div>
+                </div>
 
-</div>
+                <div class="metric-card">
+                    <h4 style="margin-bottom: 15px; color: #666;">Evolução da Produtividade (Média por Agente)</h4>
+                    <div style="height: 300px;">
+                        <canvas id="chartEvolucaoVol"></canvas>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
         <div id="modal-kpi-details" class="modal">
@@ -285,6 +295,39 @@
                     Feedback</button>
             </form>
         </div>
+        <div id="section-all-occurrences" class="section" style="display:none;">
+            <div class="header-flex">
+                <h1>Relatório Geral de Ocorrências</h1>
+                <button onclick="loadAllOccurrences()" class="btn-primary" title="Recarregar Lista"
+                    style="padding: 8px 15px;">
+                    <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
+                </button>
+            </div>
+
+            <div class="metric-card">
+                <h3
+                    style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
+                    📋 Visão Unificada de Feedbacks
+                </h3>
+
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Colaborador</th>
+                                <th>Tipo</th>
+                                <th>Título</th>
+                                <th style="width: 40%;">Detalhes</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-occurrences-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <div id="modal-new-user" class="modal">
@@ -327,23 +370,25 @@
         </div>
     </div>
     <div id="modal-metric-view-admin" class="modal">
-    <div class="modal-content" style="max-width: 700px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
-            <h2 style="color: var(--color-dark-brown); margin: 0;">Detalhamento Semanal</h2>
-            <span class="close" onclick="document.getElementById('modal-metric-view-admin').style.display='none'">&times;</span>
-        </div>
+        <div class="modal-content" style="max-width: 700px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="color: var(--color-dark-brown); margin: 0;">Detalhamento Semanal</h2>
+                <span class="close"
+                    onclick="document.getElementById('modal-metric-view-admin').style.display='none'">&times;</span>
+            </div>
 
-        <div id="admin-metric-view-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        </div>
+            <div id="admin-metric-view-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            </div>
 
-        <div style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 15px;">
-            <button onclick="document.getElementById('modal-metric-view-admin').style.display='none'" 
-                style="background: var(--color-taupe); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
-                Fechar
-            </button>
+            <div style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 15px;">
+                <button onclick="document.getElementById('modal-metric-view-admin').style.display='none'"
+                    style="background: var(--color-taupe); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+                    Fechar
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
     <script type="module" src="js/admin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

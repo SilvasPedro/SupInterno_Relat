@@ -484,3 +484,69 @@ window.prepareEditMetric = async (id) => {
     btn.style.backgroundColor = "#ffc107"; // Amarelo
     btn.style.color = "#333";
 };
+
+// ============================================================
+// 9. RELATÓRIO GERAL DE OCORRÊNCIAS (NOVA FUNCIONALIDADE)
+// ============================================================
+
+window.loadAllOccurrences = async () => {
+    const tbody = document.getElementById('all-occurrences-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px;'>Carregando todas as ocorrências...</td></tr>";
+
+    try {
+        // 1. Busca todas as ocorrências na coleção 'occurrences'
+        // Nota: Como o firebase não permite ordenação complexa sem índice composto as vezes,
+        // vamos buscar tudo e ordenar via JavaScript para garantir.
+        const q = await getDocs(collection(db, "occurrences"));
+        
+        let allDocs = [];
+        q.forEach(docSnap => {
+            allDocs.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        // 2. Ordena pela data (Mais recente primeiro)
+        allDocs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // 3. Renderiza na tabela
+        tbody.innerHTML = "";
+
+        if (allDocs.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Nenhum registro encontrado no sistema.</td></tr>";
+            return;
+        }
+
+        allDocs.forEach(item => {
+            // Formatação de Data
+            const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
+            
+            // Definição de Ícones e Cores
+            const isPos = item.type === 'positive';
+            const typeLabel = isPos 
+                ? '<span style="color:#28a745; font-weight:bold;">👍 Elogio</span>' 
+                : '<span style="color:#dc3545; font-weight:bold;">👎 Advertência</span>';
+            
+            // Status de Leitura
+            const statusLabel = item.read 
+                ? '<span style="color:#28a745; background:#e8f5e9; padding:2px 8px; border-radius:10px; font-size:12px;">Lido</span>' 
+                : '<span style="color:#e67e22; background:#fff3e0; padding:2px 8px; border-radius:10px; font-size:12px;">Pendente</span>';
+
+            const row = `
+                <tr style="border-left: 4px solid ${isPos ? '#28a745' : '#dc3545'};">
+                    <td>${dateFmt}</td>
+                    <td><strong>${item.userName || 'Desconhecido'}</strong></td>
+                    <td>${typeLabel}</td>
+                    <td>${item.title}</td>
+                    <td style="font-size: 13px; color: #555; line-height: 1.4;">${item.description}</td>
+                    <td>${statusLabel}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+
+    } catch (error) {
+        console.error("Erro ao carregar relatório:", error);
+        tbody.innerHTML = `<tr><td colspan='6' style='color:red; text-align:center;'>Erro ao carregar dados: ${error.message}</td></tr>`;
+    }
+};
