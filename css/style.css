@@ -634,3 +634,22 @@ button[onclick*="openHistory"]:hover {
 /* Cores das Bordas */
 .timeline-card.positive { border-left-color: #28a745; }
 .timeline-card.negative { border-left-color: #dc3545; }
+
+/* Adicione no final do arquivo css/style.css */
+
+.error {
+    color: #ff6b6b; /* Um vermelho claro para dar contraste no fundo escuro */
+    background: rgba(255, 0, 0, 0.1); /* Fundo levemente avermelhado */
+    border: 1px solid #ff6b6b;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 15px;
+    font-size: 13px;
+    font-weight: 600;
+    display: block; /* Garante que ocupe a largura */
+}
+
+/* Ocultar a mensagem se estiver vazia para não mostrar a borda à toa */
+.error:empty {
+    display: none;
+}

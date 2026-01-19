@@ -40,15 +40,20 @@ loginForm.addEventListener('submit', async (e) => {
 
     } catch (error) {
         console.error(error);
-        if (error.code === 'auth/wrong-password') {
-            errorMsg.innerText = "Senha incorreta.";
+        
+        // Limpa mensagens anteriores visualmente se necessário
+        // (Opcional, mas boa prática)
+        
+        if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            errorMsg.innerText = "E-mail ou senha incorretos.";
         } else if (error.code === 'auth/user-not-found') {
             errorMsg.innerText = "Usuário não encontrado.";
+        } else if (error.code === 'auth/too-many-requests') {
+            errorMsg.innerText = "Muitas tentativas. Tente novamente mais tarde.";
         } else {
             errorMsg.innerText = "Erro ao entrar: " + error.message;
         }
-    }
-});
+}});
 
 // --- 4. VERIFICAÇÃO DE STATUS E NÍVEL ---
 async function checkUserStatus(user) {
