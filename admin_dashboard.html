@@ -33,6 +33,9 @@
             <li onclick="showSection('all-occurrences'); loadAllOccurrences()">
                 <i class="material-icons">view_list</i> Todas Ocorrências
             </li>
+            <li onclick="showSection('relatorio_detalhado'); loadRelatorioDetalhado()">
+                <i class="material-icons">table_chart</i> Relatório Detalhado
+            </li>
             <li onclick="logout()" class="logout-btn">
                 <i class="material-icons">logout</i> Sair
             </li>
@@ -295,6 +298,7 @@
                     Feedback</button>
             </form>
         </div>
+
         <div id="section-all-occurrences" class="section" style="display:none;">
             <div class="header-flex">
                 <h1>Relatório Geral de Ocorrências</h1>
@@ -326,6 +330,34 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <div id="section-relatorio_detalhado" class="section" style="display:none;">
+            <div class="header-flex" style="align-items: flex-start;">
+                <div>
+                    <h1>Relatório Detalhado</h1>
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                        <label for="filter-date-select" style="font-weight: 600; color: var(--color-taupe);">
+                            <i class="material-icons" style="font-size: 18px; vertical-align: middle;">filter_list</i>
+                            Filtrar Semana:
+                        </label>
+                        <select id="filter-date-select" onchange="renderDetailedContent()"
+                            style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; min-width: 200px;">
+                            <option value="all">Carregando datas...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="loadRelatorioDetalhado()" class="btn-primary" title="Atualizar Dados">
+                    <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
+                </button>
+            </div>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+            <div id="relatorio-detalhado-content">
+                <p style="color:#666; padding: 20px;">Selecione uma data acima ou clique em atualizar.</p>
             </div>
         </div>
     </main>
@@ -369,6 +401,7 @@
             </div>
         </div>
     </div>
+
     <div id="modal-metric-view-admin" class="modal">
         <div class="modal-content" style="max-width: 700px;">
             <div

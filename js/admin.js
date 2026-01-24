@@ -550,3 +550,151 @@ window.loadAllOccurrences = async () => {
         tbody.innerHTML = `<tr><td colspan='6' style='color:red; text-align:center;'>Erro ao carregar dados: ${error.message}</td></tr>`;
     }
 };
+
+// ============================================================
+// 10. RELATÓRIO DETALHADO COM FILTRO DE DATA
+// ============================================================
+
+window.loadRelatorioDetalhado = async () => {
+    const container = document.getElementById('relatorio-detalhado-content');
+    const selectFilter = document.getElementById('filter-date-select');
+    
+    if (!container) return;
+
+    container.innerHTML = "<p style='padding:20px; text-align:center;'>Carregando dados...</p>";
+
+    // 1. Garante que temos dados atualizados
+    if (allMetricsCache.length === 0) {
+        await loadDashboardData(); 
+    }
+
+    if (allMetricsCache.length === 0) {
+        container.innerHTML = "<p>Nenhum dado encontrado para gerar o relatório.</p>";
+        selectFilter.innerHTML = "<option value='all'>Sem dados</option>";
+        return;
+    }
+
+    // 2. Extrai Datas Únicas para o Filtro
+    const uniqueDates = [...new Set(allMetricsCache.map(item => item.weekStart))];
+    
+    // Ordena datas (mais recentes primeiro)
+    uniqueDates.sort((a, b) => new Date(b) - new Date(a));
+
+    // 3. Preenche o Select (Mantendo a seleção atual se possível)
+    const currentSelection = selectFilter.value;
+    
+    selectFilter.innerHTML = `<option value="all">Todas as Datas</option>`;
+    
+    uniqueDates.forEach(date => {
+        const dateFormatted = date.split('-').reverse().join('/');
+        const option = document.createElement('option');
+        option.value = date;
+        option.innerText = `Semana de ${dateFormatted}`;
+        selectFilter.appendChild(option);
+    });
+
+    // Restaura seleção anterior ou define 'all'
+    if (currentSelection && uniqueDates.includes(currentSelection)) {
+        selectFilter.value = currentSelection;
+    } else {
+        selectFilter.value = "all";
+    }
+
+    // 4. Renderiza o conteúdo baseado no filtro atual
+    renderDetailedContent();
+};
+
+window.renderDetailedContent = () => {
+    const container = document.getElementById('relatorio-detalhado-content');
+    const filterValue = document.getElementById('filter-date-select').value; // 'all' ou 'yyyy-mm-dd'
+
+    container.innerHTML = "";
+
+    // 1. Filtra os dados globais baseado na seleção
+    let filteredData = allMetricsCache;
+    if (filterValue !== 'all') {
+        filteredData = allMetricsCache.filter(item => item.weekStart === filterValue);
+    }
+
+    if (filteredData.length === 0) {
+        container.innerHTML = "<p style='padding:20px;'>Nenhum registro encontrado para esta data.</p>";
+        return;
+    }
+
+    // 2. Agrupa por Data (para manter a estrutura visual de blocos)
+    const groups = {};
+    filteredData.forEach(metric => {
+        if (!groups[metric.weekStart]) groups[metric.weekStart] = [];
+        groups[metric.weekStart].push(metric);
+    });
+
+    // Ordena as chaves (datas) decrescente
+    const sortedDates = Object.keys(groups).sort((a, b) => new Date(b) - new Date(a));
+
+    // 3. Gera o HTML
+    sortedDates.forEach(date => {
+        const records = groups[date];
+        
+        // Ordena colaboradores A-Z dentro do grupo
+        records.sort((a, b) => a.userName.localeCompare(b.userName));
+        
+        const dataFormatada = date.split('-').reverse().join('/');
+
+        const blockHtml = `
+            <div class="metric-card" style="margin-bottom: 30px; padding: 20px; border-left: 5px solid var(--color-dark-brown);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    <h3 style="color: var(--color-dark-brown); margin:0; display:flex; align-items:center;">
+                        <i class="material-icons" style="margin-right:10px; color:var(--color-taupe);">event</i> 
+                        ${dataFormatada}
+                    </h3>
+                    <span style="font-size:12px; background:#f0f0f0; padding:4px 8px; border-radius:4px; color:#666;">
+                        ${records.length} Colaboradores
+                    </span>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="data-table" style="box-shadow:none; border:1px solid #eee;">
+                        <thead>
+                            <tr style="background-color: #fdfdfd;">
+                                <th style="color:#666;">Colaborador</th>
+                                <th style="color:#666;">Monitoria</th>
+                                <th style="color:#666;">TMA Tel</th>
+                                <th style="color:#666;">TMA Chat</th>
+                                <th style="color:#666;">Vol. Total</th>
+                                <th style="color:#666; width:50px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${records.map(r => {
+                                const volTotal = (r.atendimentosFinalizados || 0) + (r.atendimentosHuggy || 0);
+                                // Estilização condicional da nota
+                                let notaStyle = "font-weight:bold;";
+                                if(r.notaMonitoria >= 90) notaStyle += "color:#28a745;"; // Verde
+                                else if(r.notaMonitoria < 80) notaStyle += "color:#dc3545;"; // Vermelho
+                                else notaStyle += "color:#ffc107;"; // Amarelo (80-89)
+
+                                return `
+                                <tr style="transition:0.2s;">
+                                    <td><strong>${r.userName}</strong></td>
+                                    <td><span style="${notaStyle}">${r.notaMonitoria}</span></td>
+                                    <td>${r.tmaTelefonia || '--'}</td>
+                                    <td>${r.tmaHuggy || '--'}</td>
+                                    <td>${volTotal}</td>
+                                    <td>
+                                        <button onclick="viewMetricDetailAdmin('${r.id || (r.userId + '_' + r.weekStart)}')" 
+                                            class="action-btn btn-view" title="Ver Detalhes" 
+                                            style="width:32px; height:32px; background-color: var(--color-taupe);">
+                                            <i class="material-icons" style="font-size:18px;">visibility</i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        container.innerHTML += blockHtml;
+    });
+};
