@@ -121,28 +121,49 @@ async function loadCollaborators() {
 
     try {
         const q = await getDocs(collection(db, "users"));
-        listBody.innerHTML = ""; 
+        
+        // 1. Cria um array para guardar os dados antes de exibir
+        let usersList = [];
 
         q.forEach((docSnap) => {
             const user = docSnap.data();
             usersCache[docSnap.id] = user.nome;
 
             if (user.cargo !== 'admin') { 
-                listBody.innerHTML += `
-                    <tr>
-                        <td>${user.nome}</td>
-                        <td>${user.cargo}</td>
-                        <td>${user.departamento || '-'}</td>
-                        <td><span style="color:green;font-weight:bold;">Ativo</span></td>
-                        <td>
-                            <button onclick="openHistory('${docSnap.id}', '${user.nome}')" style="cursor:pointer;border:none;background:none; color:#007bff; font-weight:bold;">
-                                📂 Histórico
-                            </button>
-                        </td>
-                    </tr>`;
+                // Adiciona ao array
+                usersList.push({
+                    id: docSnap.id,
+                    ...user
+                });
             }
         });
-    } catch (e) { listBody.innerHTML = "<tr><td colspan='5'>Erro ao carregar.</td></tr>"; }
+
+        // 2. Ordena o array alfabeticamente (A-Z)
+        // localeCompare garante que acentos sejam tratados corretamente (ex: Érico vem perto de Eduardo)
+        usersList.sort((a, b) => a.nome.localeCompare(b.nome));
+
+        // 3. Renderiza a tabela limpa
+        listBody.innerHTML = ""; 
+
+        usersList.forEach((user) => {
+            listBody.innerHTML += `
+                <tr>
+                    <td>${user.nome}</td>
+                    <td>${user.cargo}</td>
+                    <td>${user.departamento || '-'}</td>
+                    <td><span style="color:green;font-weight:bold;">Ativo</span></td>
+                    <td>
+                        <button onclick="openHistory('${user.id}', '${user.nome}')" style="cursor:pointer;border:none;background:none; color:#007bff; font-weight:bold;">
+                            📂 Histórico
+                        </button>
+                    </td>
+                </tr>`;
+        });
+
+    } catch (e) { 
+        console.error(e);
+        listBody.innerHTML = "<tr><td colspan='5'>Erro ao carregar.</td></tr>"; 
+    }
 }
 
 const formAddUser = document.getElementById('form-add-user');
@@ -426,13 +447,23 @@ async function loadOccurrenceUserSelect() {
     select.innerHTML = '<option value="">Selecione...</option>'; 
     
     const q = await getDocs(collection(db, "users"));
+    let usersList = [];
+
     q.forEach(d => {
         if(d.data().cargo !== 'admin') {
-            const opt = document.createElement('option');
-            opt.value = d.id;
-            opt.innerText = d.data().nome;
-            select.appendChild(opt);
+            usersList.push({ id: d.id, nome: d.data().nome });
         }
+    });
+
+    // Ordena
+    usersList.sort((a, b) => a.nome.localeCompare(b.nome));
+
+    // Preenche
+    usersList.forEach(user => {
+        const opt = document.createElement('option');
+        opt.value = user.id;
+        opt.innerText = user.nome;
+        select.appendChild(opt);
     });
 }
 

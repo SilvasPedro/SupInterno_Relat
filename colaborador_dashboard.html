@@ -65,8 +65,6 @@
             </div>
         </div>
 
-        </div>
-
         <div id="section-feedbacks" class="section" style="display:none;">
             <h1>Histórico de Feedbacks</h1>
             <p style="color: #666; margin-bottom: 20px;">Confirme a leitura dos apontamentos abaixo.</p>
@@ -78,10 +76,6 @@
         <div id="section-history" class="section" style="display:none;">
             <div class="header-flex">
                 <h1>Meus Dados Completos</h1>
-                <button onclick="loadFullHistory()" class="btn-primary" style="padding: 8px 15px; font-size: 12px;">
-                    <i class="material-icons" style="font-size:14px; vertical-align:middle;">refresh</i> Atualizar
-                    Tabela
-                </button>
             </div>
 
             <div class="metric-card" style="margin-bottom: 30px;">
@@ -136,12 +130,12 @@
         <div class="modal-content" style="max-width: 700px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
-                <h2 style="color: var(--color-dark-brown); margin: 0;">Detalhes da Semana</h2>
+                <h2 style="color: var(--color-dark-brown); margin: 0;">Detalhamento da Semana</h2>
                 <span class="close" onclick="closeMetricModal()">&times;</span>
             </div>
 
-            <div id="metric-modal-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            </div>
+            <div id="metric-modal-content">
+                </div>
 
             <div style="margin-top: 30px; text-align: right;">
                 <button onclick="closeMetricModal()"
