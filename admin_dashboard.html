@@ -107,36 +107,29 @@
 
                 <div class="metric-card kpi-card" style="border-left: 5px solid #6f42c1;">
                     <h3>⏱️ TMR (Setor)</h3>
-                    <p>Tempo Médio de Resolução</p>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <h1 id="kpi-sector-tmr" style="font-size: 2.5em; margin: 0;">--:--</h1>
                         <span id="trend-tmr" style="font-size: 1.5em; font-weight: bold;"></span>
                     </div>
-
-                    <h3>Meta: ≦ 00:20:00</h3>
-                    <p>
+                    <p>Tempo Médio de Resolução</p>
                 </div>
 
                 <div class="metric-card kpi-card" style="border-left: 5px solid #17a2b8;">
                     <h3>🎯 FCR (Setor)</h3>
-                    <p>Resolução no 1º Contato</p>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <h1 id="kpi-sector-fcr" style="font-size: 2.5em; margin: 0;">--%</h1>
                         <span id="trend-fcr" style="font-size: 1.5em; font-weight: bold;"></span>
                     </div>
-
-                    <h3>Meta: ≧ 80%</h3>
+                    <p>Resolução no 1º Contato</p>
                 </div>
 
                 <div class="metric-card kpi-card" style="border-left: 5px solid #dc3545;">
                     <h3>🔄 Reincidência (Setor)</h3>
-                    <p>Taxa de Retorno</p>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <h1 id="kpi-sector-rein" style="font-size: 2.5em; margin: 0;">--%</h1>
                         <span id="trend-rein" style="font-size: 1.5em; font-weight: bold;"></span>
                     </div>
-
-                    <h3>Meta: ≦ 20%</h3>
+                    <p>Taxa de Retorno</p>
                 </div>
             </div>
 
@@ -147,35 +140,22 @@
 
             <div class="charts-container"
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
-
                 <div class="metric-card">
                     <h4 style="margin-bottom: 15px; color: #666;">Ranking Qualidade (Monitoria)</h4>
-                    <div style="height: 300px;">
-                        <canvas id="chartRankingMonitoria"></canvas>
-                    </div>
+                    <div style="height: 300px;"><canvas id="chartRankingMonitoria"></canvas></div>
                 </div>
-
                 <div class="metric-card">
                     <h4 style="margin-bottom: 15px; color: #666;">Ranking Agilidade (Chat)</h4>
-                    <div style="height: 300px;">
-                        <canvas id="chartRankingChat"></canvas>
-                    </div>
+                    <div style="height: 300px;"><canvas id="chartRankingChat"></canvas></div>
                 </div>
-
                 <div class="metric-card">
                     <h4 style="margin-bottom: 15px; color: #666;">Evolução do TMA Médio (Semanas)</h4>
-                    <div style="height: 300px;">
-                        <canvas id="chartEvolucaoTma"></canvas>
-                    </div>
+                    <div style="height: 300px;"><canvas id="chartEvolucaoTma"></canvas></div>
                 </div>
-
                 <div class="metric-card">
                     <h4 style="margin-bottom: 15px; color: #666;">Evolução da Produtividade (Média por Agente)</h4>
-                    <div style="height: 300px;">
-                        <canvas id="chartEvolucaoVol"></canvas>
-                    </div>
+                    <div style="height: 300px;"><canvas id="chartEvolucaoVol"></canvas></div>
                 </div>
-
             </div>
         </div>
 
@@ -201,7 +181,6 @@
                 <h1>Colaboradores</h1>
                 <button onclick="openModal()" class="btn-primary">+ Novo Colaborador</button>
             </div>
-
             <table class="data-table">
                 <thead>
                     <tr>
@@ -212,8 +191,7 @@
                         <th>Ações</th>
                     </tr>
                 </thead>
-                <tbody id="colaboradores-list">
-                </tbody>
+                <tbody id="colaboradores-list"></tbody>
             </table>
         </div>
 
@@ -222,9 +200,6 @@
 
             <div class="metrics-form" style="border-left: 5px solid #6f42c1; margin-bottom: 30px;">
                 <h2 style="color: #6f42c1; margin-bottom: 20px;">🚀 Indicadores Globais do Setor</h2>
-                <p style="margin-bottom: 15px; color: #666; font-size: 13px;">Estes dados aparecerão para todos os
-                    colaboradores.</p>
-
                 <form id="form-sector-metrics">
                     <div class="form-group-header">
                         <div class="input-block">
@@ -236,12 +211,10 @@
                                 style="background-color: #6f42c1; width: 100%;">Salvar KPIs do Setor</button>
                         </div>
                     </div>
-
                     <div class="metrics-grid">
                         <div class="input-block">
                             <label>TMR (HH:MM:SS)</label>
-                            <input type="text" id="kpi-tmr" placeholder="00:00:00" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}"
-                                title="Formato HH:MM:SS" required>
+                            <input type="text" id="kpi-tmr" placeholder="00:00:00" required>
                         </div>
                         <div class="input-block">
                             <label>FCR (%)</label>
@@ -273,40 +246,93 @@
                     </div>
                 </div>
 
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <h3>Geral & Telefonia</h3>
-                        <label>Atendimentos Finalizados</label>
-                        <input type="number" id="at-finalizados" min="0" required>
+                <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
 
-                        <label>Atendimentos Abertos</label>
-                        <input type="number" id="at-abertos" min="0">
+                    <div class="metric-card" style="border-left: 5px solid #6f42c1; background: #f8f9fa;">
+                        <h3
+                            style="color: #6f42c1; margin-bottom: 15px; border-bottom: 1px solid #e9ecef; padding-bottom: 10px;">
+                            ✅ Totais & Status
+                        </h3>
 
-                        <label>TMA Telefonia (min)</label>
-                        <input type="number" step="0.01" id="tma-tel" placeholder="0.00">
+                        <div class="input-block" style="margin-top: 15px;">
+                            <label>Atendimentos Abertos</label>
+                            <input type="number" id="at-abertos" placeholder="Pendentes">
+                        </div>
+                        <div class="input-block">
+                            <label>Atendimentos Finalizados</label>
+                            <input type="number" id="at-finalizados" placeholder="Total Geral" required
+                                style="background: #e2e6ea; font-weight: bold;">
+                            <small style="color: #666; font-size: 11px;">Soma de Tel + Chat</small>
+                        </div>
 
-                        <div style="display:none;">
-                            <input type="number" id="lig-realizadas" value="0">
-                            <input type="number" id="lig-recebidas" value="0">
-                            <input type="number" id="lig-perdidas" value="0">
-                            <input type="number" step="0.01" id="tme-tel" value="0">
+                    </div>
+                    <div class="metric-card" style="border-left: 5px solid #007bff; background: #f8f9fa;">
+                        <h3
+                            style="color: #007bff; margin-bottom: 15px; border-bottom: 1px solid #e9ecef; padding-bottom: 10px;">
+                            📞 Telefonia
+                        </h3>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                                                        <div class="input-block">
+                                <label>Realizadas</label>
+                                <input type="number" id="lig-realizadas" placeholder="0">
+                            </div>
+                            <div class="input-block">
+                                <label>Recebidas</label>
+                                <input type="number" id="lig-recebidas" placeholder="0">
+                            </div>
+
+                            <div class="input-block">
+                                <label style="color: #dc3545;">Perdidas</label>
+                                <input type="number" id="lig-perdidas" placeholder="0" style="border-color: #dc3545;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                            <div class="input-block">
+                                <label>TMA (min)</label>
+                                <input type="number" step="0.01" id="tma-tel" placeholder="0.00">
+                            </div>
+                            <div class="input-block">
+                                <label>TME (seg)</label>
+                                <input type="number" step="0.01" id="tme-tel" placeholder="0.00">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="metric-card">
-                        <h3>Digital & Qualidade</h3>
-                        <label>Atendimentos Chat</label>
-                        <input type="number" id="at-huggy" min="0">
+                    <div class="metric-card" style="border-left: 5px solid #28a745; background: #f8f9fa;">
+                        <h3
+                            style="color: #28a745; margin-bottom: 15px; border-bottom: 1px solid #e9ecef; padding-bottom: 10px;">
+                            💬 Chat & Qualidade
+                        </h3>
 
-                        <label>TMA Chat (min)</label>
-                        <input type="number" step="0.01" id="tma-huggy" placeholder="0.00">
+                        <div class="input-block">
+                            <label>Volume Chat (Huggy)</label>
+                            <input type="number" id="at-huggy" placeholder="0">
+                        </div>
 
-                        <label class="highlight-label">Nota de Monitoria (0-100)</label>
-                        <input type="number" step="0.1" id="nota-monitoria" max="100" placeholder="100">
+                        <div class="input-block">
+                            <label>TMA Chat (min)</label>
+                            <input type="number" step="0.01" id="tma-huggy" placeholder="0.00">
+                        </div>
+
+                        <div class="input-block">
+                            <label class="highlight-label" style="color: #28a745;">Nota Monitoria (0-100)</label>
+                            <input type="number" step="0.1" id="nota-monitoria" max="100" placeholder="100"
+                                style="font-weight: bold;">
+                        </div>
                     </div>
+
+
+
                 </div>
 
-                <button type="submit" class="btn-save-metrics">Salvar Métricas Individuais</button>
+                <div style="margin-top: 30px; text-align: right;">
+                    <button type="submit" class="btn-save-metrics"
+                        style="width: 100%; max-width: 300px; font-size: 16px;">
+                        💾 Salvar Métricas
+                    </button>
+                </div>
             </form>
         </div>
 
@@ -317,11 +343,9 @@
                     <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
                 </button>
             </div>
-
             <div class="metric-card">
                 <p style="color:#666; margin-bottom:15px; font-size:13px;">
-                    Gerencie aqui os indicadores globais (TMR, FCR, Reincidência) lançados.
-                    Edite para corrigir ou exclua duplicidades.
+                    Gerencie aqui os indicadores globais (TMR, FCR, Reincidência).
                 </p>
                 <div style="overflow-x: auto;">
                     <table class="data-table">
@@ -334,8 +358,7 @@
                                 <th>Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="sector-history-body">
-                        </tbody>
+                        <tbody id="sector-history-body"></tbody>
                     </table>
                 </div>
             </div>
@@ -343,9 +366,7 @@
 
         <div id="section-ocorrencias" class="section" style="display:none;">
             <h1>Registrar Ocorrência / Feedback</h1>
-
             <form id="form-ocorrencias" class="metrics-form">
-
                 <div class="form-group-header">
                     <div class="input-block">
                         <label>Colaborador</label>
@@ -358,34 +379,29 @@
                         <input type="date" id="occur-date" required>
                     </div>
                 </div>
-
                 <div class="input-block">
                     <label>Tipo de Ocorrência</label>
                     <div class="radio-group">
                         <label class="radio-label positive">
                             <input type="radio" name="occur-type" value="positive" required>
-                            <span>👍 Positiva (Elogio/Mérito)</span>
+                            <span>👍 Positiva</span>
                         </label>
                         <label class="radio-label negative">
                             <input type="radio" name="occur-type" value="negative">
-                            <span>👎 Negativa (Advertência/Falha)</span>
+                            <span>👎 Negativa</span>
                         </label>
                     </div>
                 </div>
-
                 <br>
-
                 <div class="input-block">
                     <label>Título Resumido</label>
-                    <input type="text" id="occur-title" placeholder="Ex: Atraso injustificado" required>
+                    <input type="text" id="occur-title" placeholder="Ex: Atraso" required>
                 </div>
-
                 <div class="input-block">
                     <label>Descrição Detalhada</label>
-                    <textarea id="occur-desc" rows="5" placeholder="Descreva o que aconteceu..."
+                    <textarea id="occur-desc" rows="5" placeholder="Descreva..."
                         style="padding:10px; width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:4px;"></textarea>
                 </div>
-
                 <button type="submit" class="btn-save-metrics" style="background-color: #6610f2;">Registrar
                     Feedback</button>
             </form>
@@ -394,18 +410,11 @@
         <div id="section-all-occurrences" class="section" style="display:none;">
             <div class="header-flex">
                 <h1>Relatório Geral de Ocorrências</h1>
-                <button onclick="loadAllOccurrences()" class="btn-primary" title="Recarregar Lista"
-                    style="padding: 8px 15px;">
+                <button onclick="loadAllOccurrences()" class="btn-primary" title="Recarregar Lista">
                     <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
                 </button>
             </div>
-
             <div class="metric-card">
-                <h3
-                    style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
-                    📋 Visão Unificada de Feedbacks
-                </h3>
-
                 <div style="overflow-x: auto;">
                     <table class="data-table">
                         <thead>
@@ -418,8 +427,7 @@
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody id="all-occurrences-body">
-                        </tbody>
+                        <tbody id="all-occurrences-body"></tbody>
                     </table>
                 </div>
             </div>
@@ -440,14 +448,11 @@
                         </select>
                     </div>
                 </div>
-
                 <button onclick="loadRelatorioDetalhado()" class="btn-primary" title="Atualizar Dados">
                     <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
                 </button>
             </div>
-
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-
             <div id="relatorio-detalhado-content">
                 <p style="color:#666; padding: 20px;">Selecione uma data acima ou clique em atualizar.</p>
             </div>
@@ -473,23 +478,19 @@
         <div class="modal-content" style="width: 80%; max-width: 900px;">
             <span class="close" onclick="closeHistoryModal()">&times;</span>
             <h2 id="history-user-name">Histórico do Colaborador</h2>
-
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-
                 <div style="flex: 1; min-width: 300px;">
                     <h3>📊 Métricas Semanais</h3>
                     <div id="history-metrics-list" class="history-list">
                         <p>Carregando...</p>
                     </div>
                 </div>
-
                 <div style="flex: 1; min-width: 300px;">
                     <h3>💬 Ocorrências / Feedbacks</h3>
                     <div id="history-occurrences-list" class="history-list">
                         <p>Carregando...</p>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -502,10 +503,7 @@
                 <span class="close"
                     onclick="document.getElementById('modal-metric-view-admin').style.display='none'">&times;</span>
             </div>
-
-            <div id="admin-metric-view-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            </div>
-
+            <div id="admin-metric-view-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;"></div>
             <div style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 15px;">
                 <button onclick="document.getElementById('modal-metric-view-admin').style.display='none'"
                     style="background: var(--color-taupe); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">

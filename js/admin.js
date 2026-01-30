@@ -19,14 +19,14 @@ import {
     setDoc, 
     getDoc, 
     updateDoc, 
-    deleteDoc, // ADICIONADO PARA PERMITIR EXCLUSÃO
+    deleteDoc, 
     query, 
     where 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // --- IMPORTAÇÕES DOS MÓDULOS AUXILIARES ---
-import { renderDashboardCharts } from "./charts.js"; // Gráficos
-import "./history.js"; // Histórico e Visualização (Carrega as funções globais)
+import { renderDashboardCharts } from "./charts.js"; 
+import "./history.js"; 
 
 // 1. CONFIGURAÇÃO
 const firebaseConfig = {
@@ -63,7 +63,6 @@ onAuthStateChanged(auth, async (user) => {
             if (docSnap.exists() && docSnap.data().cargo === 'admin') {
                 document.getElementById('admin-name').innerText = "Gestor: " + (docSnap.data().nome || "Admin");
                 
-                // Inicializa os módulos
                 loadCollaborators();       
                 loadUserSelectOptions();   
                 loadOccurrenceUserSelect(); 
@@ -91,7 +90,6 @@ window.showSection = (sectionId) => {
     const target = document.getElementById('section-' + sectionId);
     if(target) target.style.display = 'block';
     
-    // Se sair da tela de lançamentos, reseta o formulário de edição
     if (sectionId !== 'lancamentos' && isEditingMetric) resetMetricFormState();
 };
 
@@ -102,7 +100,7 @@ window.logout = () => {
     if(confirm("Sair do sistema?")) signOut(auth).then(() => window.location.href = "index.html");
 };
 
-// --- FUNÇÃO AUXILIAR DE TEMPO (CRÍTICA) ---
+// FUNÇÃO CRÍTICA DE TEMPO
 function timeToSeconds(timeStr) {
     if(!timeStr || typeof timeStr !== 'string') return 0;
     const p = timeStr.split(':');
@@ -209,7 +207,7 @@ async function loadDashboardData() {
             elTmr.innerText = currTmr;
             elTmr.style.color = "#6f42c1";
             if (prev) {
-                const cSec = timeToSeconds(curr.tmr); // AGORA FUNCIONA!
+                const cSec = timeToSeconds(curr.tmr);
                 const pSec = timeToSeconds(prev.tmr);
                 if (cSec > pSec) {
                     trendTmr.innerHTML = "▲"; trendTmr.style.color = "#dc3545";
@@ -438,7 +436,7 @@ async function loadOccurrenceUserSelect() {
     });
 }
 
-// SUBMIT: Métricas (Inserir e Editar)
+// SUBMIT: Métricas (Inserir e Editar) - AGORA COM TODOS OS CAMPOS
 const formMetrics = document.getElementById('form-metrics');
 if (formMetrics) {
     formMetrics.addEventListener('submit', async (e) => {
@@ -450,13 +448,18 @@ if (formMetrics) {
 
         const data = {
             userId, userName, weekStart, createdAt: new Date(),
+            // Totais
             atendimentosAbertos: Number(document.getElementById('at-abertos').value),
             atendimentosFinalizados: Number(document.getElementById('at-finalizados').value),
-            ligacoesRealizadas: Number(document.getElementById('lig-realizadas')?.value || 0),
-            ligacoesRecebidas: Number(document.getElementById('lig-recebidas')?.value || 0),
-            ligacoesPerdidas: Number(document.getElementById('lig-perdidas')?.value || 0),
-            tmeTelefonia: Number(document.getElementById('tme-tel')?.value || 0),
+            
+            // Telefonia
+            ligacoesRealizadas: Number(document.getElementById('lig-realizadas').value || 0),
+            ligacoesRecebidas: Number(document.getElementById('lig-recebidas').value || 0),
+            ligacoesPerdidas: Number(document.getElementById('lig-perdidas').value || 0),
+            tmeTelefonia: Number(document.getElementById('tme-tel').value || 0),
             tmaTelefonia: Number(document.getElementById('tma-tel').value),
+            
+            // Chat
             atendimentosHuggy: Number(document.getElementById('at-huggy').value),
             tmaHuggy: Number(document.getElementById('tma-huggy').value),
             notaMonitoria: Number(document.getElementById('nota-monitoria').value)
@@ -493,7 +496,6 @@ if (formSector) {
         };
 
         try {
-            // Salva na coleção 'sector_metrics' usando a data como ID
             await setDoc(doc(db, "sector_metrics", weekStart), data);
             alert("KPIs do Setor salvos com sucesso!");
             formSector.reset();
@@ -555,12 +557,22 @@ window.prepareEditMetric = async (id) => {
     
     showSection('lancamentos');
     
+    // Dados Básicos
     document.getElementById('metric-user-select').value = data.userId;
     document.getElementById('metric-date').value = data.weekStart;
     
+    // Totais
     document.getElementById('at-abertos').value = data.atendimentosAbertos;
     document.getElementById('at-finalizados').value = data.atendimentosFinalizados;
+    
+    // Telefonia (Novos Campos Visíveis)
+    document.getElementById('lig-recebidas').value = data.ligacoesRecebidas || 0;
+    document.getElementById('lig-realizadas').value = data.ligacoesRealizadas || 0;
+    document.getElementById('lig-perdidas').value = data.ligacoesPerdidas || 0;
     document.getElementById('tma-tel').value = data.tmaTelefonia;
+    document.getElementById('tme-tel').value = data.tmeTelefonia || 0;
+    
+    // Chat
     document.getElementById('at-huggy').value = data.atendimentosHuggy;
     document.getElementById('tma-huggy').value = data.tmaHuggy;
     document.getElementById('nota-monitoria').value = data.notaMonitoria;
@@ -708,7 +720,7 @@ window.renderDetailedContent = () => {
 };
 
 // ============================================================
-// 10. NOVA FUNÇÃO: HISTÓRICO DE KPIs DO SETOR
+// 10. HISTÓRICO DE KPIs DO SETOR
 // ============================================================
 
 window.loadSectorHistory = async () => {
@@ -721,7 +733,6 @@ window.loadSectorHistory = async () => {
         let docs = [];
         q.forEach(doc => docs.push(doc.data()));
         
-        // Ordena por data (mais recente primeiro)
         docs.sort((a,b) => new Date(b.weekStart) - new Date(a.weekStart));
 
         tbody.innerHTML = "";
@@ -756,37 +767,30 @@ window.loadSectorHistory = async () => {
     }
 }
 
-// EXCLUIR KPI
 window.deleteSectorKPI = async (id) => {
     if(!confirm("Tem certeza que deseja excluir os dados desta semana?")) return;
     try {
         await deleteDoc(doc(db, "sector_metrics", id));
         alert("Excluído com sucesso!");
-        loadSectorHistory(); // Atualiza a tabela
-        loadDashboardData(); // Atualiza os cards da home
+        loadSectorHistory(); 
+        loadDashboardData(); 
     } catch(e) { alert("Erro ao excluir: " + e.message); }
 }
 
-// PREPARAR EDIÇÃO KPI
 window.prepareEditSectorKPI = async (id) => {
     try {
         const docSnap = await getDoc(doc(db, "sector_metrics", id));
         if(!docSnap.exists()) return;
         const data = docSnap.data();
 
-        // Vai para a tela de lançamentos
         showSection('lancamentos');
 
-        // Preenche o formulário
         document.getElementById('sector-date').value = data.weekStart;
         document.getElementById('kpi-tmr').value = data.tmr;
         document.getElementById('kpi-fcr').value = data.fcr;
         document.getElementById('kpi-reincidencia').value = data.reincidência || data.reincidencia;
 
-        // Feedback visual
-        alert(`Dados da semana ${data.weekStart} carregados no formulário. Faça as alterações e clique em 'Salvar'.`);
-        
-        // Rola a página para o topo
+        alert(`Dados da semana ${data.weekStart} carregados no formulário.`);
         window.scrollTo(0,0);
 
     } catch(e) { console.error(e); }

@@ -3,7 +3,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // ============================================================
-// 1. CONFIGURAÇÃO (PREENCHA COM SEUS DADOS)
+// 1. CONFIGURAÇÃO
 // ============================================================
 const firebaseConfig = {
     apiKey: "AIzaSyCWve8E4PIwEeBf5nATJnFnlJkSe9YkbPE",
@@ -34,22 +34,21 @@ window.logout = () => {
     signOut(auth).then(() => window.location.href = "index.html");
 };
 
+// Confirma leitura do feedback (chamado na tela de Feedbacks)
 window.confirmRead = async (docId) => {
     if (!confirm("Deseja marcar este apontamento como lido?")) return;
     try {
         const docRef = doc(db, "occurrences", docId);
         await updateDoc(docRef, { read: true, readAt: new Date() });
         alert("Confirmação registrada!");
-        if (auth.currentUser) loadMyOccurrences(auth.currentUser.uid);
+        if (auth.currentUser) {
+            loadMyOccurrences(auth.currentUser.uid); // Atualiza Timeline
+            loadFullHistory(auth.currentUser.uid);   // Atualiza Tabela
+        }
     } catch (error) {
         console.error("Erro ao confirmar leitura:", error);
         alert("Erro ao salvar: " + error.message);
     }
-};
-
-window.openMetricDetail = (index) => {
-    // Implementação simplificada para o histórico, se necessário
-    alert("Detalhes disponíveis na tabela.");
 };
 
 window.closeMetricModal = () => {
@@ -65,9 +64,9 @@ onAuthStateChanged(auth, async (user) => {
         const nameEl = document.getElementById('user-name');
         if (nameEl) nameEl.innerText = user.email;
 
-        loadMyMetrics(user.uid);
-        loadMyOccurrences(user.uid);
-        loadFullHistory(user.uid);
+        loadMyMetrics(user.uid);      // Dashboard
+        loadMyOccurrences(user.uid);  // Timeline Feedbacks
+        loadFullHistory(user.uid);    // Histórico Completo (Tabelas)
     } else {
         window.location.href = "index.html";
     }
@@ -76,8 +75,6 @@ onAuthStateChanged(auth, async (user) => {
 // ============================================================
 // 4. MÓDULO DE MÉTRICAS (CARDS E GRÁFICOS)
 // ============================================================
-
-// --- Funções Auxiliares (Definidas antes do uso para evitar erros) ---
 
 function timeToSeconds(timeStr) {
     if(!timeStr || typeof timeStr !== 'string') return 0;
@@ -91,29 +88,23 @@ function timeToSeconds(timeStr) {
 }
 
 function getTrendInfo(current, previous, type) {
-    // Se não há histórico (previous é undefined ou null), retorna neutro
     if (previous === undefined || previous === null) {
         return { icon: '─', label: 'Sem histórico', class: 'trend-neutral' };
     }
     
     let isPositive = false;
     if (type === 'inverse') {
-        // Para TMR e Reincidência: Menor é melhor (ex: 5min < 10min = Bom)
         isPositive = current < previous;
     } else {
-        // Para FCR: Maior é melhor (ex: 90% > 80% = Bom)
         isPositive = current > previous;
     }
 
     if (current === previous) return { icon: '─', label: 'Estável', class: 'trend-neutral' };
 
     return isPositive 
-        ? { icon: '▲', label: 'Melhorou', class: 'trend-positive' } // Verde
-        : { icon: '▼', label: 'Piorou', class: 'trend-negative' };  // Vermelho
+        ? { icon: '▲', label: 'Melhorou', class: 'trend-positive' } 
+        : { icon: '▼', label: 'Piorou', class: 'trend-negative' }; 
 }
-
-
-// --- Função Principal de Carregamento ---
 
 async function loadMyMetrics(uid) {
     const container = document.getElementById('cards-container');
@@ -127,27 +118,21 @@ async function loadMyMetrics(uid) {
         snapUser.forEach(doc => userRawData.push(doc.data()));
         userRawData.sort((a, b) => new Date(a.weekStart) - new Date(b.weekStart));
 
-        // 2. Busca Métricas do Setor (KPIs Globais)
+        // 2. Busca Métricas do Setor
         let sectorRawData = [];
         try {
             const qSector = query(collection(db, "sector_metrics")); 
             const snapSector = await getDocs(qSector);
             snapSector.forEach(doc => sectorRawData.push(doc.data()));
             sectorRawData.sort((a, b) => new Date(a.weekStart) - new Date(b.weekStart));
-        } catch (errSector) {
-            console.warn("Ainda não há métricas de setor lançadas ou erro de permissão.", errSector);
-        }
+        } catch (errSector) { console.warn(errSector); }
 
-        // Definição dos dados para exibição (com proteção para arrays vazios)
         const userData = userRawData.length > 0 ? userRawData[userRawData.length - 1] : {};
-        
         const sectorCurr = sectorRawData.length > 0 ? sectorRawData[sectorRawData.length - 1] : {};
         const sectorPrev = sectorRawData.length > 1 ? sectorRawData[sectorRawData.length - 2] : null;
 
-        // Atualiza os Cards
         updateCardsHTML(sectorCurr, sectorPrev, userData);
 
-        // Renderiza Gráficos (Apenas se houver dados individuais)
         if (userRawData.length > 0) {
             let labels = [];
             let dataMonitoria = [];
@@ -167,7 +152,7 @@ async function loadMyMetrics(uid) {
 
     } catch (error) {
         console.error("Erro Metrics:", error);
-        if (container) container.innerText = "Erro ao carregar dados. Verifique o console.";
+        if (container) container.innerText = "Erro ao carregar dados.";
     }
 }
 
@@ -175,11 +160,9 @@ function updateCardsHTML(sectorCurr, sectorPrev, userData) {
     const container = document.getElementById('cards-container');
     if (!container) return;
     
-    // Proteção: Garante que objetos existam
     if (!sectorCurr) sectorCurr = {};
     if (!userData) userData = {};
 
-    // --- CÁLCULO DE TENDÊNCIAS ---
     const currTmrSec = timeToSeconds(sectorCurr.tmr);
     const prevTmrSec = sectorPrev ? timeToSeconds(sectorPrev.tmr) : null;
     const trendTMR = getTrendInfo(currTmrSec, prevTmrSec, 'inverse');
@@ -194,42 +177,34 @@ function updateCardsHTML(sectorCurr, sectorPrev, userData) {
 
     const totalAtendimentos = (userData.atendimentosFinalizados || 0) + (userData.atendimentosHuggy || 0);
 
-    // --- HTML ---
     container.innerHTML = `
-        
         <h3 style="margin-bottom: 15px; color: var(--color-taupe); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
             🚀 Performance da Equipe
         </h3>
-        
         <div class="metrics-grid">
             <div class="metric-card" style="border-left: 5px solid #6f42c1;">
                 <h3>⏱️ TMR (Equipe)</h3>
-                <p>Tempo médio para resolução</p>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <h1 style="font-size: 2.5em; margin: 10px 0; color: #6f42c1">${sectorCurr.tmr || '--:--'}</h1>
                     <span style="font-size:1.2em; color:${trendTMR.class === 'trend-positive' ? '#28a745' : (trendTMR.class === 'trend-negative' ? '#dc3545' : '#ccc')}">${trendTMR.icon}</span>
                 </div>
-                <h3>Meta: ≦ 00:20:00</h3>
+                <p>Média do Setor</p>
             </div>
-
             <div class="metric-card" style="border-left: 5px solid #17a2b8;">
                 <h3>🎯 FCR (Equipe)</h3>
-                <p>Resolução no 1º contato</p>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <h1 style="font-size: 2.5em; margin: 10px 0; color: #17a2b8">${currFcr}%</h1>
                     <span style="font-size:1.2em; color:${trendFCR.class === 'trend-positive' ? '#28a745' : (trendFCR.class === 'trend-negative' ? '#dc3545' : '#ccc')}">${trendFCR.icon}</span>
                 </div>
-                 <h3>Meta: ≧ 80%</h3>
+                <p>Média do Setor</p>
             </div>
-
             <div class="metric-card" style="border-left: 5px solid #dc3545;">
                 <h3>🔄 Reincidência (Equipe)</h3>
-                <p>Taxa de retorno</p>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <h1 style="font-size: 2.5em; margin: 10px 0; color: #dc3545">${currRein}%</h1>
                     <span style="font-size:1.2em; color:${trendRein.class === 'trend-positive' ? '#28a745' : (trendRein.class === 'trend-negative' ? '#dc3545' : '#ccc')}">${trendRein.icon}</span>
                 </div>
-                <h3>Meta: ≦ 20%</h3>
+                <p>Média do Setor</p>
             </div>
         </div>
 
@@ -238,20 +213,17 @@ function updateCardsHTML(sectorCurr, sectorPrev, userData) {
         <h3 style="margin-bottom: 15px; color: var(--color-taupe); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
             👤 Meu Desempenho
         </h3>
-
         <div class="metrics-grid">
             <div class="metric-card" style="border-left: 5px solid #28a745;">
                 <h3>Minha Monitoria</h3>
                 <h1 style="font-size: 2.5em; margin: 10px 0;">${userData.notaMonitoria || 0}</h1>
                 <p>Qualidade Individual</p>
             </div>
-            
             <div class="metric-card" style="border-left: 5px solid #007bff;">
                 <h3>Meu TMA Telefonia</h3>
                 <h1 style="font-size: 2.5em; margin: 10px 0;">${userData.tmaTelefonia || 0}</h1>
                 <p>Minutos</p>
             </div>
-            
             <div class="metric-card" style="border-left: 5px solid #ffc107;">
                 <h3>Meus Atendimentos</h3>
                 <h1 style="font-size: 2.5em; margin: 10px 0;">${totalAtendimentos}</h1>
@@ -300,7 +272,7 @@ function renderCharts(labels, monitoria, atendimentos) {
 }
 
 // ============================================================
-// 5. MÓDULO DE OCORRÊNCIAS
+// 5. MÓDULO DE OCORRÊNCIAS (TIMELINE)
 // ============================================================
 async function loadMyOccurrences(uid) {
     const listContainer = document.getElementById('feedbacks-list');
@@ -356,30 +328,80 @@ async function loadMyOccurrences(uid) {
 }
 
 // ============================================================
-// 6. HISTÓRICO COMPLETO
+// 6. HISTÓRICO COMPLETO (TABELAS) - CORRIGIDO
 // ============================================================
 window.loadFullHistory = async (uid) => {
-    // Código de histórico mantido (simplificado para este exemplo, mas funcional)
-    const tbody = document.getElementById('history-metrics-body');
-    if (!tbody) return;
-    try {
-        const q = query(collection(db, "weekly_metrics"), where("userId", "==", uid));
-        const snap = await getDocs(q);
-        let data = [];
-        snap.forEach(d => data.push(d.data()));
-        data.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
-        
-        tbody.innerHTML = "";
-        data.forEach(m => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${m.weekStart}</td>
-                    <td>${m.notaMonitoria}</td>
-                    <td>${m.tmaTelefonia}</td>
-                    <td>${m.tmaHuggy}</td>
-                    <td>${(m.atendimentosFinalizados||0) + (m.atendimentosHuggy||0)}</td>
-                    <td>-</td>
-                </tr>`;
-        });
-    } catch(e) { console.error(e); }
+    // --- PARTE 1: MÉTRICAS ---
+    const tbodyMetrics = document.getElementById('history-metrics-body');
+    if (tbodyMetrics) {
+        tbodyMetrics.innerHTML = '<tr><td colspan="6">Carregando...</td></tr>';
+        try {
+            const q = query(collection(db, "weekly_metrics"), where("userId", "==", uid));
+            const snap = await getDocs(q);
+            let data = [];
+            snap.forEach(d => data.push(d.data()));
+            data.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
+            
+            tbodyMetrics.innerHTML = "";
+            if(data.length === 0) {
+                 tbodyMetrics.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum registro.</td></tr>';
+            } else {
+                data.forEach(m => {
+                    const dateFmt = m.weekStart.split('-').reverse().join('/');
+                    tbodyMetrics.innerHTML += `
+                        <tr>
+                            <td>${dateFmt}</td>
+                            <td>${m.notaMonitoria}</td>
+                            <td>${m.tmaTelefonia}</td>
+                            <td>${m.tmaHuggy}</td>
+                            <td>${(m.atendimentosFinalizados||0) + (m.atendimentosHuggy||0)}</td>
+                            <td>-</td>
+                        </tr>`;
+                });
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // --- PARTE 2: FEEDBACKS (O CÓDIGO QUE FALTAVA) ---
+    const tbodyOccur = document.getElementById('history-occurrences-body');
+    if (tbodyOccur) {
+        tbodyOccur.innerHTML = '<tr><td colspan="5">Carregando...</td></tr>';
+        try {
+            const q = query(collection(db, "occurrences"), where("userId", "==", uid));
+            const snap = await getDocs(q);
+            let docs = [];
+            snap.forEach(d => docs.push({id: d.id, ...d.data()}));
+            docs.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            tbodyOccur.innerHTML = "";
+            
+            if (docs.length === 0) {
+                tbodyOccur.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum feedback registrado.</td></tr>';
+            } else {
+                docs.forEach(item => {
+                    const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
+                    const typeLabel = item.type === 'positive' 
+                        ? '<span style="color:#28a745; font-weight:bold;">Positiva</span>' 
+                        : '<span style="color:#dc3545; font-weight:bold;">Negativa</span>';
+                    
+                    const statusLabel = item.read 
+                        ? '<span style="color:#28a745; background:#e8f5e9; padding:2px 8px; border-radius:10px; font-size:12px;">Lido</span>' 
+                        : `<button onclick="confirmRead('${item.id}')" style="background:#dc3545; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">Marcar Ciente</button>`;
+
+                    tbodyOccur.innerHTML += `
+                        <tr>
+                            <td>${dateFmt}</td>
+                            <td>${typeLabel}</td>
+                            <td>${item.title}</td>
+                            <td style="font-size:13px; color:#555;">${item.description}</td>
+                            <td>${statusLabel}</td>
+                        </tr>
+                    `;
+                });
+            }
+        } catch(e) { 
+            console.error(e); 
+            tbodyOccur.innerHTML = '<tr><td colspan="5">Erro ao carregar dados.</td></tr>';
+        }
+    }
 };

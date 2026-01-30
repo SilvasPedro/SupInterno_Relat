@@ -170,7 +170,7 @@ window.viewMetricDetailAdmin = async (docId) => {
                 <p><strong>Perdidas:</strong> <span style="color:red; font-weight:bold;">${data.ligacoesPerdidas || 0}</span></p>
                 <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
                 <p><strong>TMA:</strong> ${data.tmaTelefonia || 0} min</p>
-                <p><strong>TME:</strong> ${data.tmeTelefonia || 0} min</p>
+                <p><strong>TME:</strong> ${data.tmeTelefonia || 0} seg</p>
             </div>
 
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #28a745;">
