@@ -204,29 +204,32 @@ function updateCardsHTML(sectorCurr, sectorPrev, userData) {
         <div class="metrics-grid">
             <div class="metric-card" style="border-left: 5px solid #6f42c1;">
                 <h3>⏱️ TMR (Equipe)</h3>
+                <p>Tempo médio para resolução</p>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <h1 style="font-size: 2.5em; margin: 10px 0; color: #6f42c1">${sectorCurr.tmr || '--:--'}</h1>
                     <span style="font-size:1.2em; color:${trendTMR.class === 'trend-positive' ? '#28a745' : (trendTMR.class === 'trend-negative' ? '#dc3545' : '#ccc')}">${trendTMR.icon}</span>
                 </div>
-                <p>Média do Setor</p>
+                <h3>Meta: ≦ 00:20:00</h3>
             </div>
 
             <div class="metric-card" style="border-left: 5px solid #17a2b8;">
                 <h3>🎯 FCR (Equipe)</h3>
+                <p>Resolução no 1º contato</p>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <h1 style="font-size: 2.5em; margin: 10px 0; color: #17a2b8">${currFcr}%</h1>
                     <span style="font-size:1.2em; color:${trendFCR.class === 'trend-positive' ? '#28a745' : (trendFCR.class === 'trend-negative' ? '#dc3545' : '#ccc')}">${trendFCR.icon}</span>
                 </div>
-                <p>Média do Setor</p>
+                 <h3>Meta: ≧ 80%</h3>
             </div>
 
             <div class="metric-card" style="border-left: 5px solid #dc3545;">
                 <h3>🔄 Reincidência (Equipe)</h3>
+                <p>Taxa de retorno</p>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <h1 style="font-size: 2.5em; margin: 10px 0; color: #dc3545">${currRein}%</h1>
                     <span style="font-size:1.2em; color:${trendRein.class === 'trend-positive' ? '#28a745' : (trendRein.class === 'trend-negative' ? '#dc3545' : '#ccc')}">${trendRein.icon}</span>
                 </div>
-                <p>Média do Setor</p>
+                <h3>Meta: ≦ 20%</h3>
             </div>
         </div>
 
