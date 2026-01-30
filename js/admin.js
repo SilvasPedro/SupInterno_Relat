@@ -401,7 +401,6 @@ function appendRow(tbody, name, val, isHighlight=false) {
 // 7. FORMULÁRIOS E CADASTROS
 // ============================================================
 
-// Select de Usuários para Métricas (COM ORDEM ALFABÉTICA)
 async function loadUserSelectOptions() {
     const select = document.getElementById('metric-user-select');
     if(!select) return;
@@ -479,6 +478,114 @@ async function loadOccurrenceUserSelect() {
     } catch (error) {
         console.error("Erro ao carregar lista de ocorrências:", error);
     }
+}
+
+// SUBMIT: Métricas (Inserir e Editar)
+const formMetrics = document.getElementById('form-metrics');
+if (formMetrics) {
+    formMetrics.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userId = document.getElementById('metric-user-select').value;
+        const weekStart = document.getElementById('metric-date').value;
+        const sel = document.getElementById('metric-user-select');
+        const userName = sel.options[sel.selectedIndex].text;
+
+        const data = {
+            userId, userName, weekStart, createdAt: new Date(),
+            // Totais
+            atendimentosAbertos: Number(document.getElementById('at-abertos').value),
+            atendimentosFinalizados: Number(document.getElementById('at-finalizados').value),
+            
+            // Telefonia
+            ligacoesRealizadas: Number(document.getElementById('lig-realizadas').value || 0),
+            ligacoesRecebidas: Number(document.getElementById('lig-recebidas').value || 0),
+            ligacoesPerdidas: Number(document.getElementById('lig-perdidas').value || 0),
+            tmeTelefonia: Number(document.getElementById('tme-tel').value || 0),
+            tmaTelefonia: Number(document.getElementById('tma-tel').value),
+            
+            // Chat
+            atendimentosHuggy: Number(document.getElementById('at-huggy').value),
+            tmaHuggy: Number(document.getElementById('tma-huggy').value),
+            notaMonitoria: Number(document.getElementById('nota-monitoria').value)
+        };
+
+        try {
+            if (isEditingMetric) {
+                await updateDoc(doc(db, "weekly_metrics", editingMetricId), data);
+                alert("Atualizado com sucesso!");
+                resetMetricFormState();
+            } else {
+                await setDoc(doc(db, "weekly_metrics", `${userId}_${weekStart}`), data);
+                alert("Salvo com sucesso!");
+                formMetrics.reset();
+            }
+            allMetricsCache = []; 
+        } catch (e) { alert("Erro: " + e.message); }
+    });
+}
+
+// SUBMIT DOS KPIs DO SETOR
+const formSector = document.getElementById('form-sector-metrics');
+if (formSector) {
+    formSector.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const weekStart = document.getElementById('sector-date').value;
+        
+        const data = {
+            weekStart, 
+            createdAt: new Date(),
+            tmr: document.getElementById('kpi-tmr').value,
+            fcr: Number(document.getElementById('kpi-fcr').value),
+            reincidencia: Number(document.getElementById('kpi-reincidencia').value)
+        };
+
+        try {
+            await setDoc(doc(db, "sector_metrics", weekStart), data);
+            alert("KPIs do Setor salvos com sucesso!");
+            formSector.reset();
+        } catch (e) { alert("Erro ao salvar KPIs do Setor: " + e.message); }
+    });
+}
+
+function resetMetricFormState() {
+    isEditingMetric = false;
+    editingMetricId = null;
+    const btn = document.querySelector('#form-metrics button[type="submit"]');
+    btn.innerText = "Salvar Métricas da Semana";
+    btn.style.backgroundColor = ""; 
+    document.getElementById('metric-user-select').disabled = false;
+    document.getElementById('metric-date').disabled = false;
+    document.getElementById('form-metrics').reset();
+}
+
+// SUBMIT: Ocorrências
+const formOccur = document.getElementById('form-ocorrencias');
+if (formOccur) {
+    const newForm = formOccur.cloneNode(true);
+    formOccur.parentNode.replaceChild(newForm, formOccur);
+    
+    newForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const uid = document.getElementById('occur-user-select').value;
+        const typeEl = document.querySelector('input[name="occur-type"]:checked');
+        
+        if(!uid || !typeEl) return alert("Preencha todos os campos.");
+
+        try {
+            const sel = document.getElementById('occur-user-select');
+            await setDoc(doc(collection(db, "occurrences")), {
+                userId: uid,
+                userName: sel.options[sel.selectedIndex].text,
+                date: document.getElementById('occur-date').value,
+                type: typeEl.value,
+                title: document.getElementById('occur-title').value,
+                description: document.getElementById('occur-desc').value,
+                read: false, createdAt: new Date()
+            });
+            alert("Feedback registrado!");
+            newForm.reset();
+        } catch (e) { alert("Erro: " + e.message); }
+    });
 }
 
 // ============================================================
