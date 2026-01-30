@@ -103,6 +103,32 @@
                         <h1 id="kpi-max-chat">--:--</h1>
                         <p id="kpi-max-chat-name" style="color: #dc3545; font-weight:bold;">--</p>
                     </div>
+                    <div class="metric-card kpi-card" style="border-left: 5px solid #6f42c1;">
+                        <h3>⏱️ TMR (Setor)</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h1 id="kpi-sector-tmr" style="font-size: 2.5em; margin: 0;">--:--</h1>
+                            <span id="trend-tmr" style="font-size: 1.5em; font-weight: bold;"></span>
+                        </div>
+                        <p>Tempo Médio de Resposta</p>
+                    </div>
+
+                    <div class="metric-card kpi-card" style="border-left: 5px solid #17a2b8;">
+                        <h3>🎯 FCR (Setor)</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h1 id="kpi-sector-fcr" style="font-size: 2.5em; margin: 0;">--%</h1>
+                            <span id="trend-fcr" style="font-size: 1.5em; font-weight: bold;"></span>
+                        </div>
+                        <p>Resolução no 1º Contato</p>
+                    </div>
+
+                    <div class="metric-card kpi-card" style="border-left: 5px solid #dc3545;">
+                        <h3>🔄 Reincidência (Setor)</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h1 id="kpi-sector-rein" style="font-size: 2.5em; margin: 0;">--%</h1>
+                            <span id="trend-rein" style="font-size: 1.5em; font-weight: bold;"></span>
+                        </div>
+                        <p>Taxa de Retorno</p>
+                    </div>
                 </div>
             </div>
 
@@ -182,10 +208,47 @@
                 </tbody>
             </table>
         </div>
-
         <div id="section-lancamentos" class="section" style="display:none;">
-            <h1>Lançamento de Desempenho Semanal</h1>
+            <h1>Lançamento de Desempenho</h1>
 
+            <div class="metrics-form" style="border-left: 5px solid #6f42c1; margin-bottom: 30px;">
+                <h2 style="color: #6f42c1; margin-bottom: 20px;">🚀 Indicadores Globais do Setor</h2>
+                <p style="margin-bottom: 15px; color: #666; font-size: 13px;">Estes dados aparecerão para todos os
+                    colaboradores.</p>
+
+                <form id="form-sector-metrics">
+                    <div class="form-group-header">
+                        <div class="input-block">
+                            <label>Semana de Referência</label>
+                            <input type="date" id="sector-date" required>
+                        </div>
+                        <div class="input-block" style="display:flex; align-items:flex-end;">
+                            <button type="submit" class="btn-primary"
+                                style="background-color: #6f42c1; width: 100%;">Salvar KPIs do Setor</button>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="input-block">
+                            <label>TMR (HH:MM:SS)</label>
+                            <input type="text" id="kpi-tmr" placeholder="00:00:00" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}"
+                                title="Formato HH:MM:SS" required>
+                        </div>
+                        <div class="input-block">
+                            <label>FCR (%)</label>
+                            <input type="number" step="0.1" id="kpi-fcr" placeholder="0.0" required>
+                        </div>
+                        <div class="input-block">
+                            <label>Reincidência (%)</label>
+                            <input type="number" step="0.1" id="kpi-reincidencia" placeholder="0.0" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <hr style="margin: 30px 0;">
+
+            <h2 style="color: var(--color-dark-brown); margin-bottom: 20px;">👤 Desempenho Individual</h2>
             <form id="form-metrics" class="metrics-form">
 
                 <div class="form-group-header">
@@ -196,48 +259,37 @@
                         </select>
                     </div>
                     <div class="input-block">
-                        <label>Início da Semana (Segunda-feira)</label>
+                        <label>Início da Semana</label>
                         <input type="date" id="metric-date" required>
                     </div>
                 </div>
 
-                <hr>
-
                 <div class="metrics-grid">
-
                     <div class="metric-card">
-                        <h3>Geral</h3>
-                        <label>Atendimentos Abertos</label>
-                        <input type="number" id="at-abertos" min="0" required>
-
+                        <h3>Geral & Telefonia</h3>
                         <label>Atendimentos Finalizados</label>
                         <input type="number" id="at-finalizados" min="0" required>
-                    </div>
 
-                    <div class="metric-card">
-                        <h3>Telefonia</h3>
-                        <label>Ligações Realizadas (Atendidas)</label>
-                        <input type="number" id="lig-realizadas" min="0">
+                        <label>Atendimentos Abertos</label>
+                        <input type="number" id="at-abertos" min="0">
 
-                        <label>Ligações Recebidas (Atendidas)</label>
-                        <input type="number" id="lig-recebidas" min="0">
-
-                        <label>Ligações Perdidas</label>
-                        <input type="number" id="lig-perdidas" min="0">
-
-                        <label>TME (minutos)</label>
-                        <input type="number" step="0.01" id="tme-tel" placeholder="0.00">
-
-                        <label>TMA (minutos)</label>
+                        <label>TMA Telefonia (min)</label>
                         <input type="number" step="0.01" id="tma-tel" placeholder="0.00">
+
+                        <div style="display:none;">
+                            <input type="number" id="lig-realizadas" value="0">
+                            <input type="number" id="lig-recebidas" value="0">
+                            <input type="number" id="lig-perdidas" value="0">
+                            <input type="number" step="0.01" id="tme-tel" value="0">
+                        </div>
                     </div>
 
                     <div class="metric-card">
                         <h3>Digital & Qualidade</h3>
-                        <label>Atendimentos Huggy</label>
+                        <label>Atendimentos Chat</label>
                         <input type="number" id="at-huggy" min="0">
 
-                        <label>TMA Huggy (minutos)</label>
+                        <label>TMA Chat (min)</label>
                         <input type="number" step="0.01" id="tma-huggy" placeholder="0.00">
 
                         <label class="highlight-label">Nota de Monitoria (0-100)</label>
@@ -245,7 +297,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-save-metrics">Salvar Métricas da Semana</button>
+                <button type="submit" class="btn-save-metrics">Salvar Métricas Individuais</button>
             </form>
         </div>
 

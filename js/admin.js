@@ -162,10 +162,14 @@ if (formAddUser) {
 // 5. DASHBOARD - LÓGICA DE AGREGAÇÃO E KPIs
 // ============================================================
 
+// --- FUNÇÃO PRINCIPAL DE CARREGAMENTO (Substitua a existente) ---
+// --- FUNÇÃO PRINCIPAL DE CARREGAMENTO (Substitua a existente) ---
 async function loadDashboardData() {
-    console.log("Calculando Dashboard...");
+    console.log("Calculando Dashboard Completo...");
+
+    // --- PARTE 1: BUSCA DADOS ---
     
-    // 1. Busca dados (se cache vazio)
+    // 1.1 Busca Dados Individuais (Weekly Metrics) para os cálculos de equipe
     if (allMetricsCache.length === 0) {
         try {
             const q = await getDocs(collection(db, "weekly_metrics"));
@@ -174,11 +178,98 @@ async function loadDashboardData() {
         } catch (e) { console.error(e); return; }
     }
 
+    // 1.2 Busca Dados do Setor (Sector Metrics) para os KPIs de Negócio
+    let sectorMetrics = [];
+    try {
+        const qSector = await getDocs(collection(db, "sector_metrics"));
+        qSector.forEach(doc => sectorMetrics.push(doc.data()));
+        // Ordena por data (Antigo -> Recente)
+        sectorMetrics.sort((a, b) => new Date(a.weekStart) - new Date(b.weekStart));
+    } catch (e) { console.error("Erro ao buscar KPIs do setor", e); }
+
+
+    // --- PARTE 2: PROCESSA KPIs DO SETOR (NOVOS CARTÕES) ---
+    
+    if (sectorMetrics.length > 0) {
+        // Pega a última semana (atual) e a penúltima (para comparação)
+        const curr = sectorMetrics[sectorMetrics.length - 1]; 
+        const prev = sectorMetrics.length > 1 ? sectorMetrics[sectorMetrics.length - 2] : null; 
+
+        // === TMR (Quanto MENOR melhor) ===
+        const currTmr = curr.tmr || "--:--";
+        const elTmr = document.getElementById('kpi-sector-tmr');
+        const trendTmr = document.getElementById('trend-tmr');
+        if (elTmr) {
+            elTmr.innerText = currTmr;
+            elTmr.style.color = "#6f42c1"; // Roxo
+            
+            if (prev) {
+                const cSec = timeToSeconds(curr.tmr);
+                const pSec = timeToSeconds(prev.tmr);
+                if (cSec > pSec) { // Piorou (Aumentou tempo)
+                    trendTmr.innerHTML = "▲"; 
+                    trendTmr.style.color = "#dc3545"; // Vermelho
+                } else if (cSec < pSec) { // Melhorou (Diminuiu tempo)
+                    trendTmr.innerHTML = "▼";
+                    trendTmr.style.color = "#28a745"; // Verde
+                } else {
+                    trendTmr.innerHTML = "─";
+                    trendTmr.style.color = "#ccc";
+                }
+            }
+        }
+
+        // === FCR (Quanto MAIOR melhor) ===
+        const currFcr = curr.fcr || 0;
+        const elFcr = document.getElementById('kpi-sector-fcr');
+        const trendFcr = document.getElementById('trend-fcr');
+        if (elFcr) {
+            elFcr.innerText = currFcr + "%";
+            elFcr.style.color = "#17a2b8"; // Ciano
+            
+            if (prev) {
+                if (currFcr > prev.fcr) { // Melhorou
+                    trendFcr.innerHTML = "▲";
+                    trendFcr.style.color = "#28a745"; // Verde
+                } else if (currFcr < prev.fcr) { // Piorou
+                    trendFcr.innerHTML = "▼";
+                    trendFcr.style.color = "#dc3545"; // Vermelho
+                } else {
+                    trendFcr.innerHTML = "─";
+                    trendFcr.style.color = "#ccc";
+                }
+            }
+        }
+
+        // === Reincidência (Quanto MENOR melhor) ===
+        const currRein = curr.reincidencia || 0;
+        const elRein = document.getElementById('kpi-sector-rein');
+        const trendRein = document.getElementById('trend-rein');
+        if (elRein) {
+            elRein.innerText = currRein + "%";
+            elRein.style.color = "#dc3545"; // Vermelho
+            
+            if (prev) {
+                if (currRein > prev.reincidencia) { // Piorou (Aumentou taxa)
+                    trendRein.innerHTML = "▲";
+                    trendRein.style.color = "#dc3545"; // Vermelho
+                } else if (currRein < prev.reincidencia) { // Melhorou
+                    trendRein.innerHTML = "▼";
+                    trendRein.style.color = "#28a745"; // Verde
+                } else {
+                    trendRein.innerHTML = "─";
+                    trendRein.style.color = "#ccc";
+                }
+            }
+        }
+    }
+
+
+    // --- PARTE 3: PROCESSA DADOS AGREGADOS DA EQUIPE (Mantido lógica original) ---
+
     if (allMetricsCache.length === 0) { resetKpis(); return; }
 
-    // 2. Agregação por Usuário
     const userStats = {};
-
     allMetricsCache.forEach(entry => {
         const uid = entry.userId;
         const name = entry.userName;
@@ -198,7 +289,7 @@ async function loadDashboardData() {
         userStats[uid].accTmaTel += (entry.tmaTelefonia || 0);
         userStats[uid].accTmaChat += (entry.tmaHuggy || 0);
         userStats[uid].accMonitoria += (entry.notaMonitoria || 0);
-        userStats[uid].accFinalizados += (entry.atendimentosFinalizados || 0); // Ajuste conforme sua regra de negócio para volume
+        userStats[uid].accFinalizados += ((entry.atendimentosFinalizados || 0) + (entry.atendimentosHuggy || 0));
     });
 
     globalAggregatedData = Object.values(userStats).map(u => ({
@@ -210,6 +301,14 @@ async function loadDashboardData() {
         totalVolume: u.accFinalizados
     }));
 
+    processGlobalKPIs(globalAggregatedData);
+    
+    // Renderiza Gráficos (se o módulo charts.js estiver carregado)
+    if (typeof renderDashboardCharts === "function") {
+        renderDashboardCharts(globalAggregatedData, allMetricsCache);
+    }
+}
+
     // 3. Renderiza KPIs (Cards)
     processGlobalKPIs(globalAggregatedData);
     
@@ -217,7 +316,6 @@ async function loadDashboardData() {
     if (typeof renderDashboardCharts === "function") {
         renderDashboardCharts(globalAggregatedData, allMetricsCache);
     }
-}
 
 function processGlobalKPIs(users) {
     if(users.length === 0) { resetKpis(); return; }
@@ -371,12 +469,15 @@ if (formMetrics) {
 
         const data = {
             userId, userName, weekStart, createdAt: new Date(),
+            
+            // KPIs Existentes
             atendimentosAbertos: Number(document.getElementById('at-abertos').value),
             atendimentosFinalizados: Number(document.getElementById('at-finalizados').value),
-            ligacoesRealizadas: Number(document.getElementById('lig-realizadas').value),
-            ligacoesRecebidas: Number(document.getElementById('lig-recebidas').value),
-            ligacoesPerdidas: Number(document.getElementById('lig-perdidas').value),
-            tmeTelefonia: Number(document.getElementById('tme-tel').value),
+            // Campos opcionais mantidos com valores padrão se vazios
+            ligacoesRealizadas: Number(document.getElementById('lig-realizadas')?.value || 0),
+            ligacoesRecebidas: Number(document.getElementById('lig-recebidas')?.value || 0),
+            ligacoesPerdidas: Number(document.getElementById('lig-perdidas')?.value || 0),
+            tmeTelefonia: Number(document.getElementById('tme-tel')?.value || 0),
             tmaTelefonia: Number(document.getElementById('tma-tel').value),
             atendimentosHuggy: Number(document.getElementById('at-huggy').value),
             tmaHuggy: Number(document.getElementById('tma-huggy').value),
@@ -393,8 +494,31 @@ if (formMetrics) {
                 alert("Salvo com sucesso!");
                 formMetrics.reset();
             }
-            allMetricsCache = []; // Limpa cache para atualizar dash
+            allMetricsCache = []; 
         } catch (e) { alert("Erro: " + e.message); }
+    });
+}
+// --- NOVO: SUBMIT DOS KPIs DO SETOR ---
+const formSector = document.getElementById('form-sector-metrics');
+if (formSector) {
+    formSector.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const weekStart = document.getElementById('sector-date').value;
+        
+        const data = {
+            weekStart, 
+            createdAt: new Date(),
+            tmr: document.getElementById('kpi-tmr').value,
+            fcr: Number(document.getElementById('kpi-fcr').value),
+            reincidencia: Number(document.getElementById('kpi-reincidencia').value)
+        };
+
+        try {
+            // Salva na coleção 'sector_metrics' usando a data como ID para facilitar busca e evitar duplicidade na mesma semana
+            await setDoc(doc(db, "sector_metrics", weekStart), data);
+            alert("KPIs do Setor salvos com sucesso!");
+            formSector.reset();
+        } catch (e) { alert("Erro ao salvar KPIs do Setor: " + e.message); }
     });
 }
 
@@ -445,43 +569,41 @@ if (formOccur) {
 // ============================================================
 // Esta função é chamada PELO history.js quando clica no lápis
 window.prepareEditMetric = async (id) => {
-    // Fecha o modal de histórico
     if(typeof closeHistoryModal === 'function') closeHistoryModal();
     else document.getElementById('modal-user-history').style.display = 'none';
 
-    // Busca dados para preencher
     const snap = await getDoc(doc(db, "weekly_metrics", id));
     if(!snap.exists()) return;
     const data = snap.data();
     
-    // Muda para tela de lançamentos
     showSection('lancamentos');
     
-    // Preenche Campos
     document.getElementById('metric-user-select').value = data.userId;
     document.getElementById('metric-date').value = data.weekStart;
+    
+    // Novos campos
+    document.getElementById('kpi-tmr').value = data.tmr || "";
+    document.getElementById('kpi-fcr').value = data.fcr || "";
+    document.getElementById('kpi-reincidencia').value = data.reincidencia || "";
+
+    // Campos antigos
     document.getElementById('at-abertos').value = data.atendimentosAbertos;
     document.getElementById('at-finalizados').value = data.atendimentosFinalizados;
-    document.getElementById('lig-realizadas').value = data.ligacoesRealizadas;
-    document.getElementById('lig-recebidas').value = data.ligacoesRecebidas;
-    document.getElementById('lig-perdidas').value = data.ligacoesPerdidas;
-    document.getElementById('tme-tel').value = data.tmeTelefonia;
     document.getElementById('tma-tel').value = data.tmaTelefonia;
     document.getElementById('at-huggy').value = data.atendimentosHuggy;
     document.getElementById('tma-huggy').value = data.tmaHuggy;
     document.getElementById('nota-monitoria').value = data.notaMonitoria;
-
-    // Trava chaves primárias
+    
+    // Trava chaves
     document.getElementById('metric-user-select').disabled = true;
     document.getElementById('metric-date').disabled = true;
 
-    // Ativa Modo Edição
     isEditingMetric = true;
     editingMetricId = id;
     
     const btn = document.querySelector('#form-metrics button[type="submit"]');
     btn.innerText = "Atualizar Dados";
-    btn.style.backgroundColor = "#ffc107"; // Amarelo
+    btn.style.backgroundColor = "#ffc107";
     btn.style.color = "#333";
 };
 

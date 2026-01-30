@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal do Colaborador</title>
-    
-    <link rel="stylesheet" href="css/style.css"> 
+
+    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -23,7 +23,7 @@
             <li class="active" onclick="showSection('dashboard')">
                 <i class="material-icons">show_chart</i> Minha Performance
             </li>
-            
+
             <li onclick="showSection('feedbacks')">
                 <i class="material-icons">history</i> Feedbacks
             </li>
@@ -39,18 +39,19 @@
     </nav>
 
     <main class="main-content">
-        
+
         <div id="section-dashboard" class="section">
             <div class="header-flex">
                 <h1>Meu Desempenho</h1>
                 <span id="current-date" style="color: #666;"></span>
             </div>
 
-            <div class="metrics-grid" id="cards-container">
+            <div id="cards-container">
                 <p>Carregando dados...</p>
             </div>
 
-            <br><hr><br>
+            <br>
+            <hr><br>
 
             <div class="charts-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div class="metric-card">
@@ -62,6 +63,8 @@
                     <canvas id="chartProdutividade"></canvas>
                 </div>
             </div>
+        </div>
+
         </div>
 
         <div id="section-feedbacks" class="section" style="display:none;">
@@ -76,12 +79,14 @@
             <div class="header-flex">
                 <h1>Meus Dados Completos</h1>
                 <button onclick="loadFullHistory()" class="btn-primary" style="padding: 8px 15px; font-size: 12px;">
-                    <i class="material-icons" style="font-size:14px; vertical-align:middle;">refresh</i> Atualizar Tabela
+                    <i class="material-icons" style="font-size:14px; vertical-align:middle;">refresh</i> Atualizar
+                    Tabela
                 </button>
             </div>
 
             <div class="metric-card" style="margin-bottom: 30px;">
-                <h3 style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
+                <h3
+                    style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
                     📊 Histórico de Métricas
                 </h3>
                 <div style="overflow-x: auto;">
@@ -97,13 +102,14 @@
                             </tr>
                         </thead>
                         <tbody id="history-metrics-body">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
 
             <div class="metric-card">
-                <h3 style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
+                <h3
+                    style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
                     💬 Histórico de Feedbacks
                 </h3>
                 <div style="overflow-x: auto;">
@@ -118,7 +124,7 @@
                             </tr>
                         </thead>
                         <tbody id="history-occurrences-body">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -127,20 +133,22 @@
     </main>
 
     <div id="modal-metric-details" class="modal">
-    <div class="modal-content" style="max-width: 700px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
-            <h2 style="color: var(--color-dark-brown); margin: 0;">Detalhes da Semana</h2>
-            <span class="close" onclick="closeMetricModal()">&times;</span>
-        </div>
-
-        <div id="metric-modal-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="modal-content" style="max-width: 700px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                <h2 style="color: var(--color-dark-brown); margin: 0;">Detalhes da Semana</h2>
+                <span class="close" onclick="closeMetricModal()">&times;</span>
             </div>
 
-        <div style="margin-top: 30px; text-align: right;">
-            <button onclick="closeMetricModal()" style="background: var(--color-taupe); border: none; color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Fechar</button>
+            <div id="metric-modal-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            </div>
+
+            <div style="margin-top: 30px; text-align: right;">
+                <button onclick="closeMetricModal()"
+                    style="background: var(--color-taupe); border: none; color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Fechar</button>
+            </div>
         </div>
     </div>
-</div>
 
     <script type="module" src="js/colaborador.js"></script>
 </body>
