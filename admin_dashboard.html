@@ -27,6 +27,9 @@
             <li onclick="showSection('lancamentos')">
                 <i class="material-icons">assessment</i> Lançar Desempenho
             </li>
+            <li onclick="showSection('sector-history'); loadSectorHistory()">
+                <i class="material-icons">timeline</i> Histórico KPIs
+            </li>
             <li onclick="showSection('ocorrencias')">
                 <i class="material-icons">feedback</i> Nova Ocorrência
             </li>
@@ -60,75 +63,73 @@
             </div>
 
             <div class="metrics-grid">
-                <div class="metrics-grid">
+                <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')"
+                    style="border-left: 5px solid #007bff;">
+                    <h3>📞 TMA Médio (Equipe Tel)</h3>
+                    <h1 id="kpi-team-tel">--:--</h1>
+                    <p>Clique para ver detalhes</p>
+                </div>
 
-                    <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')"
-                        style="border-left: 5px solid #007bff;">
-                        <h3>📞 TMA Médio (Equipe Tel)</h3>
-                        <h1 id="kpi-team-tel">--:--</h1>
-                        <p>Clique para ver detalhes</p>
-                    </div>
+                <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')"
+                    style="border-left: 5px solid #17a2b8;">
+                    <h3>💬 TMA Médio (Equipe Chat)</h3>
+                    <h1 id="kpi-team-chat">--:--</h1>
+                    <p>Clique para ver detalhes</p>
+                </div>
 
-                    <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')"
-                        style="border-left: 5px solid #17a2b8;">
-                        <h3>💬 TMA Médio (Equipe Chat)</h3>
-                        <h1 id="kpi-team-chat">--:--</h1>
-                        <p>Clique para ver detalhes</p>
-                    </div>
+                <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')"
+                    style="border-left: 5px solid #6f42c1;">
+                    <h3>✅ Média Finalizados</h3>
+                    <h1 id="kpi-team-vol">0</h1>
+                    <p>Média de chamados por agente</p>
+                </div>
 
-                    <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')"
-                        style="border-left: 5px solid #6f42c1;">
-                        <h3>✅ Média Finalizados</h3>
-                        <h1 id="kpi-team-vol">0</h1>
-                        <p>Média de chamados por agente</p>
-                    </div>
+                <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')"
+                    style="border-left: 5px solid #28a745;">
+                    <h3>🏆 Melhor Monitoria</h3>
+                    <h1 id="kpi-best-qa">--</h1>
+                    <p id="kpi-best-qa-name" style="color: #28a745; font-weight:bold;">--</p>
+                </div>
 
-                    <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')"
-                        style="border-left: 5px solid #28a745;">
-                        <h3>🏆 Melhor Monitoria</h3>
-                        <h1 id="kpi-best-qa">--</h1>
-                        <p id="kpi-best-qa-name" style="color: #28a745; font-weight:bold;">--</p>
-                    </div>
+                <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')"
+                    style="border-left: 5px solid #dc3545;">
+                    <h3>⚠️ Maior TMA (Tel)</h3>
+                    <h1 id="kpi-max-tel">--:--</h1>
+                    <p id="kpi-max-tel-name" style="color: #dc3545; font-weight:bold;">--</p>
+                </div>
 
-                    <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')"
-                        style="border-left: 5px solid #dc3545;">
-                        <h3>⚠️ Maior TMA (Tel)</h3>
-                        <h1 id="kpi-max-tel">--:--</h1>
-                        <p id="kpi-max-tel-name" style="color: #dc3545; font-weight:bold;">--</p>
-                    </div>
+                <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')"
+                    style="border-left: 5px solid #dc3545;">
+                    <h3>⚠️ Maior TMA (Chat)</h3>
+                    <h1 id="kpi-max-chat">--:--</h1>
+                    <p id="kpi-max-chat-name" style="color: #dc3545; font-weight:bold;">--</p>
+                </div>
 
-                    <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')"
-                        style="border-left: 5px solid #dc3545;">
-                        <h3>⚠️ Maior TMA (Chat)</h3>
-                        <h1 id="kpi-max-chat">--:--</h1>
-                        <p id="kpi-max-chat-name" style="color: #dc3545; font-weight:bold;">--</p>
+                <div class="metric-card kpi-card" style="border-left: 5px solid #6f42c1;">
+                    <h3>⏱️ TMR (Setor)</h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h1 id="kpi-sector-tmr" style="font-size: 2.5em; margin: 0;">--:--</h1>
+                        <span id="trend-tmr" style="font-size: 1.5em; font-weight: bold;"></span>
                     </div>
-                    <div class="metric-card kpi-card" style="border-left: 5px solid #6f42c1;">
-                        <h3>⏱️ TMR (Setor)</h3>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <h1 id="kpi-sector-tmr" style="font-size: 2.5em; margin: 0;">--:--</h1>
-                            <span id="trend-tmr" style="font-size: 1.5em; font-weight: bold;"></span>
-                        </div>
-                        <p>Tempo Médio de Resolução</p>
-                    </div>
+                    <p>Tempo Médio de Resolução</p>
+                </div>
 
-                    <div class="metric-card kpi-card" style="border-left: 5px solid #17a2b8;">
-                        <h3>🎯 FCR (Setor)</h3>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <h1 id="kpi-sector-fcr" style="font-size: 2.5em; margin: 0;">--%</h1>
-                            <span id="trend-fcr" style="font-size: 1.5em; font-weight: bold;"></span>
-                        </div>
-                        <p>Resolução no 1º Contato</p>
+                <div class="metric-card kpi-card" style="border-left: 5px solid #17a2b8;">
+                    <h3>🎯 FCR (Setor)</h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h1 id="kpi-sector-fcr" style="font-size: 2.5em; margin: 0;">--%</h1>
+                        <span id="trend-fcr" style="font-size: 1.5em; font-weight: bold;"></span>
                     </div>
+                    <p>Resolução no 1º Contato</p>
+                </div>
 
-                    <div class="metric-card kpi-card" style="border-left: 5px solid #dc3545;">
-                        <h3>🔄 Reincidência (Setor)</h3>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <h1 id="kpi-sector-rein" style="font-size: 2.5em; margin: 0;">--%</h1>
-                            <span id="trend-rein" style="font-size: 1.5em; font-weight: bold;"></span>
-                        </div>
-                        <p>Taxa de Retorno</p>
+                <div class="metric-card kpi-card" style="border-left: 5px solid #dc3545;">
+                    <h3>🔄 Reincidência (Setor)</h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h1 id="kpi-sector-rein" style="font-size: 2.5em; margin: 0;">--%</h1>
+                        <span id="trend-rein" style="font-size: 1.5em; font-weight: bold;"></span>
                     </div>
+                    <p>Taxa de Retorno</p>
                 </div>
             </div>
 
@@ -208,6 +209,7 @@
                 </tbody>
             </table>
         </div>
+
         <div id="section-lancamentos" class="section" style="display:none;">
             <h1>Lançamento de Desempenho</h1>
 
@@ -299,6 +301,37 @@
 
                 <button type="submit" class="btn-save-metrics">Salvar Métricas Individuais</button>
             </form>
+        </div>
+
+        <div id="section-sector-history" class="section" style="display:none;">
+            <div class="header-flex">
+                <h1>Histórico de KPIs do Setor</h1>
+                <button onclick="loadSectorHistory()" class="btn-primary" title="Atualizar Lista">
+                    <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
+                </button>
+            </div>
+
+            <div class="metric-card">
+                 <p style="color:#666; margin-bottom:15px; font-size:13px;">
+                    Gerencie aqui os indicadores globais (TMR, FCR, Reincidência) lançados. 
+                    Edite para corrigir ou exclua duplicidades.
+                </p>
+                 <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Semana (Ref)</th>
+                                <th>TMR</th>
+                                <th>FCR (%)</th>
+                                <th>Reincidência (%)</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sector-history-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <div id="section-ocorrencias" class="section" style="display:none;">

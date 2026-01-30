@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * ERP GESTÃO DE COLABORADORES - MÓDULO ADMINISTRATIVO (CLEAN VERSION)
+ * ERP GESTÃO DE COLABORADORES - MÓDULO ADMINISTRATIVO
  * ============================================================================
  */
 
@@ -19,6 +19,7 @@ import {
     setDoc, 
     getDoc, 
     updateDoc, 
+    deleteDoc, // ADICIONADO PARA PERMITIR EXCLUSÃO
     query, 
     where 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -101,6 +102,18 @@ window.logout = () => {
     if(confirm("Sair do sistema?")) signOut(auth).then(() => window.location.href = "index.html");
 };
 
+// --- FUNÇÃO AUXILIAR DE TEMPO (CRÍTICA) ---
+function timeToSeconds(timeStr) {
+    if(!timeStr || typeof timeStr !== 'string') return 0;
+    const p = timeStr.split(':');
+    let s = 0, m = 1;
+    while (p.length > 0) {
+        s += m * parseInt(p.pop(), 10);
+        m *= 60;
+    }
+    return s;
+}
+
 // ============================================================
 // 4. GESTÃO DE COLABORADORES
 // ============================================================
@@ -162,14 +175,10 @@ if (formAddUser) {
 // 5. DASHBOARD - LÓGICA DE AGREGAÇÃO E KPIs
 // ============================================================
 
-// --- FUNÇÃO PRINCIPAL DE CARREGAMENTO (Substitua a existente) ---
-// --- FUNÇÃO PRINCIPAL DE CARREGAMENTO (Substitua a existente) ---
 async function loadDashboardData() {
     console.log("Calculando Dashboard Completo...");
 
-    // --- PARTE 1: BUSCA DADOS ---
-    
-    // 1.1 Busca Dados Individuais (Weekly Metrics) para os cálculos de equipe
+    // 1. Busca Dados Individuais
     if (allMetricsCache.length === 0) {
         try {
             const q = await getDocs(collection(db, "weekly_metrics"));
@@ -178,95 +187,78 @@ async function loadDashboardData() {
         } catch (e) { console.error(e); return; }
     }
 
-    // 1.2 Busca Dados do Setor (Sector Metrics) para os KPIs de Negócio
+    // 2. Busca Dados do Setor
     let sectorMetrics = [];
     try {
         const qSector = await getDocs(collection(db, "sector_metrics"));
         qSector.forEach(doc => sectorMetrics.push(doc.data()));
-        // Ordena por data (Antigo -> Recente)
         sectorMetrics.sort((a, b) => new Date(a.weekStart) - new Date(b.weekStart));
     } catch (e) { console.error("Erro ao buscar KPIs do setor", e); }
 
 
-    // --- PARTE 2: PROCESSA KPIs DO SETOR (NOVOS CARTÕES) ---
-    
+    // 3. Processa KPIs do Setor
     if (sectorMetrics.length > 0) {
-        // Pega a última semana (atual) e a penúltima (para comparação)
         const curr = sectorMetrics[sectorMetrics.length - 1]; 
         const prev = sectorMetrics.length > 1 ? sectorMetrics[sectorMetrics.length - 2] : null; 
 
-        // === TMR (Quanto MENOR melhor) ===
+        // TMR
         const currTmr = curr.tmr || "--:--";
         const elTmr = document.getElementById('kpi-sector-tmr');
         const trendTmr = document.getElementById('trend-tmr');
         if (elTmr) {
             elTmr.innerText = currTmr;
-            elTmr.style.color = "#6f42c1"; // Roxo
-            
+            elTmr.style.color = "#6f42c1";
             if (prev) {
-                const cSec = timeToSeconds(curr.tmr);
+                const cSec = timeToSeconds(curr.tmr); // AGORA FUNCIONA!
                 const pSec = timeToSeconds(prev.tmr);
-                if (cSec > pSec) { // Piorou (Aumentou tempo)
-                    trendTmr.innerHTML = "▲"; 
-                    trendTmr.style.color = "#dc3545"; // Vermelho
-                } else if (cSec < pSec) { // Melhorou (Diminuiu tempo)
-                    trendTmr.innerHTML = "▼";
-                    trendTmr.style.color = "#28a745"; // Verde
+                if (cSec > pSec) {
+                    trendTmr.innerHTML = "▲"; trendTmr.style.color = "#dc3545";
+                } else if (cSec < pSec) {
+                    trendTmr.innerHTML = "▼"; trendTmr.style.color = "#28a745";
                 } else {
-                    trendTmr.innerHTML = "─";
-                    trendTmr.style.color = "#ccc";
+                    trendTmr.innerHTML = "─"; trendTmr.style.color = "#ccc";
                 }
             }
         }
 
-        // === FCR (Quanto MAIOR melhor) ===
+        // FCR
         const currFcr = curr.fcr || 0;
         const elFcr = document.getElementById('kpi-sector-fcr');
         const trendFcr = document.getElementById('trend-fcr');
         if (elFcr) {
             elFcr.innerText = currFcr + "%";
-            elFcr.style.color = "#17a2b8"; // Ciano
-            
+            elFcr.style.color = "#17a2b8";
             if (prev) {
-                if (currFcr > prev.fcr) { // Melhorou
-                    trendFcr.innerHTML = "▲";
-                    trendFcr.style.color = "#28a745"; // Verde
-                } else if (currFcr < prev.fcr) { // Piorou
-                    trendFcr.innerHTML = "▼";
-                    trendFcr.style.color = "#dc3545"; // Vermelho
+                if (currFcr > prev.fcr) {
+                    trendFcr.innerHTML = "▲"; trendFcr.style.color = "#28a745";
+                } else if (currFcr < prev.fcr) {
+                    trendFcr.innerHTML = "▼"; trendFcr.style.color = "#dc3545";
                 } else {
-                    trendFcr.innerHTML = "─";
-                    trendFcr.style.color = "#ccc";
+                    trendFcr.innerHTML = "─"; trendFcr.style.color = "#ccc";
                 }
             }
         }
 
-        // === Reincidência (Quanto MENOR melhor) ===
+        // Reincidência
         const currRein = curr.reincidencia || 0;
         const elRein = document.getElementById('kpi-sector-rein');
         const trendRein = document.getElementById('trend-rein');
         if (elRein) {
             elRein.innerText = currRein + "%";
-            elRein.style.color = "#dc3545"; // Vermelho
-            
+            elRein.style.color = "#dc3545";
             if (prev) {
-                if (currRein > prev.reincidencia) { // Piorou (Aumentou taxa)
-                    trendRein.innerHTML = "▲";
-                    trendRein.style.color = "#dc3545"; // Vermelho
-                } else if (currRein < prev.reincidencia) { // Melhorou
-                    trendRein.innerHTML = "▼";
-                    trendRein.style.color = "#28a745"; // Verde
+                if (currRein > prev.reincidencia) {
+                    trendRein.innerHTML = "▲"; trendRein.style.color = "#dc3545";
+                } else if (currRein < prev.reincidencia) {
+                    trendRein.innerHTML = "▼"; trendRein.style.color = "#28a745";
                 } else {
-                    trendRein.innerHTML = "─";
-                    trendRein.style.color = "#ccc";
+                    trendRein.innerHTML = "─"; trendRein.style.color = "#ccc";
                 }
             }
         }
     }
 
-
-    // --- PARTE 3: PROCESSA DADOS AGREGADOS DA EQUIPE (Mantido lógica original) ---
-
+    // 4. Processa Dados da Equipe
     if (allMetricsCache.length === 0) { resetKpis(); return; }
 
     const userStats = {};
@@ -303,19 +295,10 @@ async function loadDashboardData() {
 
     processGlobalKPIs(globalAggregatedData);
     
-    // Renderiza Gráficos (se o módulo charts.js estiver carregado)
     if (typeof renderDashboardCharts === "function") {
         renderDashboardCharts(globalAggregatedData, allMetricsCache);
     }
 }
-
-    // 3. Renderiza KPIs (Cards)
-    processGlobalKPIs(globalAggregatedData);
-    
-    // 4. Renderiza Gráficos (Chama o módulo charts.js)
-    if (typeof renderDashboardCharts === "function") {
-        renderDashboardCharts(globalAggregatedData, allMetricsCache);
-    }
 
 function processGlobalKPIs(users) {
     if(users.length === 0) { resetKpis(); return; }
@@ -333,16 +316,22 @@ function processGlobalKPIs(users) {
     updateCard('kpi-team-vol', teamAvgVol);
 
     const bestQa = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
-    updateCard('kpi-best-qa', bestQa.avgMonitoria);
-    updateCard('kpi-best-qa-name', bestQa.name.split(' ')[0]);
+    if(bestQa){
+        updateCard('kpi-best-qa', bestQa.avgMonitoria);
+        updateCard('kpi-best-qa-name', bestQa.name.split(' ')[0]);
+    }
 
     const maxTel = [...users].sort((a, b) => b.avgTmaTel - a.avgTmaTel)[0];
-    updateCard('kpi-max-tel', maxTel.avgTmaTel + " min");
-    updateCard('kpi-max-tel-name', maxTel.name.split(' ')[0]);
+    if(maxTel){
+        updateCard('kpi-max-tel', maxTel.avgTmaTel + " min");
+        updateCard('kpi-max-tel-name', maxTel.name.split(' ')[0]);
+    }
 
     const maxChat = [...users].sort((a, b) => b.avgTmaChat - a.avgTmaChat)[0];
-    updateCard('kpi-max-chat', maxChat.avgTmaChat + " min");
-    updateCard('kpi-max-chat-name', maxChat.name.split(' ')[0]);
+    if(maxChat){
+        updateCard('kpi-max-chat', maxChat.avgTmaChat + " min");
+        updateCard('kpi-max-chat-name', maxChat.name.split(' ')[0]);
+    }
 }
 
 function updateCard(id, val) {
@@ -362,7 +351,7 @@ window.forceDashboardRefresh = async () => {
 };
 
 // ============================================================
-// 6. MODAL DE DETALHES (DRILL-DOWN DOS KPIS)
+// 6. MODAL DE DETALHES
 // ============================================================
 window.openDetailModal = (type) => {
     const modal = document.getElementById('modal-kpi-details');
@@ -380,31 +369,26 @@ window.openDetailModal = (type) => {
         thVal.innerText = "Média (min)";
         data.sort((a, b) => b.avgTmaTel - a.avgTmaTel);
         data.forEach(u => appendRow(tbody, u.name, u.avgTmaTel));
-    
     } else if (type === 'team-chat') {
         title.innerText = "TMA Chat (Todos)";
         thVal.innerText = "Média (min)";
         data.sort((a, b) => b.avgTmaChat - a.avgTmaChat);
         data.forEach(u => appendRow(tbody, u.name, u.avgTmaChat));
-
     } else if (type === 'team-vol') {
         title.innerText = "Volume Total Acumulado";
         thVal.innerText = "Total Atendimentos";
         data.sort((a, b) => b.totalVolume - a.totalVolume);
         data.forEach(u => appendRow(tbody, u.name, u.totalVolume));
-
     } else if (type === 'best-qa') {
         title.innerText = "Ranking de Qualidade";
         thVal.innerText = "Nota Média";
         data.sort((a, b) => b.avgMonitoria - a.avgMonitoria);
         data.forEach((u, i) => appendRow(tbody, `${i+1}º ${u.name}`, u.avgMonitoria, i===0));
-
     } else if (type === 'max-tel') {
         title.innerText = "Ranking TMA Telefonia (Ofensores)";
         thVal.innerText = "Tempo Médio";
         data.sort((a, b) => b.avgTmaTel - a.avgTmaTel);
         data.forEach((u, i) => appendRow(tbody, u.name, u.avgTmaTel, i===0));
-
     } else if (type === 'max-chat') {
         title.innerText = "Ranking TMA Chat (Ofensores)";
         thVal.innerText = "Tempo Médio";
@@ -422,7 +406,6 @@ function appendRow(tbody, name, val, isHighlight=false) {
 // 7. FORMULÁRIOS E CADASTROS
 // ============================================================
 
-// Select de Usuários para Métricas
 async function loadUserSelectOptions() {
     const select = document.getElementById('metric-user-select');
     if(!select) return;
@@ -439,7 +422,6 @@ async function loadUserSelectOptions() {
     });
 }
 
-// Select de Usuários para Ocorrências
 async function loadOccurrenceUserSelect() {
     const select = document.getElementById('occur-user-select');
     if(!select) return;
@@ -463,17 +445,13 @@ if (formMetrics) {
         e.preventDefault();
         const userId = document.getElementById('metric-user-select').value;
         const weekStart = document.getElementById('metric-date').value;
-        
         const sel = document.getElementById('metric-user-select');
         const userName = sel.options[sel.selectedIndex].text;
 
         const data = {
             userId, userName, weekStart, createdAt: new Date(),
-            
-            // KPIs Existentes
             atendimentosAbertos: Number(document.getElementById('at-abertos').value),
             atendimentosFinalizados: Number(document.getElementById('at-finalizados').value),
-            // Campos opcionais mantidos com valores padrão se vazios
             ligacoesRealizadas: Number(document.getElementById('lig-realizadas')?.value || 0),
             ligacoesRecebidas: Number(document.getElementById('lig-recebidas')?.value || 0),
             ligacoesPerdidas: Number(document.getElementById('lig-perdidas')?.value || 0),
@@ -498,7 +476,8 @@ if (formMetrics) {
         } catch (e) { alert("Erro: " + e.message); }
     });
 }
-// --- NOVO: SUBMIT DOS KPIs DO SETOR ---
+
+// SUBMIT DOS KPIs DO SETOR
 const formSector = document.getElementById('form-sector-metrics');
 if (formSector) {
     formSector.addEventListener('submit', async (e) => {
@@ -514,7 +493,7 @@ if (formSector) {
         };
 
         try {
-            // Salva na coleção 'sector_metrics' usando a data como ID para facilitar busca e evitar duplicidade na mesma semana
+            // Salva na coleção 'sector_metrics' usando a data como ID
             await setDoc(doc(db, "sector_metrics", weekStart), data);
             alert("KPIs do Setor salvos com sucesso!");
             formSector.reset();
@@ -527,8 +506,7 @@ function resetMetricFormState() {
     editingMetricId = null;
     const btn = document.querySelector('#form-metrics button[type="submit"]');
     btn.innerText = "Salvar Métricas da Semana";
-    btn.style.backgroundColor = ""; // Volta cor original
-    
+    btn.style.backgroundColor = ""; 
     document.getElementById('metric-user-select').disabled = false;
     document.getElementById('metric-date').disabled = false;
     document.getElementById('form-metrics').reset();
@@ -567,7 +545,6 @@ if (formOccur) {
 // ============================================================
 // 8. FUNÇÕES DE SUPORTE AO HISTÓRICO (EDITAR)
 // ============================================================
-// Esta função é chamada PELO history.js quando clica no lápis
 window.prepareEditMetric = async (id) => {
     if(typeof closeHistoryModal === 'function') closeHistoryModal();
     else document.getElementById('modal-user-history').style.display = 'none';
@@ -581,12 +558,6 @@ window.prepareEditMetric = async (id) => {
     document.getElementById('metric-user-select').value = data.userId;
     document.getElementById('metric-date').value = data.weekStart;
     
-    // Novos campos
-    document.getElementById('kpi-tmr').value = data.tmr || "";
-    document.getElementById('kpi-fcr').value = data.fcr || "";
-    document.getElementById('kpi-reincidencia').value = data.reincidencia || "";
-
-    // Campos antigos
     document.getElementById('at-abertos').value = data.atendimentosAbertos;
     document.getElementById('at-finalizados').value = data.atendimentosFinalizados;
     document.getElementById('tma-tel').value = data.tmaTelefonia;
@@ -594,7 +565,6 @@ window.prepareEditMetric = async (id) => {
     document.getElementById('tma-huggy').value = data.tmaHuggy;
     document.getElementById('nota-monitoria').value = data.notaMonitoria;
     
-    // Trava chaves
     document.getElementById('metric-user-select').disabled = true;
     document.getElementById('metric-date').disabled = true;
 
@@ -608,51 +578,33 @@ window.prepareEditMetric = async (id) => {
 };
 
 // ============================================================
-// 9. RELATÓRIO GERAL DE OCORRÊNCIAS (NOVA FUNCIONALIDADE)
+// 9. RELATÓRIOS E NOVAS FUNÇÕES
 // ============================================================
 
 window.loadAllOccurrences = async () => {
     const tbody = document.getElementById('all-occurrences-body');
     if (!tbody) return;
-
-    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px;'>Carregando todas as ocorrências...</td></tr>";
+    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px;'>Carregando...</td></tr>";
 
     try {
-        // 1. Busca todas as ocorrências na coleção 'occurrences'
-        // Nota: Como o firebase não permite ordenação complexa sem índice composto as vezes,
-        // vamos buscar tudo e ordenar via JavaScript para garantir.
         const q = await getDocs(collection(db, "occurrences"));
-        
         let allDocs = [];
         q.forEach(docSnap => {
             allDocs.push({ id: docSnap.id, ...docSnap.data() });
         });
-
-        // 2. Ordena pela data (Mais recente primeiro)
         allDocs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        // 3. Renderiza na tabela
         tbody.innerHTML = "";
-
         if (allDocs.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Nenhum registro encontrado no sistema.</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Nenhum registro.</td></tr>";
             return;
         }
 
         allDocs.forEach(item => {
-            // Formatação de Data
             const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
-            
-            // Definição de Ícones e Cores
             const isPos = item.type === 'positive';
-            const typeLabel = isPos 
-                ? '<span style="color:#28a745; font-weight:bold;">👍 Elogio</span>' 
-                : '<span style="color:#dc3545; font-weight:bold;">👎 Advertência</span>';
-            
-            // Status de Leitura
-            const statusLabel = item.read 
-                ? '<span style="color:#28a745; background:#e8f5e9; padding:2px 8px; border-radius:10px; font-size:12px;">Lido</span>' 
-                : '<span style="color:#e67e22; background:#fff3e0; padding:2px 8px; border-radius:10px; font-size:12px;">Pendente</span>';
+            const typeLabel = isPos ? '<span style="color:#28a745; font-weight:bold;">👍 Elogio</span>' : '<span style="color:#dc3545; font-weight:bold;">👎 Advertência</span>';
+            const statusLabel = item.read ? '<span style="color:#28a745;">Lido</span>' : '<span style="color:#e67e22;">Pendente</span>';
 
             const row = `
                 <tr style="border-left: 4px solid ${isPos ? '#28a745' : '#dc3545'};">
@@ -660,53 +612,27 @@ window.loadAllOccurrences = async () => {
                     <td><strong>${item.userName || 'Desconhecido'}</strong></td>
                     <td>${typeLabel}</td>
                     <td>${item.title}</td>
-                    <td style="font-size: 13px; color: #555; line-height: 1.4;">${item.description}</td>
+                    <td style="font-size: 13px; color: #555;">${item.description}</td>
                     <td>${statusLabel}</td>
                 </tr>
             `;
             tbody.innerHTML += row;
         });
-
-    } catch (error) {
-        console.error("Erro ao carregar relatório:", error);
-        tbody.innerHTML = `<tr><td colspan='6' style='color:red; text-align:center;'>Erro ao carregar dados: ${error.message}</td></tr>`;
-    }
+    } catch (error) { console.error(error); }
 };
-
-// ============================================================
-// 10. RELATÓRIO DETALHADO COM FILTRO DE DATA
-// ============================================================
 
 window.loadRelatorioDetalhado = async () => {
     const container = document.getElementById('relatorio-detalhado-content');
     const selectFilter = document.getElementById('filter-date-select');
-    
     if (!container) return;
-
     container.innerHTML = "<p style='padding:20px; text-align:center;'>Carregando dados...</p>";
 
-    // 1. Garante que temos dados atualizados
-    if (allMetricsCache.length === 0) {
-        await loadDashboardData(); 
-    }
+    if (allMetricsCache.length === 0) await loadDashboardData(); 
 
-    if (allMetricsCache.length === 0) {
-        container.innerHTML = "<p>Nenhum dado encontrado para gerar o relatório.</p>";
-        selectFilter.innerHTML = "<option value='all'>Sem dados</option>";
-        return;
-    }
-
-    // 2. Extrai Datas Únicas para o Filtro
     const uniqueDates = [...new Set(allMetricsCache.map(item => item.weekStart))];
-    
-    // Ordena datas (mais recentes primeiro)
     uniqueDates.sort((a, b) => new Date(b) - new Date(a));
-
-    // 3. Preenche o Select (Mantendo a seleção atual se possível)
-    const currentSelection = selectFilter.value;
     
     selectFilter.innerHTML = `<option value="all">Todas as Datas</option>`;
-    
     uniqueDates.forEach(date => {
         const dateFormatted = date.split('-').reverse().join('/');
         const option = document.createElement('option');
@@ -714,109 +640,154 @@ window.loadRelatorioDetalhado = async () => {
         option.innerText = `Semana de ${dateFormatted}`;
         selectFilter.appendChild(option);
     });
-
-    // Restaura seleção anterior ou define 'all'
-    if (currentSelection && uniqueDates.includes(currentSelection)) {
-        selectFilter.value = currentSelection;
-    } else {
-        selectFilter.value = "all";
-    }
-
-    // 4. Renderiza o conteúdo baseado no filtro atual
+    
     renderDetailedContent();
 };
 
 window.renderDetailedContent = () => {
     const container = document.getElementById('relatorio-detalhado-content');
-    const filterValue = document.getElementById('filter-date-select').value; // 'all' ou 'yyyy-mm-dd'
-
+    const filterValue = document.getElementById('filter-date-select').value;
     container.innerHTML = "";
 
-    // 1. Filtra os dados globais baseado na seleção
     let filteredData = allMetricsCache;
-    if (filterValue !== 'all') {
-        filteredData = allMetricsCache.filter(item => item.weekStart === filterValue);
-    }
+    if (filterValue !== 'all') filteredData = allMetricsCache.filter(item => item.weekStart === filterValue);
 
-    if (filteredData.length === 0) {
-        container.innerHTML = "<p style='padding:20px;'>Nenhum registro encontrado para esta data.</p>";
-        return;
-    }
-
-    // 2. Agrupa por Data (para manter a estrutura visual de blocos)
     const groups = {};
     filteredData.forEach(metric => {
         if (!groups[metric.weekStart]) groups[metric.weekStart] = [];
         groups[metric.weekStart].push(metric);
     });
 
-    // Ordena as chaves (datas) decrescente
     const sortedDates = Object.keys(groups).sort((a, b) => new Date(b) - new Date(a));
 
-    // 3. Gera o HTML
     sortedDates.forEach(date => {
         const records = groups[date];
-        
-        // Ordena colaboradores A-Z dentro do grupo
         records.sort((a, b) => a.userName.localeCompare(b.userName));
-        
         const dataFormatada = date.split('-').reverse().join('/');
 
         const blockHtml = `
             <div class="metric-card" style="margin-bottom: 30px; padding: 20px; border-left: 5px solid var(--color-dark-brown);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                    <h3 style="color: var(--color-dark-brown); margin:0; display:flex; align-items:center;">
-                        <i class="material-icons" style="margin-right:10px; color:var(--color-taupe);">event</i> 
-                        ${dataFormatada}
-                    </h3>
-                    <span style="font-size:12px; background:#f0f0f0; padding:4px 8px; border-radius:4px; color:#666;">
-                        ${records.length} Colaboradores
-                    </span>
+                    <h3 style="color: var(--color-dark-brown); margin:0;">🗓️ ${dataFormatada}</h3>
+                    <span style="font-size:12px; background:#f0f0f0; padding:4px 8px; border-radius:4px;">${records.length} Colaboradores</span>
                 </div>
-                
                 <div style="overflow-x: auto;">
-                    <table class="data-table" style="box-shadow:none; border:1px solid #eee;">
+                    <table class="data-table">
                         <thead>
-                            <tr style="background-color: #fdfdfd;">
-                                <th style="color:#666;">Colaborador</th>
-                                <th style="color:#666;">Monitoria</th>
-                                <th style="color:#666;">TMA Tel</th>
-                                <th style="color:#666;">TMA Chat</th>
-                                <th style="color:#666;">Vol. Total</th>
-                                <th style="color:#666; width:50px;">Ações</th>
+                            <tr>
+                                <th>Colaborador</th>
+                                <th>Monitoria</th>
+                                <th>TMA Tel</th>
+                                <th>TMA Chat</th>
+                                <th>Vol. Total</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${records.map(r => {
-                                const volTotal = (r.atendimentosFinalizados || 0) + (r.atendimentosHuggy || 0);
-                                // Estilização condicional da nota
-                                let notaStyle = "font-weight:bold;";
-                                if(r.notaMonitoria >= 90) notaStyle += "color:#28a745;"; // Verde
-                                else if(r.notaMonitoria < 80) notaStyle += "color:#dc3545;"; // Vermelho
-                                else notaStyle += "color:#ffc107;"; // Amarelo (80-89)
-
-                                return `
-                                <tr style="transition:0.2s;">
+                            ${records.map(r => `
+                                <tr>
                                     <td><strong>${r.userName}</strong></td>
-                                    <td><span style="${notaStyle}">${r.notaMonitoria}</span></td>
+                                    <td>${r.notaMonitoria}</td>
                                     <td>${r.tmaTelefonia || '--'}</td>
                                     <td>${r.tmaHuggy || '--'}</td>
-                                    <td>${volTotal}</td>
+                                    <td>${(r.atendimentosFinalizados || 0) + (r.atendimentosHuggy || 0)}</td>
                                     <td>
                                         <button onclick="viewMetricDetailAdmin('${r.id || (r.userId + '_' + r.weekStart)}')" 
-                                            class="action-btn btn-view" title="Ver Detalhes" 
-                                            style="width:32px; height:32px; background-color: var(--color-taupe);">
-                                            <i class="material-icons" style="font-size:18px;">visibility</i>
+                                            class="action-btn btn-view" style="width:30px; height:30px; background:var(--color-taupe);">
+                                            <i class="material-icons" style="font-size:16px;">visibility</i>
                                         </button>
                                     </td>
                                 </tr>
-                                `;
-                            }).join('')}
+                            `).join('')}
                         </tbody>
                     </table>
                 </div>
-            </div>
-        `;
+            </div>`;
         container.innerHTML += blockHtml;
     });
 };
+
+// ============================================================
+// 10. NOVA FUNÇÃO: HISTÓRICO DE KPIs DO SETOR
+// ============================================================
+
+window.loadSectorHistory = async () => {
+    const tbody = document.getElementById('sector-history-body');
+    if(!tbody) return;
+    tbody.innerHTML = "<tr><td colspan='5'>Carregando...</td></tr>";
+
+    try {
+        const q = await getDocs(collection(db, "sector_metrics"));
+        let docs = [];
+        q.forEach(doc => docs.push(doc.data()));
+        
+        // Ordena por data (mais recente primeiro)
+        docs.sort((a,b) => new Date(b.weekStart) - new Date(a.weekStart));
+
+        tbody.innerHTML = "";
+        
+        if(docs.length === 0){
+             tbody.innerHTML = "<tr><td colspan='5'>Nenhum KPI de setor lançado.</td></tr>";
+             return;
+        }
+
+        docs.forEach(d => {
+            const dateFmt = d.weekStart.split('-').reverse().join('/');
+            tbody.innerHTML += `
+                <tr>
+                    <td>${dateFmt}</td>
+                    <td style="color:#6f42c1; font-weight:bold;">${d.tmr}</td>
+                    <td style="color:#17a2b8;">${d.fcr}%</td>
+                    <td style="color:#dc3545;">${d.reincidência || d.reincidencia}%</td>
+                    <td style="display:flex; gap:10px;">
+                        <button onclick="prepareEditSectorKPI('${d.weekStart}')" class="action-btn btn-edit" title="Editar">
+                            <i class="material-icons">edit</i>
+                        </button>
+                        <button onclick="deleteSectorKPI('${d.weekStart}')" class="action-btn btn-delete" title="Excluir">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch(e) {
+        console.error(e);
+        tbody.innerHTML = "<tr><td colspan='5'>Erro ao carregar lista.</td></tr>";
+    }
+}
+
+// EXCLUIR KPI
+window.deleteSectorKPI = async (id) => {
+    if(!confirm("Tem certeza que deseja excluir os dados desta semana?")) return;
+    try {
+        await deleteDoc(doc(db, "sector_metrics", id));
+        alert("Excluído com sucesso!");
+        loadSectorHistory(); // Atualiza a tabela
+        loadDashboardData(); // Atualiza os cards da home
+    } catch(e) { alert("Erro ao excluir: " + e.message); }
+}
+
+// PREPARAR EDIÇÃO KPI
+window.prepareEditSectorKPI = async (id) => {
+    try {
+        const docSnap = await getDoc(doc(db, "sector_metrics", id));
+        if(!docSnap.exists()) return;
+        const data = docSnap.data();
+
+        // Vai para a tela de lançamentos
+        showSection('lancamentos');
+
+        // Preenche o formulário
+        document.getElementById('sector-date').value = data.weekStart;
+        document.getElementById('kpi-tmr').value = data.tmr;
+        document.getElementById('kpi-fcr').value = data.fcr;
+        document.getElementById('kpi-reincidencia').value = data.reincidência || data.reincidencia;
+
+        // Feedback visual
+        alert(`Dados da semana ${data.weekStart} carregados no formulário. Faça as alterações e clique em 'Salvar'.`);
+        
+        // Rola a página para o topo
+        window.scrollTo(0,0);
+
+    } catch(e) { console.error(e); }
+}
