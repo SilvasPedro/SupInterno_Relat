@@ -197,7 +197,7 @@ window.viewMetricDetailAdmin = async (docId) => {
                 </div>
 
                 <div style="flex: 1; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: center;">
-                    <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 14px; text-transform: uppercase;">✅ Total Finalizados</h4>
+                    <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 14px; text-transform: uppercase;">✅ Total Atendimentos</h4>
                     <span style="font-size: 28px; font-weight: bold; color: #1b5e20;">${totalFinalizados}</span>
                     <p style="font-size: 12px; color: #2e7d32; margin-top: 5px;">Soma (Tel + Chat)</p>
                 </div>
