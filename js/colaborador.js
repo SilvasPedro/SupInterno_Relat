@@ -259,7 +259,7 @@ function updateCardsHTML(sectorCurr, sectorPrev, userData) {
                     <h1 style="font-size: 2.5em; margin: 10px 0; color: #6f42c1">${sectorCurr.tmr || '--:--'}</h1>
                     <span style="font-size:1.2em; color:${trendTMR.class === 'trend-positive' ? '#28a745' : (trendTMR.class === 'trend-negative' ? '#dc3545' : '#ccc')}">${trendTMR.icon}</span>
                 </div>
-                <p>Média do Setor</p>
+                <p>Meta: ≦ 00:20:00</p>
             </div>
             <div class="metric-card" style="border-left: 5px solid #17a2b8;">
                 <h3>🎯 FCR (Equipe)</h3>
@@ -267,7 +267,7 @@ function updateCardsHTML(sectorCurr, sectorPrev, userData) {
                     <h1 style="font-size: 2.5em; margin: 10px 0; color: #17a2b8">${sectorCurr.fcr || 0}%</h1>
                     <span style="font-size:1.2em; color:${trendFCR.class === 'trend-positive' ? '#28a745' : (trendFCR.class === 'trend-negative' ? '#dc3545' : '#ccc')}">${trendFCR.icon}</span>
                 </div>
-                <p>Média do Setor</p>
+                <p>Meta: ≧ 80%</p>
             </div>
             <div class="metric-card" style="border-left: 5px solid #dc3545;">
                 <h3>🔄 Reincidência (Equipe)</h3>
@@ -275,7 +275,7 @@ function updateCardsHTML(sectorCurr, sectorPrev, userData) {
                     <h1 style="font-size: 2.5em; margin: 10px 0; color: #dc3545">${sectorCurr.reincidencia || 0}%</h1>
                     <span style="font-size:1.2em; color:${trendRein.class === 'trend-positive' ? '#28a745' : (trendRein.class === 'trend-negative' ? '#dc3545' : '#ccc')}">${trendRein.icon}</span>
                 </div>
-                <p>Média do Setor</p>
+                <p>Meta: ≦ 20%</p>
             </div>
         </div>
         <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0 30px 0;">
