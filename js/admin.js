@@ -5,27 +5,27 @@
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { 
-    getAuth, 
-    onAuthStateChanged, 
-    signOut 
+import {
+    getAuth,
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { 
-    getFirestore, 
-    collection, 
-    getDocs, 
-    doc, 
-    setDoc, 
-    getDoc, 
-    updateDoc, 
-    deleteDoc, 
-    query, 
-    where 
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
+    deleteDoc,
+    query,
+    where
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // --- IMPORTAÇÕES DOS MÓDULOS AUXILIARES ---
-import { renderDashboardCharts } from "./charts.js"; 
-import "./history.js"; 
+import { renderDashboardCharts } from "./charts.js";
+import "./history.js";
 
 // 1. CONFIGURAÇÃO
 const firebaseConfig = {
@@ -42,11 +42,11 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // --- ESTADO GLOBAL ---
-let usersCache = {};        
-let allMetricsCache = [];   
-let globalAggregatedData = []; 
-let isEditingMetric = false; 
-let editingMetricId = null;  
+let usersCache = {};
+let allMetricsCache = [];
+let globalAggregatedData = [];
+let isEditingMetric = false;
+let editingMetricId = null;
 let occurrencesCache = [];
 
 // ============================================================
@@ -57,14 +57,14 @@ onAuthStateChanged(auth, async (user) => {
         try {
             const userRef = doc(db, "users", user.uid);
             const docSnap = await getDoc(userRef);
-            
+
             if (docSnap.exists() && docSnap.data().cargo === 'admin') {
                 document.getElementById('admin-name').innerText = "Gestor: " + (docSnap.data().nome || "Admin");
-                
-                loadCollaborators();       
-                loadUserSelectOptions();   
-                loadOccurrenceUserSelect(); 
-                loadDashboardData(); 
+
+                loadCollaborators();
+                loadUserSelectOptions();
+                loadOccurrenceUserSelect();
+                loadDashboardData();
 
             } else {
                 alert("Acesso restrito.");
@@ -86,8 +86,8 @@ window.showSection = (sectionId) => {
     document.querySelectorAll('.section').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
     const target = document.getElementById('section-' + sectionId);
-    if(target) target.style.display = 'block';
-    
+    if (target) target.style.display = 'block';
+
     if (sectionId !== 'lancamentos' && isEditingMetric) resetMetricFormState();
 };
 
@@ -95,11 +95,11 @@ window.openModal = () => document.getElementById('modal-new-user').style.display
 window.closeModal = () => document.getElementById('modal-new-user').style.display = 'none';
 
 window.logout = () => {
-    if(confirm("Sair do sistema?")) signOut(auth).then(() => window.location.href = "index.html");
+    if (confirm("Sair do sistema?")) signOut(auth).then(() => window.location.href = "index.html");
 };
 
 function timeToSeconds(timeStr) {
-    if(!timeStr || typeof timeStr !== 'string') return 0;
+    if (!timeStr || typeof timeStr !== 'string') return 0;
     const p = timeStr.split(':');
     let s = 0, m = 1;
     while (p.length > 0) {
@@ -118,14 +118,14 @@ async function loadCollaborators() {
 
     try {
         const q = await getDocs(collection(db, "users"));
-        
+
         let usersList = [];
 
         q.forEach((docSnap) => {
             const user = docSnap.data();
             usersCache[docSnap.id] = user.nome;
 
-            if (user.cargo !== 'admin') { 
+            if (user.cargo !== 'admin') {
                 usersList.push({
                     id: docSnap.id,
                     ...user
@@ -135,7 +135,7 @@ async function loadCollaborators() {
 
         usersList.sort((a, b) => a.nome.localeCompare(b.nome));
 
-        listBody.innerHTML = ""; 
+        listBody.innerHTML = "";
 
         usersList.forEach((user) => {
             listBody.innerHTML += `
@@ -152,9 +152,9 @@ async function loadCollaborators() {
                 </tr>`;
         });
 
-    } catch (e) { 
+    } catch (e) {
         console.error(e);
-        listBody.innerHTML = "<tr><td colspan='5'>Erro ao carregar.</td></tr>"; 
+        listBody.innerHTML = "<tr><td colspan='5'>Erro ao carregar.</td></tr>";
     }
 }
 
@@ -169,7 +169,7 @@ async function loadDashboardData() {
     if (allMetricsCache.length === 0) {
         try {
             const q = await getDocs(collection(db, "weekly_metrics"));
-            allMetricsCache = []; 
+            allMetricsCache = [];
             q.forEach(doc => allMetricsCache.push(doc.data()));
         } catch (e) { console.error(e); return; }
     }
@@ -185,8 +185,8 @@ async function loadDashboardData() {
 
     // 3. Processa KPIs do Setor
     if (sectorMetrics.length > 0) {
-        const curr = sectorMetrics[sectorMetrics.length - 1]; 
-        const prev = sectorMetrics.length > 1 ? sectorMetrics[sectorMetrics.length - 2] : null; 
+        const curr = sectorMetrics[sectorMetrics.length - 1];
+        const prev = sectorMetrics.length > 1 ? sectorMetrics[sectorMetrics.length - 2] : null;
 
         // TMR
         const currTmr = curr.tmr || "--:--";
@@ -282,19 +282,19 @@ async function loadDashboardData() {
         avgTmaTel: (u.accTmaTel / u.count).toFixed(2),
         avgTmaChat: (u.accTmaChat / u.count).toFixed(2),
         avgMonitoria: (u.accMonitoria / u.count).toFixed(1),
-        avgVolume: (u.accFinalizados / u.count).toFixed(0), 
+        avgVolume: (u.accFinalizados / u.count).toFixed(0),
         totalVolume: u.accFinalizados
     }));
 
     processGlobalKPIs(globalAggregatedData);
-    
+
     if (typeof renderDashboardCharts === "function") {
         renderDashboardCharts(globalAggregatedData, allMetricsCache);
     }
 }
 
 function processGlobalKPIs(users) {
-    if(users.length === 0) { resetKpis(); return; }
+    if (users.length === 0) { resetKpis(); return; }
 
     const sumTmaTel = users.reduce((acc, u) => acc + parseFloat(u.avgTmaTel), 0);
     const teamTmaTel = (sumTmaTel / users.length).toFixed(2);
@@ -309,19 +309,19 @@ function processGlobalKPIs(users) {
     updateCard('kpi-team-vol', teamAvgVol);
 
     const bestQa = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
-    if(bestQa){
+    if (bestQa) {
         updateCard('kpi-best-qa', bestQa.avgMonitoria);
         updateCard('kpi-best-qa-name', bestQa.name.split(' ')[0]);
     }
 
     const maxTel = [...users].sort((a, b) => b.avgTmaTel - a.avgTmaTel)[0];
-    if(maxTel){
+    if (maxTel) {
         updateCard('kpi-max-tel', maxTel.avgTmaTel + " min");
         updateCard('kpi-max-tel-name', maxTel.name.split(' ')[0]);
     }
 
     const maxChat = [...users].sort((a, b) => b.avgTmaChat - a.avgTmaChat)[0];
-    if(maxChat){
+    if (maxChat) {
         updateCard('kpi-max-chat', maxChat.avgTmaChat + " min");
         updateCard('kpi-max-chat-name', maxChat.name.split(' ')[0]);
     }
@@ -329,11 +329,11 @@ function processGlobalKPIs(users) {
 
 function updateCard(id, val) {
     const el = document.getElementById(id);
-    if(el) el.innerText = val;
+    if (el) el.innerText = val;
 }
 
 function resetKpis() {
-    ['kpi-team-tel','kpi-team-chat','kpi-team-vol','kpi-best-qa','kpi-max-tel','kpi-max-chat'].forEach(id => updateCard(id, '--'));
+    ['kpi-team-tel', 'kpi-team-chat', 'kpi-team-vol', 'kpi-best-qa', 'kpi-max-tel', 'kpi-max-chat'].forEach(id => updateCard(id, '--'));
 }
 
 window.forceDashboardRefresh = async () => {
@@ -351,10 +351,10 @@ window.openDetailModal = (type) => {
     const title = document.getElementById('modal-kpi-title');
     const tbody = document.getElementById('modal-kpi-body');
     const thVal = document.getElementById('modal-kpi-col-value');
-    
+
     modal.style.display = 'block';
     tbody.innerHTML = "";
-    
+
     let data = [...globalAggregatedData];
 
     if (type === 'team-tel') {
@@ -376,21 +376,21 @@ window.openDetailModal = (type) => {
         title.innerText = "Ranking de Qualidade";
         thVal.innerText = "Nota Média";
         data.sort((a, b) => b.avgMonitoria - a.avgMonitoria);
-        data.forEach((u, i) => appendRow(tbody, `${i+1}º ${u.name}`, u.avgMonitoria, i===0));
+        data.forEach((u, i) => appendRow(tbody, `${i + 1}º ${u.name}`, u.avgMonitoria, i === 0));
     } else if (type === 'max-tel') {
         title.innerText = "Ranking TMA Telefonia (Ofensores)";
         thVal.innerText = "Tempo Médio";
         data.sort((a, b) => b.avgTmaTel - a.avgTmaTel);
-        data.forEach((u, i) => appendRow(tbody, u.name, u.avgTmaTel, i===0));
+        data.forEach((u, i) => appendRow(tbody, u.name, u.avgTmaTel, i === 0));
     } else if (type === 'max-chat') {
         title.innerText = "Ranking TMA Chat (Ofensores)";
         thVal.innerText = "Tempo Médio";
         data.sort((a, b) => b.avgTmaChat - a.avgTmaChat);
-        data.forEach((u, i) => appendRow(tbody, u.name, u.avgTmaChat, i===0));
+        data.forEach((u, i) => appendRow(tbody, u.name, u.avgTmaChat, i === 0));
     }
 };
 
-function appendRow(tbody, name, val, isHighlight=false) {
+function appendRow(tbody, name, val, isHighlight = false) {
     const style = isHighlight ? "color:var(--color-main-red); font-weight:bold;" : "";
     tbody.innerHTML += `<tr><td>${name}</td><td style="${style}">${val}</td></tr>`;
 }
@@ -401,21 +401,21 @@ function appendRow(tbody, name, val, isHighlight=false) {
 
 async function loadUserSelectOptions() {
     const select = document.getElementById('metric-user-select');
-    if(!select) return;
-    
+    if (!select) return;
+
     // Limpa e mantém a opção padrão
-    select.innerHTML = '<option value="">Selecione...</option>'; 
-    
+    select.innerHTML = '<option value="">Selecione...</option>';
+
     try {
         const q = await getDocs(collection(db, "users"));
-        
+
         // 1. Cria lista temporária
         let usersList = [];
-        
+
         q.forEach(d => {
             const data = d.data();
             // Filtra admins fora da lista e adiciona ao array
-            if(data.cargo !== 'admin') {
+            if (data.cargo !== 'admin') {
                 usersList.push({
                     id: d.id,
                     nome: data.nome
@@ -442,19 +442,19 @@ async function loadUserSelectOptions() {
 // Select de Usuários para Ocorrências (COM ORDEM ALFABÉTICA)
 async function loadOccurrenceUserSelect() {
     const select = document.getElementById('occur-user-select');
-    if(!select) return;
-    
-    select.innerHTML = '<option value="">Selecione...</option>'; 
-    
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Selecione...</option>';
+
     try {
         const q = await getDocs(collection(db, "users"));
-        
+
         // 1. Cria lista temporária
         let usersList = [];
-        
+
         q.forEach(d => {
             const data = d.data();
-            if(data.cargo !== 'admin') {
+            if (data.cargo !== 'admin') {
                 usersList.push({
                     id: d.id,
                     nome: data.nome
@@ -493,14 +493,14 @@ if (formMetrics) {
             // Totais
             atendimentosAbertos: Number(document.getElementById('at-abertos').value),
             atendimentosFinalizados: Number(document.getElementById('at-finalizados').value),
-            
+
             // Telefonia
             ligacoesRealizadas: Number(document.getElementById('lig-realizadas').value || 0),
             ligacoesRecebidas: Number(document.getElementById('lig-recebidas').value || 0),
             ligacoesPerdidas: Number(document.getElementById('lig-perdidas').value || 0),
             tmeTelefonia: Number(document.getElementById('tme-tel').value || 0),
             tmaTelefonia: Number(document.getElementById('tma-tel').value),
-            
+
             // Chat
             atendimentosHuggy: Number(document.getElementById('at-huggy').value),
             tmaHuggy: Number(document.getElementById('tma-huggy').value),
@@ -517,7 +517,7 @@ if (formMetrics) {
                 alert("Salvo com sucesso!");
                 formMetrics.reset();
             }
-            allMetricsCache = []; 
+            allMetricsCache = [];
         } catch (e) { alert("Erro: " + e.message); }
     });
 }
@@ -528,9 +528,9 @@ if (formSector) {
     formSector.addEventListener('submit', async (e) => {
         e.preventDefault();
         const weekStart = document.getElementById('sector-date').value;
-        
+
         const data = {
-            weekStart, 
+            weekStart,
             createdAt: new Date(),
             tmr: document.getElementById('kpi-tmr').value,
             fcr: Number(document.getElementById('kpi-fcr').value),
@@ -550,7 +550,7 @@ function resetMetricFormState() {
     editingMetricId = null;
     const btn = document.querySelector('#form-metrics button[type="submit"]');
     btn.innerText = "Salvar Métricas da Semana";
-    btn.style.backgroundColor = ""; 
+    btn.style.backgroundColor = "";
     document.getElementById('metric-user-select').disabled = false;
     document.getElementById('metric-date').disabled = false;
     document.getElementById('form-metrics').reset();
@@ -561,13 +561,13 @@ const formOccur = document.getElementById('form-ocorrencias');
 if (formOccur) {
     const newForm = formOccur.cloneNode(true);
     formOccur.parentNode.replaceChild(newForm, formOccur);
-    
+
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const uid = document.getElementById('occur-user-select').value;
         const typeEl = document.querySelector('input[name="occur-type"]:checked');
-        
-        if(!uid || !typeEl) return alert("Preencha todos os campos.");
+
+        if (!uid || !typeEl) return alert("Preencha todos os campos.");
 
         try {
             const sel = document.getElementById('occur-user-select');
@@ -590,41 +590,41 @@ if (formOccur) {
 // 8. FUNÇÕES DE SUPORTE AO HISTÓRICO (EDITAR)
 // ============================================================
 window.prepareEditMetric = async (id) => {
-    if(typeof closeHistoryModal === 'function') closeHistoryModal();
+    if (typeof closeHistoryModal === 'function') closeHistoryModal();
     else document.getElementById('modal-user-history').style.display = 'none';
 
     const snap = await getDoc(doc(db, "weekly_metrics", id));
-    if(!snap.exists()) return;
+    if (!snap.exists()) return;
     const data = snap.data();
-    
+
     showSection('lancamentos');
-    
+
     // Dados Básicos
     document.getElementById('metric-user-select').value = data.userId;
     document.getElementById('metric-date').value = data.weekStart;
-    
+
     // Totais
     document.getElementById('at-abertos').value = data.atendimentosAbertos;
     document.getElementById('at-finalizados').value = data.atendimentosFinalizados;
-    
+
     // Telefonia (Novos Campos Visíveis)
     document.getElementById('lig-recebidas').value = data.ligacoesRecebidas || 0;
     document.getElementById('lig-realizadas').value = data.ligacoesRealizadas || 0;
     document.getElementById('lig-perdidas').value = data.ligacoesPerdidas || 0;
     document.getElementById('tma-tel').value = data.tmaTelefonia;
     document.getElementById('tme-tel').value = data.tmeTelefonia || 0;
-    
+
     // Chat
     document.getElementById('at-huggy').value = data.atendimentosHuggy;
     document.getElementById('tma-huggy').value = data.tmaHuggy;
     document.getElementById('nota-monitoria').value = data.notaMonitoria;
-    
+
     document.getElementById('metric-user-select').disabled = true;
     document.getElementById('metric-date').disabled = true;
 
     isEditingMetric = true;
     editingMetricId = id;
-    
+
     const btn = document.querySelector('#form-metrics button[type="submit"]');
     btn.innerText = "Atualizar Dados";
     btn.style.backgroundColor = "#ffc107";
@@ -638,25 +638,25 @@ window.prepareEditMetric = async (id) => {
 window.loadAllOccurrences = async () => {
     const tbody = document.getElementById('all-occurrences-body');
     if (!tbody) return;
-    
+
     tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px;'><i class='material-icons spinning'>sync</i> Carregando lista...</td></tr>";
 
     try {
         const q = await getDocs(collection(db, "occurrences"));
         occurrencesCache = []; // Limpa o cache
-        
+
         q.forEach(docSnap => {
             occurrencesCache.push({ id: docSnap.id, ...docSnap.data() });
         });
-        
+
         // Ordena por data (mais recente primeiro)
         occurrencesCache.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         // Aplica os filtros (que inicialmente estarão vazios, mostrando tudo)
         applyOccurrenceFilters();
 
-    } catch (error) { 
-        console.error(error); 
+    } catch (error) {
+        console.error(error);
         tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:red;'>Erro ao carregar dados.</td></tr>";
     }
 };
@@ -671,10 +671,10 @@ window.applyOccurrenceFilters = () => {
     const filteredData = occurrencesCache.filter(item => {
         // Filtro de Nome (se houver texto digitado)
         const matchName = nameFilter ? (item.userName || '').toLowerCase().includes(nameFilter) : true;
-        
+
         // Filtro de Tipo (se não for 'all')
         const matchType = typeFilter !== 'all' ? item.type === typeFilter : true;
-        
+
         // Filtro de Data (se houver data selecionada)
         const matchDate = dateFilter ? item.date === dateFilter : true;
 
@@ -689,7 +689,7 @@ window.renderOccurrencesTable = (dataList) => {
     tbody.innerHTML = "";
 
     if (dataList.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px; color:#666;'>Nenhum registro encontrado com esses filtros.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:20px; color:#666;'>Nenhum registro encontrado.</td></tr>";
         return;
     }
 
@@ -712,9 +712,8 @@ window.renderOccurrencesTable = (dataList) => {
             ? '<span style="color:#28a745; background:#e8f5e9; padding:2px 8px; border-radius:4px; font-size:12px;">Lido</span>' 
             : '<span style="color:#e67e22; background:#fff3cd; padding:2px 8px; border-radius:4px; font-size:12px;">Pendente</span>';
 
-        // Truncar descrição longa para não quebrar a tabela
-        const descResumida = item.description && item.description.length > 80 
-            ? item.description.substring(0, 80) + '...' 
+        const descResumida = item.description && item.description.length > 60 
+            ? item.description.substring(0, 60) + '...' 
             : item.description;
 
         const row = `
@@ -725,10 +724,25 @@ window.renderOccurrencesTable = (dataList) => {
                 <td>${item.title}</td>
                 <td style="font-size: 13px; color: #555;" title="${item.description}">${descResumida}</td>
                 <td>${statusLabel}</td>
+                <td style="text-align: center;">
+                    <button onclick="prepareEditOccurrence('${item.id}')" 
+                        class="action-btn btn-edit"
+                        style="background: #ffc107; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; color: #333; display: inline-flex; align-items: center; justify-content: center;" 
+                        title="Editar Feedback">
+                        <i class="material-icons" style="font-size: 18px;">edit</i>
+                    </button>
+                </td>
             </tr>
         `;
         tbody.innerHTML += row;
     });
+};
+
+window.clearOccurrenceFilters = () => {
+    document.getElementById('filter-occur-name').value = '';
+    document.getElementById('filter-occur-type').value = 'all';
+    document.getElementById('filter-occur-date').value = '';
+    applyOccurrenceFilters(); 
 };
 
 window.clearOccurrenceFilters = () => {
@@ -744,11 +758,11 @@ window.loadRelatorioDetalhado = async () => {
     if (!container) return;
     container.innerHTML = "<p style='padding:20px; text-align:center;'>Carregando dados...</p>";
 
-    if (allMetricsCache.length === 0) await loadDashboardData(); 
+    if (allMetricsCache.length === 0) await loadDashboardData();
 
     const uniqueDates = [...new Set(allMetricsCache.map(item => item.weekStart))];
     uniqueDates.sort((a, b) => new Date(b) - new Date(a));
-    
+
     selectFilter.innerHTML = `<option value="all">Todas as Datas</option>`;
     uniqueDates.forEach(date => {
         const dateFormatted = date.split('-').reverse().join('/');
@@ -757,7 +771,7 @@ window.loadRelatorioDetalhado = async () => {
         option.innerText = `Semana de ${dateFormatted}`;
         selectFilter.appendChild(option);
     });
-    
+
     renderDetailedContent();
 };
 
@@ -802,11 +816,11 @@ window.renderDetailedContent = () => {
                         </thead>
                         <tbody>
                             ${records.map(r => {
-                                // CORREÇÃO AQUI TAMBÉM NO RELATÓRIO
-                                const volCalls = (r.ligacoesRealizadas || 0) + (r.ligacoesRecebidas || 0);
-                                const totalCalculado = volCalls + (r.atendimentosHuggy || 0);
-                                
-                                return `
+            // CORREÇÃO AQUI TAMBÉM NO RELATÓRIO
+            const volCalls = (r.ligacoesRealizadas || 0) + (r.ligacoesRecebidas || 0);
+            const totalCalculado = volCalls + (r.atendimentosHuggy || 0);
+
+            return `
                                 <tr>
                                     <td><strong>${r.userName}</strong></td>
                                     <td>${r.notaMonitoria}</td>
@@ -837,7 +851,7 @@ window.renderDetailedContent = () => {
 window.viewMetricDetailAdmin = async (docId) => {
     const modal = document.getElementById('modal-metric-view-admin');
     const content = document.getElementById('admin-metric-view-content');
-    
+
     modal.style.display = 'block';
     content.innerHTML = "<div style='padding:20px; text-align:center; color:#666;'><i class='material-icons spinning'>sync</i> Buscando dados...</div>";
 
@@ -852,7 +866,7 @@ window.viewMetricDetailAdmin = async (docId) => {
 
         const data = snap.data();
         const dataFmt = data.weekStart ? data.weekStart.split('-').reverse().join('/') : 'Data Inválida';
-        
+
         // --- DADOS DIRETOS DO BANCO ---
         const ligRecebidas = data.ligacoesRecebidas || 0;
         const ligRealizadas = data.ligacoesRealizadas || 0;
@@ -954,20 +968,96 @@ window.viewMetricDetailAdmin = async (docId) => {
 // ============================================================
 window.loadSectorHistory = async () => {
     const tbody = document.getElementById('sector-history-body');
-    if(!tbody) return;
+    if (!tbody) return;
     tbody.innerHTML = "<tr><td colspan='5'>Carregando...</td></tr>";
     try {
         const q = await getDocs(collection(db, "sector_metrics"));
         let docs = [];
         q.forEach(doc => docs.push(doc.data()));
-        docs.sort((a,b) => new Date(b.weekStart) - new Date(a.weekStart));
+        docs.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
         tbody.innerHTML = "";
-        if(docs.length === 0){ tbody.innerHTML = "<tr><td colspan='5'>Nenhum KPI de setor lançado.</td></tr>"; return; }
+        if (docs.length === 0) { tbody.innerHTML = "<tr><td colspan='5'>Nenhum KPI de setor lançado.</td></tr>"; return; }
         docs.forEach(d => {
             const dateFmt = d.weekStart.split('-').reverse().join('/');
             tbody.innerHTML += `<tr><td>${dateFmt}</td><td style="color:#6f42c1; font-weight:bold;">${d.tmr}</td><td style="color:#17a2b8;">${d.fcr}%</td><td style="color:#dc3545;">${d.reincidência || d.reincidencia}%</td><td style="display:flex; gap:10px;"><button onclick="prepareEditSectorKPI('${d.weekStart}')" class="action-btn btn-edit"><i class="material-icons">edit</i></button><button onclick="deleteSectorKPI('${d.weekStart}')" class="action-btn btn-delete"><i class="material-icons">delete</i></button></td></tr>`;
         });
-    } catch(e) { console.error(e); tbody.innerHTML = "<tr><td colspan='5'>Erro ao carregar lista.</td></tr>"; }
+    } catch (e) { console.error(e); tbody.innerHTML = "<tr><td colspan='5'>Erro ao carregar lista.</td></tr>"; }
 }
-window.deleteSectorKPI = async (id) => { if(!confirm("Tem certeza?")) return; try { await deleteDoc(doc(db, "sector_metrics", id)); alert("Excluído!"); loadSectorHistory(); loadDashboardData(); } catch(e) { alert("Erro: " + e.message); } }
-window.prepareEditSectorKPI = async (id) => { try { const docSnap = await getDoc(doc(db, "sector_metrics", id)); if(!docSnap.exists()) return; const data = docSnap.data(); showSection('lancamentos'); document.getElementById('sector-date').value = data.weekStart; document.getElementById('kpi-tmr').value = data.tmr; document.getElementById('kpi-fcr').value = data.fcr; document.getElementById('kpi-reincidencia').value = data.reincidência || data.reincidencia; alert(`Dados da semana ${data.weekStart} carregados.`); window.scrollTo(0,0); } catch(e) { console.error(e); } }
+window.deleteSectorKPI = async (id) => { if (!confirm("Tem certeza?")) return; try { await deleteDoc(doc(db, "sector_metrics", id)); alert("Excluído!"); loadSectorHistory(); loadDashboardData(); } catch (e) { alert("Erro: " + e.message); } }
+window.prepareEditSectorKPI = async (id) => { try { const docSnap = await getDoc(doc(db, "sector_metrics", id)); if (!docSnap.exists()) return; const data = docSnap.data(); showSection('lancamentos'); document.getElementById('sector-date').value = data.weekStart; document.getElementById('kpi-tmr').value = data.tmr; document.getElementById('kpi-fcr').value = data.fcr; document.getElementById('kpi-reincidencia').value = data.reincidência || data.reincidencia; alert(`Dados da semana ${data.weekStart} carregados.`); window.scrollTo(0, 0); } catch (e) { console.error(e); } }
+
+// js/admin.js
+
+// --- LÓGICA DE EDIÇÃO DE OCORRÊNCIAS ---
+
+window.prepareEditOccurrence = (id) => {
+    // 1. Busca os dados no cache local (para não gastar leitura do banco)
+    const item = occurrencesCache.find(o => o.id === id);
+    if (!item) return alert("Erro: Item não encontrado no cache.");
+
+    // 2. Preenche o formulário
+    document.getElementById('edit-occur-id').value = item.id;
+    document.getElementById('edit-occur-date').value = item.date;
+    document.getElementById('edit-occur-title').value = item.title;
+    document.getElementById('edit-occur-desc').value = item.description;
+
+    // 3. Marca o Radio Button correto
+    const radios = document.getElementsByName('edit-occur-type');
+    for (const radio of radios) {
+        if (radio.value === item.type) {
+            radio.checked = true;
+        }
+    }
+
+    // 4. Abre o modal
+    document.getElementById('modal-edit-occurrence').style.display = 'block';
+};
+
+window.closeEditModal = () => {
+    document.getElementById('modal-edit-occurrence').style.display = 'none';
+};
+
+window.saveEditedOccurrence = async (event) => {
+    event.preventDefault(); // Impede recarregar a página
+
+    const id = document.getElementById('edit-occur-id').value;
+    const date = document.getElementById('edit-occur-date').value;
+    const title = document.getElementById('edit-occur-title').value;
+    const desc = document.getElementById('edit-occur-desc').value;
+
+    // Pega o valor do radio selecionado
+    const selectedRadio = document.querySelector('input[name="edit-occur-type"]:checked');
+    const type = selectedRadio ? selectedRadio.value : null;
+
+    if (!id || !date || !title || !type) {
+        return alert("Preencha todos os campos obrigatórios.");
+    }
+
+    try {
+        // 1. Atualiza no Firebase
+        await updateDoc(doc(db, "occurrences", id), {
+            date: date,
+            title: title,
+            description: desc,
+            type: type
+        });
+
+        // 2. Atualiza o Cache Local (para a tabela atualizar instantaneamente)
+        const index = occurrencesCache.findIndex(o => o.id === id);
+        if (index !== -1) {
+            occurrencesCache[index].date = date;
+            occurrencesCache[index].title = title;
+            occurrencesCache[index].description = desc;
+            occurrencesCache[index].type = type;
+        }
+
+        // 3. Fecha modal e recarrega filtros
+        alert("Feedback atualizado com sucesso!");
+        closeEditModal();
+        applyOccurrenceFilters(); // Re-renderiza a tabela mantendo os filtros atuais
+
+    } catch (error) {
+        console.error(error);
+        alert("Erro ao atualizar: " + error.message);
+    }
+};

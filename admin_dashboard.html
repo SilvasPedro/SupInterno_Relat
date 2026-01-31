@@ -273,7 +273,7 @@
                         </h3>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                                                        <div class="input-block">
+                            <div class="input-block">
                                 <label>Realizadas</label>
                                 <input type="number" id="lig-realizadas" placeholder="0">
                             </div>
@@ -381,21 +381,21 @@
                 </div>
                 <div class="input-block">
                     <label>Tipo de Ocorrência</label>
-<div class="radio-group">
-    <label class="radio-label positive">
-        <input type="radio" name="occur-type" value="positive" required>
-        <span>👍 Positiva</span>
-    </label>
-    
-    <label class="radio-label neutral">
-        <input type="radio" name="occur-type" value="neutral">
-        <span>ℹ️ Neutra</span>
-    </label>
-    <label class="radio-label negative">
-        <input type="radio" name="occur-type" value="negative">
-        <span>👎 Negativa</span>
-    </label>
-</div>
+                    <div class="radio-group">
+                        <label class="radio-label positive">
+                            <input type="radio" name="occur-type" value="positive" required>
+                            <span>👍 Positiva</span>
+                        </label>
+
+                        <label class="radio-label neutral">
+                            <input type="radio" name="occur-type" value="neutral">
+                            <span>ℹ️ Neutra</span>
+                        </label>
+                        <label class="radio-label negative">
+                            <input type="radio" name="occur-type" value="negative">
+                            <span>👎 Negativa</span>
+                        </label>
+                    </div>
                 </div>
                 <br>
                 <div class="input-block">
@@ -412,66 +412,69 @@
             </form>
         </div>
 
-<div id="section-all-occurrences" class="section" style="display:none;">
-    <div class="header-flex">
-        <h1>Relatório Geral de Ocorrências</h1>
-        <button onclick="loadAllOccurrences()" class="btn-primary" title="Recarregar Lista">
-            <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
-        </button>
-    </div>
-
-    <div class="metric-card" style="margin-bottom: 20px; padding: 20px;">
-        <h4 style="margin-bottom: 15px; color: #666;">🔎 Filtros de Pesquisa</h4>
-        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-            
-            <div style="flex: 1; min-width: 200px;">
-                <label style="font-size: 12px; font-weight: bold; color: #555;">Nome do Colaborador</label>
-                <input type="text" id="filter-occur-name" onkeyup="applyOccurrenceFilters()" placeholder="Digite o nome..." 
-                       style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
-            </div>
-
-            <div style="flex: 1; min-width: 150px;">
-                <label style="font-size: 12px; font-weight: bold; color: #555;">Tipo</label>
-                <select id="filter-occur-type" onchange="applyOccurrenceFilters()" 
-                        style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
-                    <option value="all">Todos</option>
-                    <option value="positive">👍 Elogio</option>
-                    <option value="neutral">ℹ️ Informativo</option>
-                    <option value="negative">👎 Advertência</option>
-                </select>
-            </div>
-
-            <div style="flex: 1; min-width: 150px;">
-                <label style="font-size: 12px; font-weight: bold; color: #555;">Data Específica</label>
-                <input type="date" id="filter-occur-date" onchange="applyOccurrenceFilters()" 
-                       style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
-            </div>
-
-            <div style="display: flex; align-items: flex-end;">
-                <button onclick="clearOccurrenceFilters()" style="padding: 10px 20px; background: #6c757d; border: none; color: white; border-radius: 6px; cursor: pointer;">
-                    Limpar
+        <div id="section-all-occurrences" class="section" style="display:none;">
+            <div class="header-flex">
+                <h1>Relatório Geral de Ocorrências</h1>
+                <button onclick="loadAllOccurrences()" class="btn-primary" title="Recarregar Lista">
+                    <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
                 </button>
             </div>
+
+            <div class="metric-card" style="margin-bottom: 20px; padding: 20px;">
+                <h4 style="margin-bottom: 15px; color: #666;">🔎 Filtros de Pesquisa</h4>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 12px; font-weight: bold; color: #555;">Nome do Colaborador</label>
+                        <input type="text" id="filter-occur-name" onkeyup="applyOccurrenceFilters()"
+                            placeholder="Digite o nome..."
+                            style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                    </div>
+
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 12px; font-weight: bold; color: #555;">Tipo</label>
+                        <select id="filter-occur-type" onchange="applyOccurrenceFilters()"
+                            style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                            <option value="all">Todos</option>
+                            <option value="positive">👍 Elogio</option>
+                            <option value="neutral">ℹ️ Informativo</option>
+                            <option value="negative">👎 Advertência</option>
+                        </select>
+                    </div>
+
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 12px; font-weight: bold; color: #555;">Data Específica</label>
+                        <input type="date" id="filter-occur-date" onchange="applyOccurrenceFilters()"
+                            style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                    </div>
+
+                    <div style="display: flex; align-items: flex-end;">
+                        <button onclick="clearOccurrenceFilters()"
+                            style="padding: 10px 20px; background: #6c757d; border: none; color: white; border-radius: 6px; cursor: pointer;">
+                            Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Colaborador</th>
+                                <th>Tipo</th>
+                                <th>Título</th>
+                                <th style="width: 35%;">Detalhes</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-occurrences-body"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="metric-card">
-        <div style="overflow-x: auto;">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Colaborador</th>
-                        <th>Tipo</th>
-                        <th>Título</th>
-                        <th style="width: 40%;">Detalhes</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="all-occurrences-body"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
 
         <div id="section-relatorio_detalhado" class="section" style="display:none;">
             <div class="header-flex" style="align-items: flex-start;">
@@ -550,6 +553,56 @@
                     Fechar
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div id="modal-edit-occurrence" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2 style="color: var(--color-dark-brown); margin-bottom: 20px;">✏️ Editar Feedback</h2>
+
+            <form id="form-edit-occurrence" onsubmit="saveEditedOccurrence(event)">
+                <input type="hidden" id="edit-occur-id">
+                <div class="input-block">
+                    <label>Data do Fato</label>
+                    <input type="date" id="edit-occur-date" required>
+                </div>
+
+                <div class="input-block">
+                    <label>Tipo de Ocorrência</label>
+                    <div class="radio-group">
+                        <label class="radio-label positive">
+                            <input type="radio" name="edit-occur-type" value="positive" required>
+                            <span>👍 Positiva</span>
+                        </label>
+                        <label class="radio-label neutral">
+                            <input type="radio" name="edit-occur-type" value="neutral">
+                            <span>ℹ️ Neutra</span>
+                        </label>
+                        <label class="radio-label negative">
+                            <input type="radio" name="edit-occur-type" value="negative">
+                            <span>👎 Negativa</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input-block">
+                    <label>Título</label>
+                    <input type="text" id="edit-occur-title" required>
+                </div>
+
+                <div class="input-block">
+                    <label>Descrição Detalhada</label>
+                    <textarea id="edit-occur-desc" rows="5" required
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
+                </div>
+
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" onclick="closeEditModal()"
+                        style="background: #ccc; margin-right: 10px; color: #333;">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
         </div>
     </div>
 
