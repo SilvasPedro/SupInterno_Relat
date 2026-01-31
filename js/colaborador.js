@@ -282,15 +282,28 @@ async function loadMyOccurrences(uid) {
 
         docs.forEach(item => {
             const dateStr = item.date ? item.date.split('-').reverse().join('/') : '-';
-            const isPositive = item.type === 'positive';
-            const icon = isPositive ? '<span style="color:#28a745">👍 Elogio</span>' : '<span style="color:#dc3545">⚠️ Ponto de Atenção</span>';
+            
+            // --- ATUALIZAÇÃO PARA FEEDBACK NEUTRO ---
+            let iconClass, typeClass;
+            if (item.type === 'positive') {
+                iconClass = '<span style="color:#28a745">👍 Elogio</span>';
+                typeClass = 'positive';
+            } else if (item.type === 'neutral') {
+                iconClass = '<span style="color:#6c757d">ℹ️ Informativo</span>';
+                typeClass = 'neutral';
+            } else {
+                iconClass = '<span style="color:#dc3545">⚠️ Ponto de Atenção</span>';
+                typeClass = 'negative';
+            }
+            // ----------------------------------------
+
             const footerHtml = item.read 
                 ? `<div style="text-align:right; border-top:1px solid #eee; padding-top:10px; color:green; font-size:12px;">✔ Lido em ${new Date(item.readAt.seconds * 1000).toLocaleDateString()}</div>`
                 : `<div style="text-align:right; border-top:1px solid #eee; padding-top:10px;"><button onclick="confirmRead('${item.id}')" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Marcar como Ciente</button></div>`;
 
             listContainer.innerHTML += `
-                <div class="timeline-card ${isPositive ? 'positive' : 'negative'}">
-                    <div class="card-header"><div class="card-title">${icon} | ${item.title}</div><div class="card-date">${dateStr}</div></div>
+                <div class="timeline-card ${typeClass}">
+                    <div class="card-header"><div class="card-title">${iconClass} | ${item.title}</div><div class="card-date">${dateStr}</div></div>
                     <div class="card-body">${item.description}</div>${footerHtml}
                 </div>`;
         });
@@ -358,7 +371,14 @@ window.loadFullHistory = async (uid) => {
             } else {
                 docs.forEach(item => {
                     const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
-                    const typeLabel = item.type === 'positive' ? '<span style="color:#28a745; font-weight:bold;">Positiva</span>' : '<span style="color:#dc3545; font-weight:bold;">Negativa</span>';
+                    
+                    // --- ATUALIZAÇÃO TABELA HISTÓRICO ---
+                    let typeLabel;
+                    if (item.type === 'positive') typeLabel = '<span style="color:#28a745; font-weight:bold;">Positiva</span>';
+                    else if (item.type === 'neutral') typeLabel = '<span style="color:#6c757d; font-weight:bold;">Neutra</span>';
+                    else typeLabel = '<span style="color:#dc3545; font-weight:bold;">Negativa</span>';
+                    // ------------------------------------
+
                     const statusLabel = item.read ? '<span style="color:#28a745; background:#e8f5e9; padding:2px 8px; border-radius:10px; font-size:12px;">Lido</span>' : `<button onclick="confirmRead('${item.id}')" style="background:#dc3545; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">Marcar Ciente</button>`;
                     
                     tbodyOccur.innerHTML += `<tr><td>${dateFmt}</td><td>${typeLabel}</td><td>${item.title}</td><td style="font-size:13px; color:#555;">${item.description}</td><td>${statusLabel}</td></tr>`;

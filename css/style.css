@@ -654,3 +654,16 @@ button[onclick*="openHistory"]:hover {
     display: none;
 }
 
+/* css/style.css */
+
+/* Estilo do botão no formulário */
+.radio-label.neutral:hover { 
+    background: #e2e6ea; 
+    border-color: #6c757d; 
+    color: #495057; 
+}
+
+/* Estilo da borda lateral do Card no histórico */
+.timeline-card.neutral { 
+    border-left-color: #6c757d; 
+}

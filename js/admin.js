@@ -8,8 +8,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { 
     getAuth, 
     onAuthStateChanged, 
-    signOut, 
-    createUserWithEmailAndPassword 
+    signOut 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { 
     getFirestore, 
@@ -41,8 +40,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-const secondaryAuth = getAuth(secondaryApp);
 
 // --- ESTADO GLOBAL ---
 let usersCache = {};        
@@ -658,12 +655,25 @@ window.loadAllOccurrences = async () => {
 
         allDocs.forEach(item => {
             const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
-            const isPos = item.type === 'positive';
-            const typeLabel = isPos ? '<span style="color:#28a745; font-weight:bold;">👍 Elogio</span>' : '<span style="color:#dc3545; font-weight:bold;">👎 Advertência</span>';
+            
+            // --- ATUALIZAÇÃO PARA SUPORTE AO NEUTRO ---
+            let typeLabel, rowStyle;
+            if (item.type === 'positive') {
+                typeLabel = '<span style="color:#28a745; font-weight:bold;">👍 Elogio</span>';
+                rowStyle = 'border-left: 4px solid #28a745;';
+            } else if (item.type === 'neutral') {
+                typeLabel = '<span style="color:#6c757d; font-weight:bold;">ℹ️ Informativo</span>';
+                rowStyle = 'border-left: 4px solid #6c757d;';
+            } else {
+                typeLabel = '<span style="color:#dc3545; font-weight:bold;">👎 Advertência</span>';
+                rowStyle = 'border-left: 4px solid #dc3545;';
+            }
+            // -------------------------------------------
+
             const statusLabel = item.read ? '<span style="color:#28a745;">Lido</span>' : '<span style="color:#e67e22;">Pendente</span>';
 
             const row = `
-                <tr style="border-left: 4px solid ${isPos ? '#28a745' : '#dc3545'};">
+                <tr style="${rowStyle}">
                     <td>${dateFmt}</td>
                     <td><strong>${item.userName || 'Desconhecido'}</strong></td>
                     <td>${typeLabel}</td>
@@ -828,9 +838,6 @@ window.viewMetricDetailAdmin = async (docId) => {
 // ============================================================
 // 10. HISTÓRICO DE KPIs DO SETOR
 // ============================================================
-// ... (Código do setor mantido igual) ...
-// (Incluído no arquivo completo acima para manter consistência)
-
 window.loadSectorHistory = async () => {
     const tbody = document.getElementById('sector-history-body');
     if(!tbody) return;

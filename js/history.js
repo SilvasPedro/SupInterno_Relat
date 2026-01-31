@@ -116,7 +116,13 @@ async function loadOccurrencesList(uid) {
 
         div.innerHTML = "";
         docs.forEach(data => {
-            const color = data.type === 'positive' ? '#28a745' : '#dc3545';
+            // --- ATUALIZAÇÃO AQUI (COR PARA NEUTRO) ---
+            let color;
+            if (data.type === 'positive') color = '#28a745';
+            else if (data.type === 'neutral') color = '#6c757d'; // Cinza
+            else color = '#dc3545';
+            // ------------------------------------------
+            
             const dateFmt = data.date.split('-').reverse().slice(0, 2).join('/');
             
             div.innerHTML += `
