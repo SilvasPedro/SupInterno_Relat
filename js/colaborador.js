@@ -55,11 +55,13 @@ window.confirmRead = async (docId) => {
 // --- VISUALIZAÇÃO DETALHADA (NOVA) ---
 // js/colaborador.js
 
+// js/colaborador.js
+
 window.openMetricDetail = (id) => {
     const modal = document.getElementById('modal-metric-details');
     const content = document.getElementById('metric-modal-content');
     
-    // Busca o dado no cache local (já carregado na tela)
+    // Busca o dado no cache local
     const data = metricsHistoryCache.find(m => m.id === id);
 
     if (!data) {
@@ -69,17 +71,17 @@ window.openMetricDetail = (id) => {
 
     const dateFmt = data.weekStart.split('-').reverse().join('/');
 
-    // --- CÁLCULOS ---
+    // --- DADOS DIRETOS DO CACHE ---
     const ligRecebidas = data.ligacoesRecebidas || 0;
     const ligRealizadas = data.ligacoesRealizadas || 0;
     const ligPerdidas = data.ligacoesPerdidas || 0;
     const volChat = data.atendimentosHuggy || 0;
     
-    // Total Finalizado = (Ligações Atendidas + Realizadas) + Chat
-    const totalFinalizados = (ligRecebidas + ligRealizadas) + volChat;
+    // CORREÇÃO: Pegando o valor direto, sem somar manualmente
+    const totalFinalizados = data.atendimentosFinalizados || 0;
     const abertos = data.atendimentosAbertos || 0;
 
-    // --- NOVO LAYOUT (Igual ao do Admin) ---
+    // --- LAYOUT ---
     content.innerHTML = `
         <div style="margin-bottom: 20px; text-align: center;">
             <h3 style="color: var(--color-dark-brown); margin: 0;">Minha Semana: ${dateFmt}</h3>
@@ -94,9 +96,9 @@ window.openMetricDetail = (id) => {
             </div>
 
             <div style="flex: 1; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: center;">
-                <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 13px; text-transform: uppercase;">✅ Total Atendimentos</h4>
+                <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 13px; text-transform: uppercase;">✅ Total Finalizados</h4>
                 <span style="font-size: 26px; font-weight: bold; color: #1b5e20;">${totalFinalizados}</span>
-                <p style="font-size: 11px; color: #2e7d32; margin-top: 5px;">Soma (Tel + Chat)</p>
+                <p style="font-size: 11px; color: #2e7d32; margin-top: 5px;">Total Geral Registrado</p>
             </div>
         </div>
 
@@ -154,10 +156,6 @@ window.openMetricDetail = (id) => {
     `;
 
     modal.style.display = 'block';
-};
-
-window.closeMetricModal = () => {
-    document.getElementById('modal-metric-details').style.display = 'none';
 };
 
 // ============================================================

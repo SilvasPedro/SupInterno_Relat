@@ -412,31 +412,66 @@
             </form>
         </div>
 
-        <div id="section-all-occurrences" class="section" style="display:none;">
-            <div class="header-flex">
-                <h1>Relatório Geral de Ocorrências</h1>
-                <button onclick="loadAllOccurrences()" class="btn-primary" title="Recarregar Lista">
-                    <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
+<div id="section-all-occurrences" class="section" style="display:none;">
+    <div class="header-flex">
+        <h1>Relatório Geral de Ocorrências</h1>
+        <button onclick="loadAllOccurrences()" class="btn-primary" title="Recarregar Lista">
+            <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
+        </button>
+    </div>
+
+    <div class="metric-card" style="margin-bottom: 20px; padding: 20px;">
+        <h4 style="margin-bottom: 15px; color: #666;">🔎 Filtros de Pesquisa</h4>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            
+            <div style="flex: 1; min-width: 200px;">
+                <label style="font-size: 12px; font-weight: bold; color: #555;">Nome do Colaborador</label>
+                <input type="text" id="filter-occur-name" onkeyup="applyOccurrenceFilters()" placeholder="Digite o nome..." 
+                       style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+            </div>
+
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 12px; font-weight: bold; color: #555;">Tipo</label>
+                <select id="filter-occur-type" onchange="applyOccurrenceFilters()" 
+                        style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                    <option value="all">Todos</option>
+                    <option value="positive">👍 Elogio</option>
+                    <option value="neutral">ℹ️ Informativo</option>
+                    <option value="negative">👎 Advertência</option>
+                </select>
+            </div>
+
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 12px; font-weight: bold; color: #555;">Data Específica</label>
+                <input type="date" id="filter-occur-date" onchange="applyOccurrenceFilters()" 
+                       style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+            </div>
+
+            <div style="display: flex; align-items: flex-end;">
+                <button onclick="clearOccurrenceFilters()" style="padding: 10px 20px; background: #6c757d; border: none; color: white; border-radius: 6px; cursor: pointer;">
+                    Limpar
                 </button>
             </div>
-            <div class="metric-card">
-                <div style="overflow-x: auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Colaborador</th>
-                                <th>Tipo</th>
-                                <th>Título</th>
-                                <th style="width: 40%;">Detalhes</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="all-occurrences-body"></tbody>
-                    </table>
-                </div>
-            </div>
         </div>
+    </div>
+    <div class="metric-card">
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Colaborador</th>
+                        <th>Tipo</th>
+                        <th>Título</th>
+                        <th style="width: 40%;">Detalhes</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="all-occurrences-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
         <div id="section-relatorio_detalhado" class="section" style="display:none;">
             <div class="header-flex" style="align-items: flex-start;">

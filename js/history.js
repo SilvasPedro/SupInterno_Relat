@@ -150,6 +150,8 @@ async function loadOccurrencesList(uid) {
 // ============================================================
 // Substitua a função viewMetricDetailAdmin existente por esta versão melhorada
 
+// js/admin.js (e js/history.js)
+
 window.viewMetricDetailAdmin = async (docId) => {
     const modal = document.getElementById('modal-metric-view-admin');
     const content = document.getElementById('admin-metric-view-content');
@@ -158,7 +160,6 @@ window.viewMetricDetailAdmin = async (docId) => {
     content.innerHTML = "<div style='padding:20px; text-align:center; color:#666;'><i class='material-icons spinning'>sync</i> Buscando dados...</div>";
 
     try {
-        // Tenta buscar na coleção de métricas semanais
         const ref = doc(db, "weekly_metrics", docId);
         const snap = await getDoc(ref);
 
@@ -170,17 +171,15 @@ window.viewMetricDetailAdmin = async (docId) => {
         const data = snap.data();
         const dataFmt = data.weekStart ? data.weekStart.split('-').reverse().join('/') : 'Data Inválida';
         
-        // --- CÁLCULOS ---
+        // --- DADOS DIRETOS DO BANCO ---
         const ligRecebidas = data.ligacoesRecebidas || 0;
         const ligRealizadas = data.ligacoesRealizadas || 0;
         const ligPerdidas = data.ligacoesPerdidas || 0;
         const volChat = data.atendimentosHuggy || 0;
-        
-        // Total Finalizado = (Ligações Atendidas + Realizadas) + Chat
-        // Nota: Não somamos perdidas no "finalizado" produtivos
-        const totalFinalizados = (ligRecebidas + ligRealizadas) + volChat;
-        
         const abertos = data.atendimentosAbertos || 0;
+
+        // CORREÇÃO: Pegando o valor direto do banco, sem somar manualmente
+        const totalFinalizados = data.atendimentosFinalizados || 0;
 
         // --- LAYOUT ---
         content.innerHTML = `
@@ -197,9 +196,9 @@ window.viewMetricDetailAdmin = async (docId) => {
                 </div>
 
                 <div style="flex: 1; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: center;">
-                    <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 14px; text-transform: uppercase;">✅ Total Atendimentos</h4>
+                    <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 14px; text-transform: uppercase;">✅ Total Finalizados</h4>
                     <span style="font-size: 28px; font-weight: bold; color: #1b5e20;">${totalFinalizados}</span>
-                    <p style="font-size: 12px; color: #2e7d32; margin-top: 5px;">Soma (Tel + Chat)</p>
+                    <p style="font-size: 12px; color: #2e7d32; margin-top: 5px;">Total Geral Registrado</p>
                 </div>
             </div>
 

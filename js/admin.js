@@ -47,6 +47,7 @@ let allMetricsCache = [];
 let globalAggregatedData = []; 
 let isEditingMetric = false; 
 let editingMetricId = null;  
+let occurrencesCache = [];
 
 // ============================================================
 // 2. AUTH & INICIALIZAÇÃO
@@ -637,54 +638,104 @@ window.prepareEditMetric = async (id) => {
 window.loadAllOccurrences = async () => {
     const tbody = document.getElementById('all-occurrences-body');
     if (!tbody) return;
-    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px;'>Carregando...</td></tr>";
+    
+    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px;'><i class='material-icons spinning'>sync</i> Carregando lista...</td></tr>";
 
     try {
         const q = await getDocs(collection(db, "occurrences"));
-        let allDocs = [];
+        occurrencesCache = []; // Limpa o cache
+        
         q.forEach(docSnap => {
-            allDocs.push({ id: docSnap.id, ...docSnap.data() });
+            occurrencesCache.push({ id: docSnap.id, ...docSnap.data() });
         });
-        allDocs.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Ordena por data (mais recente primeiro)
+        occurrencesCache.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        tbody.innerHTML = "";
-        if (allDocs.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Nenhum registro.</td></tr>";
-            return;
+        // Aplica os filtros (que inicialmente estarão vazios, mostrando tudo)
+        applyOccurrenceFilters();
+
+    } catch (error) { 
+        console.error(error); 
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:red;'>Erro ao carregar dados.</td></tr>";
+    }
+};
+
+window.applyOccurrenceFilters = () => {
+    const nameFilter = document.getElementById('filter-occur-name').value.toLowerCase();
+    const typeFilter = document.getElementById('filter-occur-type').value;
+    const dateFilter = document.getElementById('filter-occur-date').value;
+    const tbody = document.getElementById('all-occurrences-body');
+
+    // Filtra o Cache
+    const filteredData = occurrencesCache.filter(item => {
+        // Filtro de Nome (se houver texto digitado)
+        const matchName = nameFilter ? (item.userName || '').toLowerCase().includes(nameFilter) : true;
+        
+        // Filtro de Tipo (se não for 'all')
+        const matchType = typeFilter !== 'all' ? item.type === typeFilter : true;
+        
+        // Filtro de Data (se houver data selecionada)
+        const matchDate = dateFilter ? item.date === dateFilter : true;
+
+        return matchName && matchType && matchDate;
+    });
+
+    renderOccurrencesTable(filteredData);
+};
+
+window.renderOccurrencesTable = (dataList) => {
+    const tbody = document.getElementById('all-occurrences-body');
+    tbody.innerHTML = "";
+
+    if (dataList.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px; color:#666;'>Nenhum registro encontrado com esses filtros.</td></tr>";
+        return;
+    }
+
+    dataList.forEach(item => {
+        const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
+        
+        let typeLabel, rowStyle;
+        if (item.type === 'positive') {
+            typeLabel = '<span style="color:#28a745; font-weight:bold;">👍 Elogio</span>';
+            rowStyle = 'border-left: 4px solid #28a745;';
+        } else if (item.type === 'neutral') {
+            typeLabel = '<span style="color:#6c757d; font-weight:bold;">ℹ️ Informativo</span>';
+            rowStyle = 'border-left: 4px solid #6c757d;';
+        } else {
+            typeLabel = '<span style="color:#dc3545; font-weight:bold;">👎 Advertência</span>';
+            rowStyle = 'border-left: 4px solid #dc3545;';
         }
 
-        allDocs.forEach(item => {
-            const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
-            
-            // --- ATUALIZAÇÃO PARA SUPORTE AO NEUTRO ---
-            let typeLabel, rowStyle;
-            if (item.type === 'positive') {
-                typeLabel = '<span style="color:#28a745; font-weight:bold;">👍 Elogio</span>';
-                rowStyle = 'border-left: 4px solid #28a745;';
-            } else if (item.type === 'neutral') {
-                typeLabel = '<span style="color:#6c757d; font-weight:bold;">ℹ️ Informativo</span>';
-                rowStyle = 'border-left: 4px solid #6c757d;';
-            } else {
-                typeLabel = '<span style="color:#dc3545; font-weight:bold;">👎 Advertência</span>';
-                rowStyle = 'border-left: 4px solid #dc3545;';
-            }
-            // -------------------------------------------
+        const statusLabel = item.read 
+            ? '<span style="color:#28a745; background:#e8f5e9; padding:2px 8px; border-radius:4px; font-size:12px;">Lido</span>' 
+            : '<span style="color:#e67e22; background:#fff3cd; padding:2px 8px; border-radius:4px; font-size:12px;">Pendente</span>';
 
-            const statusLabel = item.read ? '<span style="color:#28a745;">Lido</span>' : '<span style="color:#e67e22;">Pendente</span>';
+        // Truncar descrição longa para não quebrar a tabela
+        const descResumida = item.description && item.description.length > 80 
+            ? item.description.substring(0, 80) + '...' 
+            : item.description;
 
-            const row = `
-                <tr style="${rowStyle}">
-                    <td>${dateFmt}</td>
-                    <td><strong>${item.userName || 'Desconhecido'}</strong></td>
-                    <td>${typeLabel}</td>
-                    <td>${item.title}</td>
-                    <td style="font-size: 13px; color: #555;">${item.description}</td>
-                    <td>${statusLabel}</td>
-                </tr>
-            `;
-            tbody.innerHTML += row;
-        });
-    } catch (error) { console.error(error); }
+        const row = `
+            <tr style="${rowStyle}">
+                <td>${dateFmt}</td>
+                <td><strong>${item.userName || 'Desconhecido'}</strong></td>
+                <td>${typeLabel}</td>
+                <td>${item.title}</td>
+                <td style="font-size: 13px; color: #555;" title="${item.description}">${descResumida}</td>
+                <td>${statusLabel}</td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+};
+
+window.clearOccurrenceFilters = () => {
+    document.getElementById('filter-occur-name').value = '';
+    document.getElementById('filter-occur-type').value = 'all';
+    document.getElementById('filter-occur-date').value = '';
+    applyOccurrenceFilters(); // Recarrega a tabela completa
 };
 
 window.loadRelatorioDetalhado = async () => {
@@ -781,6 +832,8 @@ window.renderDetailedContent = () => {
 // FUNÇÃO DE VISUALIZAÇÃO DO ADMIN (CORRIGIDA)
 // Substitua a função viewMetricDetailAdmin existente por esta versão melhorada
 
+// js/admin.js (e js/history.js)
+
 window.viewMetricDetailAdmin = async (docId) => {
     const modal = document.getElementById('modal-metric-view-admin');
     const content = document.getElementById('admin-metric-view-content');
@@ -789,7 +842,6 @@ window.viewMetricDetailAdmin = async (docId) => {
     content.innerHTML = "<div style='padding:20px; text-align:center; color:#666;'><i class='material-icons spinning'>sync</i> Buscando dados...</div>";
 
     try {
-        // Tenta buscar na coleção de métricas semanais
         const ref = doc(db, "weekly_metrics", docId);
         const snap = await getDoc(ref);
 
@@ -801,17 +853,15 @@ window.viewMetricDetailAdmin = async (docId) => {
         const data = snap.data();
         const dataFmt = data.weekStart ? data.weekStart.split('-').reverse().join('/') : 'Data Inválida';
         
-        // --- CÁLCULOS ---
+        // --- DADOS DIRETOS DO BANCO ---
         const ligRecebidas = data.ligacoesRecebidas || 0;
         const ligRealizadas = data.ligacoesRealizadas || 0;
         const ligPerdidas = data.ligacoesPerdidas || 0;
         const volChat = data.atendimentosHuggy || 0;
-        
-        // Total Finalizado = (Ligações Atendidas + Realizadas) + Chat
-        // Nota: Não somamos perdidas no "finalizado" produtivos
-        const totalFinalizados = (ligRecebidas + ligRealizadas) + volChat;
-        
         const abertos = data.atendimentosAbertos || 0;
+
+        // CORREÇÃO: Pegando o valor direto do banco, sem somar manualmente
+        const totalFinalizados = data.atendimentosFinalizados || 0;
 
         // --- LAYOUT ---
         content.innerHTML = `
@@ -828,9 +878,9 @@ window.viewMetricDetailAdmin = async (docId) => {
                 </div>
 
                 <div style="flex: 1; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: center;">
-                    <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 14px; text-transform: uppercase;">✅ Total Atendimentos</h4>
+                    <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 14px; text-transform: uppercase;">✅ Total Finalizados</h4>
                     <span style="font-size: 28px; font-weight: bold; color: #1b5e20;">${totalFinalizados}</span>
-                    <p style="font-size: 12px; color: #2e7d32; margin-top: 5px;">Soma (Tel + Chat)</p>
+                    <p style="font-size: 12px; color: #2e7d32; margin-top: 5px;">Total Geral Registrado</p>
                 </div>
             </div>
 
@@ -899,7 +949,6 @@ window.viewMetricDetailAdmin = async (docId) => {
         content.innerHTML = "<p>Erro ao carregar detalhes: " + e.message + "</p>";
     }
 };
-
 // ============================================================
 // 10. HISTÓRICO DE KPIs DO SETOR
 // ============================================================
