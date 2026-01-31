@@ -53,11 +53,13 @@ window.confirmRead = async (docId) => {
 };
 
 // --- VISUALIZAÇÃO DETALHADA (NOVA) ---
+// js/colaborador.js
+
 window.openMetricDetail = (id) => {
     const modal = document.getElementById('modal-metric-details');
     const content = document.getElementById('metric-modal-content');
     
-    // Busca o dado no cache local
+    // Busca o dado no cache local (já carregado na tela)
     const data = metricsHistoryCache.find(m => m.id === id);
 
     if (!data) {
@@ -67,39 +69,87 @@ window.openMetricDetail = (id) => {
 
     const dateFmt = data.weekStart.split('-').reverse().join('/');
 
-    // Monta o Layout do Modal (Grid bonita)
+    // --- CÁLCULOS ---
+    const ligRecebidas = data.ligacoesRecebidas || 0;
+    const ligRealizadas = data.ligacoesRealizadas || 0;
+    const ligPerdidas = data.ligacoesPerdidas || 0;
+    const volChat = data.atendimentosHuggy || 0;
+    
+    // Total Finalizado = (Ligações Atendidas + Realizadas) + Chat
+    const totalFinalizados = (ligRecebidas + ligRealizadas) + volChat;
+    const abertos = data.atendimentosAbertos || 0;
+
+    // --- NOVO LAYOUT (Igual ao do Admin) ---
     content.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #007bff;">
-                <h3 style="color: #007bff; margin-bottom: 15px; border-bottom: 1px solid #e9ecef; padding-bottom: 5px;">
-                    <i class="material-icons" style="vertical-align: bottom; font-size: 20px;">phone</i> Telefonia
-                </h3>
-                <p><strong>Recebidas:</strong> ${data.ligacoesRecebidas || 0}</p>
-                <p><strong>Realizadas:</strong> ${data.ligacoesRealizadas || 0}</p>
-                <p><strong>Perdidas:</strong> <span style="color:${(data.ligacoesPerdidas > 0) ? 'red' : 'inherit'}; font-weight:bold;">${data.ligacoesPerdidas || 0}</span></p>
-                <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
-                <p><strong>TMA:</strong> ${data.tmaTelefonia || 0} min</p>
-                <p><strong>TME:</strong> ${data.tmeTelefonia || 0} seg </p>
-            </div>
-
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #28a745;">
-                <h3 style="color: #28a745; margin-bottom: 15px; border-bottom: 1px solid #e9ecef; padding-bottom: 5px;">
-                    <i class="material-icons" style="vertical-align: bottom; font-size: 20px;">chat</i> Chat & Qualidade
-                </h3>
-                <p><strong>Vol. Huggy:</strong> ${data.atendimentosHuggy || 0}</p>
-                <p><strong>TMA Chat:</strong> ${data.tmaHuggy || 0} min</p>
-                <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
-                <p style="font-size:1.1em;"><strong>Monitoria:</strong> <span style="background: #e8f5e9; padding: 2px 8px; border-radius: 4px; color: #1b5e20; font-weight:bold;">${data.notaMonitoria || 0}</span></p>
-            </div>
-
+        <div style="margin-bottom: 20px; text-align: center;">
+            <h3 style="color: var(--color-dark-brown); margin: 0;">Minha Semana: ${dateFmt}</h3>
         </div>
 
-        <div style="margin-top: 20px; background: #332D27; color: #FAE1C0; padding: 20px; border-radius: 8px; text-align: center;">
-            <h3 style="margin:0; font-size:18px;">
-                Semana de ${dateFmt} • Total Finalizado: ${(data.atendimentosFinalizados || 0) + (data.atendimentosHuggy || 0)}
-            </h3>
-            <p style="margin-top:5px; font-size:13px; opacity:0.8;">Atendimentos Abertos (Pendentes): ${data.atendimentosAbertos || 0}</p>
+        <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+            
+            <div style="flex: 1; background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; text-align: center;">
+                <h4 style="color: #0d47a1; margin-bottom: 5px; font-size: 13px; text-transform: uppercase;">📂 Iniciados (Abertos)</h4>
+                <span style="font-size: 26px; font-weight: bold; color: #0d47a1;">${abertos}</span>
+                <p style="font-size: 11px; color: #5472d3; margin-top: 5px;">Novos chamados que você abriu</p>
+            </div>
+
+            <div style="flex: 1; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: center;">
+                <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 13px; text-transform: uppercase;">✅ Total Atendimentos</h4>
+                <span style="font-size: 26px; font-weight: bold; color: #1b5e20;">${totalFinalizados}</span>
+                <p style="font-size: 11px; color: #2e7d32; margin-top: 5px;">Soma (Tel + Chat)</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <div style="background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; border-left: 5px solid #007bff; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #f0f0f0; padding-bottom:10px;">
+                    <h4 style="color: #007bff; margin:0; display:flex; align-items:center; gap:5px;">
+                        <i class="material-icons" style="font-size:20px;">phone</i> Telefonia
+                    </h4>
+                </div>
+                
+                <div style="font-size:14px; color:#555; line-height: 1.6;">
+                    <div>Recebidas: <b style="color:#333;">${ligRecebidas}</b></div>
+                    <div>Realizadas: <b style="color:#333;">${ligRealizadas}</b></div>
+                    <div style="margin-top:5px;">Perdidas: <span style="color:${ligPerdidas > 0 ? '#dc3545' : '#ccc'}; font-weight:bold;">${ligPerdidas}</span></div>
+                </div>
+
+                <hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">
+                
+                <div style="display:flex; justify-content:space-between; text-align:center;">
+                    <div><small style="color:#999;">TMA</small><br><strong style="color:#333;">${data.tmaTelefonia || 0}</strong> <small>min</small></div>
+                    <div><small style="color:#999;">TME</small><br><strong style="color:#333;">${data.tmeTelefonia || 0}</strong> <small>seg</small></div>
+                </div>
+            </div>
+
+            <div style="background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; border-left: 5px solid #28a745; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #f0f0f0; padding-bottom:10px;">
+                    <h4 style="color: #28a745; margin:0; display:flex; align-items:center; gap:5px;">
+                        <i class="material-icons" style="font-size:20px;">chat</i> Chat
+                    </h4>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span style="color:#555;">Vol. Huggy:</span>
+                    <strong style="font-size:16px; color:#333;">${volChat}</strong>
+                </div>
+
+                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="color:#555;">TMA Chat:</span>
+                    <strong>${data.tmaHuggy || 0} <small style="font-weight:normal;">min</small></strong>
+                </div>
+
+                <hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">
+
+                <div style="background: #f9f9f9; padding:8px; border-radius:6px; text-align:center;">
+                    <small style="color:#666; text-transform:uppercase; font-size:10px;">Sua Monitoria</small><br>
+                    <span style="font-size: 20px; font-weight: bold; color: ${data.notaMonitoria >= 90 ? '#28a745' : (data.notaMonitoria >= 70 ? '#ffc107' : '#dc3545')}">
+                        ${data.notaMonitoria || 0}
+                    </span>
+                </div>
+            </div>
+
         </div>
     `;
 

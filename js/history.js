@@ -148,56 +148,124 @@ async function loadOccurrencesList(uid) {
 // ============================================================
 // 2. FUNÇÃO DE VISUALIZAÇÃO DETALHADA (NOVA)
 // ============================================================
+// Substitua a função viewMetricDetailAdmin existente por esta versão melhorada
+
 window.viewMetricDetailAdmin = async (docId) => {
     const modal = document.getElementById('modal-metric-view-admin');
     const content = document.getElementById('admin-metric-view-content');
     
-    // Mostra modal com loading
     modal.style.display = 'block';
-    content.innerHTML = "<p>Buscando dados...</p>";
+    content.innerHTML = "<div style='padding:20px; text-align:center; color:#666;'><i class='material-icons spinning'>sync</i> Buscando dados...</div>";
 
     try {
+        // Tenta buscar na coleção de métricas semanais
         const ref = doc(db, "weekly_metrics", docId);
         const snap = await getDoc(ref);
 
         if (!snap.exists()) {
-            content.innerHTML = "<p>Erro: Documento não encontrado.</p>";
+            content.innerHTML = "<p style='color:red; text-align:center;'>Erro: Documento não encontrado.</p>";
             return;
         }
 
         const data = snap.data();
-        const dataFmt = data.weekStart.split('-').reverse().join('/');
+        const dataFmt = data.weekStart ? data.weekStart.split('-').reverse().join('/') : 'Data Inválida';
+        
+        // --- CÁLCULOS ---
+        const ligRecebidas = data.ligacoesRecebidas || 0;
+        const ligRealizadas = data.ligacoesRealizadas || 0;
+        const ligPerdidas = data.ligacoesPerdidas || 0;
+        const volChat = data.atendimentosHuggy || 0;
+        
+        // Total Finalizado = (Ligações Atendidas + Realizadas) + Chat
+        // Nota: Não somamos perdidas no "finalizado" produtivos
+        const totalFinalizados = (ligRecebidas + ligRealizadas) + volChat;
+        
+        const abertos = data.atendimentosAbertos || 0;
 
+        // --- LAYOUT ---
         content.innerHTML = `
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #007bff;">
-                <h4 style="color: #007bff; margin-bottom: 10px;">📞 Telefonia</h4>
-                <p><strong>Recebidas:</strong> ${data.ligacoesRecebidas || 0}</p>
-                <p><strong>Realizadas:</strong> ${data.ligacoesRealizadas || 0}</p>
-                <p><strong>Perdidas:</strong> <span style="color:red; font-weight:bold;">${data.ligacoesPerdidas || 0}</span></p>
-                <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
-                <p><strong>TMA:</strong> ${data.tmaTelefonia || 0} min</p>
-                <p><strong>TME:</strong> ${data.tmeTelefonia || 0} seg</p>
+            <div style="grid-column: span 2; margin-bottom: 10px; text-align: center;">
+                <h3 style="color: var(--color-dark-brown); margin: 0;">Resumo da Semana ${dataFmt}</h3>
             </div>
 
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #28a745;">
-                <h4 style="color: #28a745; margin-bottom: 10px;">💬 Chat & Qualidade</h4>
-                <p><strong>Vol. Huggy:</strong> ${data.atendimentosHuggy || 0}</p>
-                <p><strong>TMA Huggy:</strong> ${data.tmaHuggy || 0} min</p>
-                <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
-                <p style="font-size:1.2em;"><strong>Monitoria:</strong> <span style="background: #e8f5e9; padding: 2px 6px; border-radius: 4px; color: #1b5e20;">${data.notaMonitoria || 0}</span></p>
+            <div style="grid-column: span 2; display: flex; gap: 15px; margin-bottom: 20px;">
+                
+                <div style="flex: 1; background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; text-align: center;">
+                    <h4 style="color: #0d47a1; margin-bottom: 5px; font-size: 14px; text-transform: uppercase;">📂 Atendimentos Abertos</h4>
+                    <span style="font-size: 28px; font-weight: bold; color: #0d47a1;">${abertos}</span>
+                    <p style="font-size: 12px; color: #5472d3; margin-top: 5px;">Novos chamados iniciados</p>
+                </div>
+
+                <div style="flex: 1; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: center;">
+                    <h4 style="color: #1b5e20; margin-bottom: 5px; font-size: 14px; text-transform: uppercase;">✅ Total Finalizados</h4>
+                    <span style="font-size: 28px; font-weight: bold; color: #1b5e20;">${totalFinalizados}</span>
+                    <p style="font-size: 12px; color: #2e7d32; margin-top: 5px;">Soma (Tel + Chat)</p>
+                </div>
             </div>
 
-            <div style="grid-column: span 2; margin-top: 10px; background: #332D27; color: #FAE1C0; padding: 15px; border-radius: 8px; text-align: center;">
-                <h3 style="margin:0; font-size:16px;">
-                    Semana de ${dataFmt} • Total Finalizado: ${(data.atendimentosFinalizados || 0) + (data.atendimentosHuggy || 0)}
-                </h3>
-                <small>Abertos: ${data.atendimentosAbertos || 0}</small>
+            <div style="background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; border-left: 5px solid #007bff; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #f0f0f0; padding-bottom:10px;">
+                    <h4 style="color: #007bff; margin:0; display:flex; align-items:center; gap:5px;">
+                        <i class="material-icons" style="font-size:20px;">phone</i> Telefonia
+                    </h4>
+                    <span style="font-size:12px; background:#e3f2fd; color:#007bff; padding:2px 8px; border-radius:10px;">Total: ${ligRecebidas + ligRealizadas}</span>
+                </div>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:14px; color:#555;">
+                    <div>Recebidas: <b style="color:#333;">${ligRecebidas}</b></div>
+                    <div>Realizadas: <b style="color:#333;">${ligRealizadas}</b></div>
+                </div>
+                
+                <div style="margin-top:10px; font-size:14px; color:#555;">
+                    Perdidas: <span style="color:${ligPerdidas > 0 ? '#dc3545' : '#ccc'}; font-weight:bold;">${ligPerdidas}</span>
+                </div>
+
+                <hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">
+                
+                <div style="display:flex; justify-content:space-between; text-align:center;">
+                    <div>
+                        <small style="color:#999;">TMA</small><br>
+                        <strong style="color:#333; font-size:16px;">${data.tmaTelefonia || 0}</strong> <small>min</small>
+                    </div>
+                    <div>
+                        <small style="color:#999;">TME</small><br>
+                        <strong style="color:#333; font-size:16px;">${data.tmeTelefonia || 0}</strong> <small>seg</small>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; border-left: 5px solid #28a745; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #f0f0f0; padding-bottom:10px;">
+                    <h4 style="color: #28a745; margin:0; display:flex; align-items:center; gap:5px;">
+                        <i class="material-icons" style="font-size:20px;">chat</i> Chat
+                    </h4>
+                    <span style="font-size:12px; background:#e8f5e9; color:#28a745; padding:2px 8px; border-radius:10px;">Total: ${volChat}</span>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="color:#555;">Vol. Huggy:</span>
+                    <strong style="font-size:18px; color:#333;">${volChat}</strong>
+                </div>
+
+                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="color:#555;">TMA Chat:</span>
+                    <strong>${data.tmaHuggy || 0} <small style="font-weight:normal;">min</small></strong>
+                </div>
+
+                <hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">
+
+                <div style="background: #f9f9f9; padding:10px; border-radius:6px; text-align:center;">
+                    <small style="color:#666; text-transform:uppercase;">Nota de Monitoria</small><br>
+                    <span style="font-size: 24px; font-weight: bold; color: ${data.notaMonitoria >= 90 ? '#28a745' : (data.notaMonitoria >= 70 ? '#ffc107' : '#dc3545')}">
+                        ${data.notaMonitoria || 0}
+                    </span>
+                </div>
             </div>
         `;
 
     } catch (e) {
         console.error(e);
-        content.innerHTML = "<p>Erro ao carregar detalhes.</p>";
+        content.innerHTML = "<p>Erro ao carregar detalhes: " + e.message + "</p>";
     }
 };
 
