@@ -256,7 +256,7 @@ async function loadDashboardData() {
         if (!userStats[uid]) {
             userStats[uid] = {
                 name: name,
-                count: 0,
+                count: 0, // Contador de semanas
                 accTmaTel: 0,
                 accTmaChat: 0,
                 accMonitoria: 0,
@@ -268,22 +268,27 @@ async function loadDashboardData() {
         // Volume = Chat + Ligações Realizadas + Ligações Recebidas
         const volCalls = (entry.ligacoesRealizadas || 0) + (entry.ligacoesRecebidas || 0);
         const volChat = (entry.atendimentosHuggy || 0);
-        const totalVol = volCalls + volChat;
+        const totalVol = (entry.atendimentosFinalizados || 0);
 
         userStats[uid].count += 1;
         userStats[uid].accTmaTel += (entry.tmaTelefonia || 0);
         userStats[uid].accTmaChat += (entry.tmaHuggy || 0);
         userStats[uid].accMonitoria += (entry.notaMonitoria || 0);
-        userStats[uid].accFinalizados += totalVol; // Soma correta
+        userStats[uid].accFinalizados += totalVol;
     });
 
-    globalAggregatedData = Object.values(userStats).map(u => ({
+globalAggregatedData = Object.values(userStats).map(u => ({
         name: u.name,
+        // Médias simples
         avgTmaTel: (u.accTmaTel / u.count).toFixed(2),
         avgTmaChat: (u.accTmaChat / u.count).toFixed(2),
         avgMonitoria: (u.accMonitoria / u.count).toFixed(1),
-        avgVolume: (u.accFinalizados / u.count).toFixed(0),
-        totalVolume: u.accFinalizados
+        
+        // --- CÁLCULO DA MÉDIA DE ATENDIMENTOS ---
+        // Soma dos finalizados / Quantidade de semanas lançadas
+        avgVolume: (u.accFinalizados / u.count).toFixed(1), 
+        
+        totalVolume: u.accFinalizados // Mantemos o total apenas se precisar internamente
     }));
 
     processGlobalKPIs(globalAggregatedData);
@@ -296,30 +301,37 @@ async function loadDashboardData() {
 function processGlobalKPIs(users) {
     if (users.length === 0) { resetKpis(); return; }
 
+    // TMA Telefonia
     const sumTmaTel = users.reduce((acc, u) => acc + parseFloat(u.avgTmaTel), 0);
     const teamTmaTel = (sumTmaTel / users.length).toFixed(2);
     updateCard('kpi-team-tel', teamTmaTel + " min");
 
+    // TMA Chat
     const sumTmaChat = users.reduce((acc, u) => acc + parseFloat(u.avgTmaChat), 0);
     const teamTmaChat = (sumTmaChat / users.length).toFixed(2);
     updateCard('kpi-team-chat', teamTmaChat + " min");
 
-    const grandTotalVol = users.reduce((acc, u) => acc + u.totalVolume, 0);
-    const teamAvgVol = (grandTotalVol / users.length).toFixed(0);
-    updateCard('kpi-team-vol', teamAvgVol);
+    // --- ALTERAÇÃO AQUI: MÉDIA DE FINALIZAÇÕES ---
+    // Soma a média de todos e divide pelo número de agentes para ter a "Média da Equipe"
+    const sumAvgVol = users.reduce((acc, u) => acc + parseFloat(u.avgVolume), 0);
+    const teamAvgProd = (sumAvgVol / users.length).toFixed(0); // Sem casas decimais no painel principal
+    updateCard('kpi-team-vol', teamAvgProd);
 
+    // Melhor Monitoria
     const bestQa = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
     if (bestQa) {
         updateCard('kpi-best-qa', bestQa.avgMonitoria);
         updateCard('kpi-best-qa-name', bestQa.name.split(' ')[0]);
     }
 
+    // Maior TMA Tel (Ofensor)
     const maxTel = [...users].sort((a, b) => b.avgTmaTel - a.avgTmaTel)[0];
     if (maxTel) {
         updateCard('kpi-max-tel', maxTel.avgTmaTel + " min");
         updateCard('kpi-max-tel-name', maxTel.name.split(' ')[0]);
     }
 
+    // Maior TMA Chat (Ofensor)
     const maxChat = [...users].sort((a, b) => b.avgTmaChat - a.avgTmaChat)[0];
     if (maxChat) {
         updateCard('kpi-max-chat', maxChat.avgTmaChat + " min");
@@ -355,35 +367,49 @@ window.openDetailModal = (type) => {
     modal.style.display = 'block';
     tbody.innerHTML = "";
 
+    // Cria uma cópia do array para não bagunçar a ordem original
     let data = [...globalAggregatedData];
 
     if (type === 'team-tel') {
-        title.innerText = "TMA Telefonia (Todos)";
+        title.innerText = "TMA Telefonia (Média Semanal)";
         thVal.innerText = "Média (min)";
         data.sort((a, b) => b.avgTmaTel - a.avgTmaTel);
         data.forEach(u => appendRow(tbody, u.name, u.avgTmaTel));
+
     } else if (type === 'team-chat') {
-        title.innerText = "TMA Chat (Todos)";
+        title.innerText = "TMA Chat (Média Semanal)";
         thVal.innerText = "Média (min)";
         data.sort((a, b) => b.avgTmaChat - a.avgTmaChat);
         data.forEach(u => appendRow(tbody, u.name, u.avgTmaChat));
+
     } else if (type === 'team-vol') {
-        title.innerText = "Volume Total Acumulado";
-        thVal.innerText = "Total Atendimentos";
-        data.sort((a, b) => b.totalVolume - a.totalVolume);
-        data.forEach(u => appendRow(tbody, u.name, u.totalVolume));
+        // --- ALTERAÇÃO AQUI ---
+        title.innerText = "Ranking de Produtividade (Média Semanal)";
+        thVal.innerText = "Média Finalizados";
+        
+        // Ordena pela MÉDIA (avgVolume), do maior para o menor
+        data.sort((a, b) => parseFloat(b.avgVolume) - parseFloat(a.avgVolume));
+        
+        data.forEach((u, index) => {
+            // Adiciona numeração de ranking (1º, 2º...)
+            const medal = index === 0 ? "🥇 " : (index === 1 ? "🥈 " : (index === 2 ? "🥉 " : ""));
+            appendRow(tbody, `${medal}${u.name}`, u.avgVolume, index === 0);
+        });
+
     } else if (type === 'best-qa') {
         title.innerText = "Ranking de Qualidade";
         thVal.innerText = "Nota Média";
         data.sort((a, b) => b.avgMonitoria - a.avgMonitoria);
         data.forEach((u, i) => appendRow(tbody, `${i + 1}º ${u.name}`, u.avgMonitoria, i === 0));
+
     } else if (type === 'max-tel') {
-        title.innerText = "Ranking TMA Telefonia (Ofensores)";
+        title.innerText = "Ranking TMA Telefonia (Maiores Tempos)";
         thVal.innerText = "Tempo Médio";
         data.sort((a, b) => b.avgTmaTel - a.avgTmaTel);
         data.forEach((u, i) => appendRow(tbody, u.name, u.avgTmaTel, i === 0));
+
     } else if (type === 'max-chat') {
-        title.innerText = "Ranking TMA Chat (Ofensores)";
+        title.innerText = "Ranking TMA Chat (Maiores Tempos)";
         thVal.innerText = "Tempo Médio";
         data.sort((a, b) => b.avgTmaChat - a.avgTmaChat);
         data.forEach((u, i) => appendRow(tbody, u.name, u.avgTmaChat, i === 0));
@@ -695,7 +721,7 @@ window.renderOccurrencesTable = (dataList) => {
 
     dataList.forEach(item => {
         const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
-        
+
         let typeLabel, rowStyle;
         if (item.type === 'positive') {
             typeLabel = '<span style="color:#28a745; font-weight:bold;">👍 Elogio</span>';
@@ -708,12 +734,12 @@ window.renderOccurrencesTable = (dataList) => {
             rowStyle = 'border-left: 4px solid #dc3545;';
         }
 
-        const statusLabel = item.read 
-            ? '<span style="color:#28a745; background:#e8f5e9; padding:2px 8px; border-radius:4px; font-size:12px;">Lido</span>' 
+        const statusLabel = item.read
+            ? '<span style="color:#28a745; background:#e8f5e9; padding:2px 8px; border-radius:4px; font-size:12px;">Lido</span>'
             : '<span style="color:#e67e22; background:#fff3cd; padding:2px 8px; border-radius:4px; font-size:12px;">Pendente</span>';
 
-        const descResumida = item.description && item.description.length > 60 
-            ? item.description.substring(0, 60) + '...' 
+        const descResumida = item.description && item.description.length > 60
+            ? item.description.substring(0, 60) + '...'
             : item.description;
 
         const row = `
@@ -742,7 +768,7 @@ window.clearOccurrenceFilters = () => {
     document.getElementById('filter-occur-name').value = '';
     document.getElementById('filter-occur-type').value = 'all';
     document.getElementById('filter-occur-date').value = '';
-    applyOccurrenceFilters(); 
+    applyOccurrenceFilters();
 };
 
 window.clearOccurrenceFilters = () => {
