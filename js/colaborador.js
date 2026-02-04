@@ -26,10 +26,29 @@ let metricsHistoryCache = [];
 // ============================================================
 
 window.showSection = (sectionId) => {
+    // 1. Esconde todas as seções
     document.querySelectorAll('.section').forEach(el => el.style.display = 'none');
+    
+    // 2. Remove a classe 'active' de todos os itens do menu
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
+
+    // 3. Adiciona a classe 'active' apenas no item clicado
+    // (Procura o <li> que tem o onclick com o nome da seção)
+    const activeLink = document.querySelector(`.nav-links li[onclick*="'${sectionId}'"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+
+    // 4. Mostra a seção desejada
     const target = document.getElementById('section-' + sectionId);
     if (target) target.style.display = 'block';
+};
+
+window.closeMetricModal = () => {
+    const modal = document.getElementById('modal-metric-details');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 };
 
 window.logout = () => {

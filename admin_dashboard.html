@@ -21,8 +21,8 @@
             <li onclick="showSection('dashboard')" class="active">
                 <i class="material-icons">dashboard</i> Visão Geral
             </li>
-            <li onclick="showSection('colaboradores')">
-                <i class="material-icons">people</i> Colaboradores
+            <li onclick="showSection('colaboradores'); loadCollaborators()">
+                <i class="material-icons">people</i> Hub Colaboradores
             </li>
             <li onclick="showSection('lancamentos')">
                 <i class="material-icons">assessment</i> Lançar Desempenho
@@ -55,7 +55,6 @@
                         Médias e somatórios de todo o período histórico.
                     </p>
                 </div>
-
                 <button onclick="forceDashboardRefresh()" class="btn-primary" title="Recalcular Dados"
                     style="padding: 10px 15px;">
                     <i class="material-icons" style="font-size: 20px; vertical-align: middle;">sync</i>
@@ -77,12 +76,12 @@
                     <p>Clique para ver detalhes</p>
                 </div>
 
-<div class="metric-card kpi-card" onclick="openDetailModal('team-vol')"
-    style="border-left: 5px solid #6f42c1;">
-    <h3>✅ Média Finalizações</h3>
-    <h1 id="kpi-team-vol">0</h1>
-    <p>Média Semanal (Por Agente)</p>
-</div>
+                <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')"
+                    style="border-left: 5px solid #6f42c1;">
+                    <h3>✅ Média Finalizações</h3>
+                    <h1 id="kpi-team-vol">0</h1>
+                    <p>Média Semanal (Por Agente)</p>
+                </div>
                 <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')"
                     style="border-left: 5px solid #28a745;">
                     <h3>🏆 Melhor Monitoria</h3>
@@ -158,40 +157,17 @@
             </div>
         </div>
 
-        <div id="modal-kpi-details" class="modal">
-            <div class="modal-content">
-                <span class="close"
-                    onclick="document.getElementById('modal-kpi-details').style.display='none'">&times;</span>
-                <h2 id="modal-kpi-title">Detalhes</h2>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Colaborador</th>
-                            <th id="modal-kpi-col-value">Valor</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modal-kpi-body"></tbody>
-                </table>
-            </div>
-        </div>
-
         <div id="section-colaboradores" class="section" style="display:none;">
             <div class="header-flex">
-                <h1>Colaboradores</h1>
+                <div>
+                    <h1>Hub de Colaboradores</h1>
+                    <p style="color: #666; font-size: 13px;">Selecione um card para ver a análise profunda.</p>
+                </div>
                 <button onclick="openModal()" class="btn-primary">+ Novo Colaborador</button>
             </div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Cargo</th>
-                        <th>Departamento</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="colaboradores-list"></tbody>
-            </table>
+
+            <div id="colaboradores-grid" class="collaborators-grid">
+                </div>
         </div>
 
         <div id="section-lancamentos" class="section" style="display:none;">
@@ -321,9 +297,6 @@
                                 style="font-weight: bold;">
                         </div>
                     </div>
-
-
-
                 </div>
 
                 <div style="margin-top: 30px; text-align: right;">
@@ -516,24 +489,20 @@
         </div>
     </div>
 
-    <div id="modal-user-history" class="modal">
-        <div class="modal-content" style="width: 80%; max-width: 900px;">
-            <span class="close" onclick="closeHistoryModal()">&times;</span>
-            <h2 id="history-user-name">Histórico do Colaborador</h2>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 300px;">
-                    <h3>📊 Métricas Semanais</h3>
-                    <div id="history-metrics-list" class="history-list">
-                        <p>Carregando...</p>
-                    </div>
-                </div>
-                <div style="flex: 1; min-width: 300px;">
-                    <h3>💬 Ocorrências / Feedbacks</h3>
-                    <div id="history-occurrences-list" class="history-list">
-                        <p>Carregando...</p>
-                    </div>
-                </div>
-            </div>
+    <div id="modal-kpi-details" class="modal">
+        <div class="modal-content">
+            <span class="close"
+                onclick="document.getElementById('modal-kpi-details').style.display='none'">&times;</span>
+            <h2 id="modal-kpi-title">Detalhes</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Colaborador</th>
+                        <th id="modal-kpi-col-value">Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-kpi-body"></tbody>
+            </table>
         </div>
     </div>
 
@@ -551,6 +520,27 @@
                     style="background: var(--color-taupe); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
                     Fechar
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-user-history" class="modal">
+        <div class="modal-content" style="width: 80%; max-width: 900px;">
+            <span class="close" onclick="closeHistoryModal()">&times;</span>
+            <h2 id="history-user-name">Histórico do Colaborador</h2>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 300px;">
+                    <h3>📊 Métricas Semanais</h3>
+                    <div id="history-metrics-list" class="history-list">
+                        <p>Carregando...</p>
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 300px;">
+                    <h3>💬 Ocorrências / Feedbacks</h3>
+                    <div id="history-occurrences-list" class="history-list">
+                        <p>Carregando...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -602,6 +592,76 @@
                     <button type="submit" class="btn-primary">Salvar Alterações</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="modal-collaborator-analysis" class="modal">
+        <div class="modal-content" style="width: 90%; max-width: 1100px; padding: 0; overflow: hidden;">
+            
+            <div style="background: var(--color-dark-brown); padding: 20px; display: flex; justify-content: space-between; align-items: center; color: white;">
+                <div>
+                    <h2 id="analysis-name" style="color: white; margin: 0; font-size: 22px;">Nome do Colaborador</h2>
+                    <p id="analysis-role" style="color: #ccc; font-size: 13px; margin: 5px 0 0 0;">Cargo - Departamento</p>
+                </div>
+                <span onclick="document.getElementById('modal-collaborator-analysis').style.display='none'" 
+                      style="color: white; font-size: 30px; cursor: pointer; font-weight: bold;">&times;</span>
+            </div>
+
+            <div style="padding: 25px; max-height: 85vh; overflow-y: auto;">
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; display: flex; gap: 15px; align-items: flex-end; margin-bottom: 25px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; font-weight: bold; color: #555;">Data Início</label>
+                        <input type="date" id="analysis-start-date" style="padding: 8px; width: 100%; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; font-weight: bold; color: #555;">Data Fim</label>
+                        <input type="date" id="analysis-end-date" style="padding: 8px; width: 100%; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <button onclick="loadCollaboratorMetrics()" class="btn-primary" style="padding: 9px 20px;">
+                        <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 5px;">filter_list</i> Filtrar
+                    </button>
+                </div>
+
+                <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+                    
+                    <div class="metric-card" style="border-left: 4px solid #6f42c1; padding: 15px;">
+                        <h3 style="font-size: 12px; color: #666; text-transform: uppercase;">Total Atendimentos</h3>
+                        <h1 id="an-total-vol" style="font-size: 28px; color: #333; margin: 5px 0;">--</h1>
+                        <small style="color: #666;">No período</small>
+                    </div>
+
+                    <div class="metric-card" style="border-left: 4px solid #28a745; padding: 15px;">
+                        <h3 style="font-size: 12px; color: #666; text-transform: uppercase;">Média Monitoria</h3>
+                        <h1 id="an-avg-qa" style="font-size: 28px; color: #333; margin: 5px 0;">--</h1>
+                        <small style="color: #666;">Nota Média</small>
+                    </div>
+
+                    <div class="metric-card" style="border-left: 4px solid #007bff; padding: 15px;">
+                        <h3 style="font-size: 12px; color: #666; text-transform: uppercase;">Média TMA Tel</h3>
+                        <h1 id="an-avg-tma-tel" style="font-size: 28px; color: #333; margin: 5px 0;">--</h1>
+                        <small style="color: #666;">Minutos</small>
+                    </div>
+
+                     <div class="metric-card" style="border-left: 4px solid #17a2b8; padding: 15px;">
+                        <h3 style="font-size: 12px; color: #666; text-transform: uppercase;">Média TMA Chat</h3>
+                        <h1 id="an-avg-tma-chat" style="font-size: 28px; color: #333; margin: 5px 0;">--</h1>
+                        <small style="color: #666;">Minutos</small>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="metric-card">
+                        <h4 style="margin-bottom: 15px; color: #666;">Evolução da Qualidade (Monitoria)</h4>
+                        <div style="height: 250px;"><canvas id="chartAnalysisQa"></canvas></div>
+                    </div>
+                    <div class="metric-card">
+                        <h4 style="margin-bottom: 15px; color: #666;">Volume de Atendimentos (Semanal)</h4>
+                        <div style="height: 250px;"><canvas id="chartAnalysisVol"></canvas></div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 

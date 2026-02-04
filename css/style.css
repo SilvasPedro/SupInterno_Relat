@@ -667,3 +667,123 @@ button[onclick*="openHistory"]:hover {
 .timeline-card.neutral { 
     border-left-color: #6c757d; 
 }
+
+/* ============================================================
+   12. HUB DE COLABORADORES (CARDS)
+   ============================================================ */
+
+.collaborators-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    padding-top: 20px;
+}
+
+.collab-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.collab-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    border-color: var(--color-cream);
+}
+
+.collab-header {
+    background: var(--color-dark-brown);
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.collab-avatar {
+    width: 70px;
+    height: 70px;
+    background: white;
+    color: var(--color-dark-brown);
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    border: 3px solid var(--color-cream);
+}
+
+.collab-name {
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.collab-role {
+    color: var(--color-cream);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.collab-body {
+    padding: 20px;
+    text-align: center;
+    flex: 1;
+}
+
+.collab-dept {
+    background: #f0f0f0;
+    color: #666;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    display: inline-block;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.collab-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #28a745;
+    font-weight: 600;
+}
+
+.collab-status.inactive {
+    color: #dc3545;
+}
+
+.collab-footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 15px;
+    text-align: center;
+}
+
+.btn-view-analysis {
+    background: transparent;
+    border: 1px solid var(--color-main-red);
+    color: var(--color-main-red);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+    width: 100%;
+}
+
+.collab-card:hover .btn-view-analysis {
+    background: var(--color-main-red);
+    color: white;
+}
