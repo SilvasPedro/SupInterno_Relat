@@ -18,25 +18,25 @@
             <p id="admin-name">Carregando...</p>
         </div>
         <ul class="nav-links">
-            <li onclick="showSection('dashboard')" class="active">
+            <li onclick="showSection('dashboard', this)" class="active">
                 <i class="material-icons">dashboard</i> Visão Geral
             </li>
-            <li onclick="showSection('colaboradores'); loadCollaborators()">
+            <li onclick="showSection('colaboradores', this)">
                 <i class="material-icons">people</i> Hub Colaboradores
             </li>
-            <li onclick="showSection('lancamentos')">
+            <li onclick="showSection('lancamentos', this)">
                 <i class="material-icons">assessment</i> Lançar Desempenho
             </li>
-            <li onclick="showSection('sector-history'); loadSectorHistory()">
+            <li onclick="showSection('sector-history', this); loadSectorHistory()">
                 <i class="material-icons">timeline</i> Histórico KPIs
             </li>
-            <li onclick="showSection('ocorrencias')">
+            <li onclick="showSection('ocorrencias', this)">
                 <i class="material-icons">feedback</i> Nova Ocorrência
             </li>
-            <li onclick="showSection('all-occurrences'); loadAllOccurrences()">
+            <li onclick="showSection('all-occurrences', this); loadAllOccurrences()">
                 <i class="material-icons">view_list</i> Todas Ocorrências
             </li>
-            <li onclick="showSection('relatorio_detalhado'); loadRelatorioDetalhado()">
+            <li onclick="showSection('relatorio_detalhado', this); loadRelatorioDetalhado()">
                 <i class="material-icons">table_chart</i> Relatório Detalhado
             </li>
             <li onclick="logout()" class="logout-btn">
