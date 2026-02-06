@@ -831,6 +831,68 @@
         </div>
     </div>
 
+    <div id="modal-edit-3p" class="modal">
+        <div class="modal-content" style="width: 90%; max-width: 800px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="color: var(--color-dark-brown); margin: 0;">✏️ Editar Avaliação</h2>
+                <span class="close" onclick="document.getElementById('modal-edit-3p').style.display='none'">&times;</span>
+            </div>
+
+            <form id="form-edit-3p" onsubmit="saveEditedThirdPartyEvaluation(event)">
+                <input type="hidden" id="edit-tp-id"> <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="input-block">
+                        <label>Protocolo</label>
+                        <input type="text" id="edit-tp-protocol" required>
+                    </div>
+                    <div class="input-block">
+                        <label>Empresa</label>
+                        <input type="text" id="edit-tp-company" required>
+                    </div>
+                    <div class="input-block">
+                        <label>Data</label>
+                        <input type="date" id="edit-tp-date" required>
+                    </div>
+                </div>
+
+                <div class="input-block">
+                    <label>Atendente</label>
+                    <input type="text" id="edit-tp-agent" required>
+                </div>
+
+                <div class="input-block">
+                    <label>Status</label>
+                    <div class="radio-group">
+                        <label class="radio-label positive">
+                            <input type="radio" name="edit-tp-status" value="conformidade" required>
+                            <span>✅ Conforme</span>
+                        </label>
+                        <label class="radio-label neutral">
+                            <input type="radio" name="edit-tp-status" value="nc_leve">
+                            <span>⚠️ NC Leve</span>
+                        </label>
+                        <label class="radio-label negative">
+                            <input type="radio" name="edit-tp-status" value="nc_grave">
+                            <span>🚫 NC Grave</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input-block">
+                    <label>Comentário</label>
+                    <textarea id="edit-tp-comment" rows="5" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
+                </div>
+
+                <div style="text-align: right; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <button type="button" onclick="document.getElementById('modal-edit-3p').style.display='none'" 
+                            style="background: #ccc; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; color: #333;">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module" src="js/admin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>

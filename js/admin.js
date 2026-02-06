@@ -818,9 +818,8 @@ window.renderThirdPartyTable = () => {
     
     tableBody.innerHTML = "";
 
-    // Filtra pelo protocolo
     const filteredData = thirdPartyCache.filter(item => 
-        item.protocol.toLowerCase().includes(searchTerm)
+        (item.protocol || '').toLowerCase().includes(searchTerm)
     );
 
     if (filteredData.length === 0) {
@@ -834,6 +833,7 @@ window.renderThirdPartyTable = () => {
         else if (item.status === 'nc_leve') badge = '<span style="color:#856404; font-weight:bold; background:#fff3cd; padding:2px 8px; border-radius:12px; font-size:12px;">NC Leve</span>';
         else badge = '<span style="color:#721c24; font-weight:bold; background:#f8d7da; padding:2px 8px; border-radius:12px; font-size:12px;">NC Grave</span>';
 
+        // Botões de Ação
         tableBody.innerHTML += `
             <tr>
                 <td>${item.date.split('-').reverse().join('/')}</td>
@@ -841,10 +841,21 @@ window.renderThirdPartyTable = () => {
                 <td>${item.agent}</td>
                 <td>${badge}</td>
                 <td style="text-align: center;">
-                    <button onclick="viewThirdPartyDetail('${item.id}')" class="btn-primary" 
-                            style="padding: 5px 10px; font-size: 12px; background-color: var(--color-taupe);">
-                        <i class="material-icons" style="font-size: 14px; vertical-align: middle;">visibility</i> Ver Detalhes
-                    </button>
+                    <div style="display: flex; justify-content: center; gap: 5px;">
+                        
+                        <button onclick="viewThirdPartyDetail('${item.id}')" class="action-btn" style="background: var(--color-taupe); color: white;" title="Ver Detalhes">
+                            <i class="material-icons" style="font-size: 16px;">visibility</i>
+                        </button>
+                        
+                        <button onclick="openEditThirdPartyModal('${item.id}')" class="action-btn" style="background: #ffc107; color: #333;" title="Editar">
+                            <i class="material-icons" style="font-size: 16px;">edit</i>
+                        </button>
+
+                        <button onclick="deleteThirdPartyEvaluation('${item.id}')" class="action-btn" style="background: #dc3545; color: white;" title="Excluir">
+                            <i class="material-icons" style="font-size: 16px;">delete</i>
+                        </button>
+
+                    </div>
                 </td>
             </tr>
         `;
@@ -959,3 +970,75 @@ function renderThirdPartyChart(conf, leve, grave) {
         }
     });
 }
+
+// --- LÓGICA DE EXCLUSÃO ---
+window.deleteThirdPartyEvaluation = async (docId) => {
+    if (!confirm("⚠️ Tem certeza que deseja excluir esta avaliação permanentemente?")) return;
+
+    try {
+        await deleteDoc(doc(db, "third_party_evaluations", docId));
+        alert("Registro excluído com sucesso.");
+        loadThirdPartyDashboard(); // Recarrega a tabela e gráficos
+    } catch (error) {
+        console.error(error);
+        alert("Erro ao excluir: " + error.message);
+    }
+};
+
+// --- LÓGICA DE EDIÇÃO (ABRIR MODAL) ---
+window.openEditThirdPartyModal = (docId) => {
+    // 1. Busca os dados no cache local
+    const item = thirdPartyCache.find(i => i.id === docId);
+    if (!item) return alert("Erro: Item não encontrado no cache.");
+
+    // 2. Preenche os campos do formulário
+    document.getElementById('edit-tp-id').value = docId;
+    document.getElementById('edit-tp-protocol').value = item.protocol;
+    document.getElementById('edit-tp-company').value = item.company || '';
+    document.getElementById('edit-tp-date').value = item.date;
+    document.getElementById('edit-tp-agent').value = item.agent;
+    document.getElementById('edit-tp-comment').value = item.comment;
+
+    // 3. Marca o Radio Button correto
+    const radios = document.getElementsByName('edit-tp-status');
+    for (const r of radios) {
+        if (r.value === item.status) {
+            r.checked = true;
+        }
+    }
+
+    // 4. Exibe o modal
+    document.getElementById('modal-edit-3p').style.display = 'block';
+};
+
+// --- LÓGICA DE EDIÇÃO (SALVAR NO FIREBASE) ---
+window.saveEditedThirdPartyEvaluation = async (event) => {
+    event.preventDefault(); // Impede recarregamento da página
+
+    const docId = document.getElementById('edit-tp-id').value;
+    const statusEl = document.querySelector('input[name="edit-tp-status"]:checked');
+    
+    if (!docId) return;
+
+    const updatedData = {
+        protocol: document.getElementById('edit-tp-protocol').value,
+        company: document.getElementById('edit-tp-company').value,
+        date: document.getElementById('edit-tp-date').value,
+        agent: document.getElementById('edit-tp-agent').value,
+        comment: document.getElementById('edit-tp-comment').value,
+        status: statusEl ? statusEl.value : 'nc_leve' // Fallback
+    };
+
+    try {
+        const docRef = doc(db, "third_party_evaluations", docId);
+        await updateDoc(docRef, updatedData);
+
+        alert("Avaliação atualizada com sucesso!");
+        document.getElementById('modal-edit-3p').style.display = 'none';
+        
+        loadThirdPartyDashboard(); // Atualiza a tela de fundo
+    } catch (error) {
+        console.error(error);
+        alert("Erro ao atualizar: " + error.message);
+    }
+};
