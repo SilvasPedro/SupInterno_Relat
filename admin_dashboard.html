@@ -514,8 +514,9 @@
                 </div>
             </div>
 
-<div class="charts-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 30px;">
-                
+            <div class="charts-container"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 30px;">
+
                 <div class="metric-card">
                     <h4 style="margin-bottom: 15px; color: #666;">Distribuição de Status</h4>
                     <div style="height: 300px;"><canvas id="chartThirdPartyStatus"></canvas></div>
@@ -527,12 +528,41 @@
                 </div>
             </div>
 
-            <div class="metric-card" style="margin-top: 25px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h4 style="color: #666; margin: 0;">Últimas Avaliações</h4>
-                    <input type="text" id="search-3p-protocol" onkeyup="renderThirdPartyTable()" 
-                           placeholder="🔍 Buscar Protocolo..." 
-                           style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; width: 200px;">
+<div class="metric-card" style="margin-top: 25px;">
+                <h4 style="color: #666; margin-bottom: 15px;">Filtros de Pesquisa</h4>
+                
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 11px; font-weight: bold; color: #555;">PROTOCOLO</label>
+                        <input type="text" id="search-3p-protocol" onkeyup="renderThirdPartyTable()" 
+                               placeholder="Digite..." 
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 11px; font-weight: bold; color: #555;">ATENDENTE</label>
+                        <input type="text" id="search-3p-agent" onkeyup="renderThirdPartyTable()" 
+                               placeholder="Nome..." 
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+
+                    <div style="flex: 1; min-width: 130px;">
+                        <label style="font-size: 11px; font-weight: bold; color: #555;">DATA INÍCIO</label>
+                        <input type="date" id="search-3p-start" onchange="renderThirdPartyTable()" 
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+
+                    <div style="flex: 1; min-width: 130px;">
+                        <label style="font-size: 11px; font-weight: bold; color: #555;">DATA FIM</label>
+                        <input type="date" id="search-3p-end" onchange="renderThirdPartyTable()" 
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+
+                    <button onclick="clearThirdPartyFilters()" 
+                            style="padding: 9px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                        Limpar
+                    </button>
                 </div>
 
                 <div style="overflow-x: auto; max-height: 400px;">
@@ -552,19 +582,20 @@
             </div>
         </div>
 
-<div id="section-terceirizada-form" class="section" style="display:none;">
+        <div id="section-terceirizada-form" class="section" style="display:none;">
             <h1>Nova Avaliação (Terceirizada)</h1>
-            
+
             <div class="metrics-form" style="border-left: 5px solid #007bff; width: 100%;">
                 <form id="form-third-party">
-                    
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                         <div class="input-block">
                             <label>Protocolo de Atendimento</label>
                             <input type="text" id="tp-protocol" placeholder="Ex: 2023001..." required>
                         </div>
                         <div class="input-block">
-                            <label>Empresa Avaliada</label> <input type="text" id="tp-company" placeholder="Ex: Nome da Terceirizada" required>
+                            <label>Empresa Avaliada</label> <input type="text" id="tp-company"
+                                placeholder="Ex: Nome da Terceirizada" required>
                         </div>
                         <div class="input-block">
                             <label>Data do Atendimento</label>
@@ -597,7 +628,7 @@
 
                     <div class="input-block">
                         <label>Comentário / Detalhes</label>
-                        <textarea id="tp-comment" rows="6" placeholder="Descreva o motivo da avaliação..." required 
+                        <textarea id="tp-comment" rows="6" placeholder="Descreva o motivo da avaliação..." required
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
                     </div>
 
@@ -733,79 +764,38 @@
         </div>
     </div>
 
-    <div id="modal-collaborator-analysis" class="modal">
-        <div class="modal-content" style="width: 90%; max-width: 1100px; padding: 0; overflow: hidden;">
-
+    <div id="modal-hub-analytics" class="modal" style="z-index: 2000;">
+        <div class="modal-content" style="width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <div
-                style="background: var(--color-dark-brown); padding: 20px; display: flex; justify-content: space-between; align-items: center; color: white;">
-                <div>
-                    <h2 id="analysis-name" style="color: white; margin: 0; font-size: 22px;">Nome do Colaborador</h2>
-                    <p id="analysis-role" style="color: #ccc; font-size: 13px; margin: 5px 0 0 0;">Cargo - Departamento
-                    </p>
-                </div>
-                <span onclick="document.getElementById('modal-collaborator-analysis').style.display='none'"
-                    style="color: white; font-size: 30px; cursor: pointer; font-weight: bold;">&times;</span>
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 id="hub-analytics-title" style="margin: 0; color: var(--color-dark-brown);">Análise Detalhada</h2>
+                <span class="close"
+                    onclick="document.getElementById('modal-hub-analytics').style.display='none'">&times;</span>
             </div>
 
-            <div style="padding: 25px; max-height: 85vh; overflow-y: auto;">
-
-                <div
-                    style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; display: flex; gap: 15px; align-items: flex-end; margin-bottom: 25px;">
-                    <div style="flex: 1;">
-                        <label style="font-size: 12px; font-weight: bold; color: #555;">Data Início</label>
-                        <input type="date" id="analysis-start-date"
-                            style="padding: 8px; width: 100%; border: 1px solid #ccc; border-radius: 4px;">
+            <div id="hub-analytics-content">
+                <h4 style="margin: 0 0 15px 0; color: #555;">📈 Evolução de TMA (Telefonia vs Chat)</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div
+                        style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 10px; height: 250px;">
+                        <h5 style="text-align:center; margin:0 0 10px 0; color:#007bff;">TMA Telefonia</h5>
+                        <canvas id="chartAnalyticsTel"></canvas>
                     </div>
-                    <div style="flex: 1;">
-                        <label style="font-size: 12px; font-weight: bold; color: #555;">Data Fim</label>
-                        <input type="date" id="analysis-end-date"
-                            style="padding: 8px; width: 100%; border: 1px solid #ccc; border-radius: 4px;">
-                    </div>
-                    <button onclick="loadCollaboratorMetrics()" class="btn-primary" style="padding: 9px 20px;">
-                        <i class="material-icons"
-                            style="font-size: 18px; vertical-align: middle; margin-right: 5px;">filter_list</i> Filtrar
-                    </button>
-                </div>
-
-                <div class="metrics-grid"
-                    style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
-
-                    <div class="metric-card" style="border-left: 4px solid #6f42c1; padding: 15px;">
-                        <h3 style="font-size: 12px; color: #666; text-transform: uppercase;">Total Atendimentos</h3>
-                        <h1 id="an-total-vol" style="font-size: 28px; color: #333; margin: 5px 0;">--</h1>
-                        <small style="color: #666;">No período</small>
-                    </div>
-
-                    <div class="metric-card" style="border-left: 4px solid #28a745; padding: 15px;">
-                        <h3 style="font-size: 12px; color: #666; text-transform: uppercase;">Média Monitoria</h3>
-                        <h1 id="an-avg-qa" style="font-size: 28px; color: #333; margin: 5px 0;">--</h1>
-                        <small style="color: #666;">Nota Média</small>
-                    </div>
-
-                    <div class="metric-card" style="border-left: 4px solid #007bff; padding: 15px;">
-                        <h3 style="font-size: 12px; color: #666; text-transform: uppercase;">Média TMA Tel</h3>
-                        <h1 id="an-avg-tma-tel" style="font-size: 28px; color: #333; margin: 5px 0;">--</h1>
-                        <small style="color: #666;">Minutos</small>
-                    </div>
-
-                    <div class="metric-card" style="border-left: 4px solid #17a2b8; padding: 15px;">
-                        <h3 style="font-size: 12px; color: #666; text-transform: uppercase;">Média TMA Chat</h3>
-                        <h1 id="an-avg-tma-chat" style="font-size: 28px; color: #333; margin: 5px 0;">--</h1>
-                        <small style="color: #666;">Minutos</small>
+                    <div
+                        style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 10px; height: 250px;">
+                        <h5 style="text-align:center; margin:0 0 10px 0; color:#6610f2;">TMA Chat</h5>
+                        <canvas id="chartAnalyticsChat"></canvas>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div class="metric-card">
-                        <h4 style="margin-bottom: 15px; color: #666;">Evolução da Qualidade (Monitoria)</h4>
-                        <div style="height: 250px;"><canvas id="chartAnalysisQa"></canvas></div>
-                    </div>
-                    <div class="metric-card">
-                        <h4 style="margin-bottom: 15px; color: #666;">Volume de Atendimentos (Semanal)</h4>
-                        <div style="height: 250px;"><canvas id="chartAnalysisVol"></canvas></div>
-                    </div>
+                <h4 style="margin: 0 0 15px 0; color: #555;">📊 Detalhes da Última Semana</h4>
+                <div id="hub-analytics-cards">
                 </div>
+            </div>
 
+            <div style="text-align: right; margin-top: 30px;">
+                <button onclick="document.getElementById('modal-hub-analytics').style.display='none'"
+                    class="btn-primary">Fechar Análise</button>
             </div>
         </div>
     </div>
@@ -833,13 +823,16 @@
 
     <div id="modal-edit-3p" class="modal">
         <div class="modal-content" style="width: 90%; max-width: 800px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
                 <h2 style="color: var(--color-dark-brown); margin: 0;">✏️ Editar Avaliação</h2>
-                <span class="close" onclick="document.getElementById('modal-edit-3p').style.display='none'">&times;</span>
+                <span class="close"
+                    onclick="document.getElementById('modal-edit-3p').style.display='none'">&times;</span>
             </div>
 
             <form id="form-edit-3p" onsubmit="saveEditedThirdPartyEvaluation(event)">
-                <input type="hidden" id="edit-tp-id"> <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <input type="hidden" id="edit-tp-id">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div class="input-block">
                         <label>Protocolo</label>
                         <input type="text" id="edit-tp-protocol" required>
@@ -879,12 +872,13 @@
 
                 <div class="input-block">
                     <label>Comentário</label>
-                    <textarea id="edit-tp-comment" rows="5" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
+                    <textarea id="edit-tp-comment" rows="5" required
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
                 </div>
 
                 <div style="text-align: right; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                    <button type="button" onclick="document.getElementById('modal-edit-3p').style.display='none'" 
-                            style="background: #ccc; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; color: #333;">
+                    <button type="button" onclick="document.getElementById('modal-edit-3p').style.display='none'"
+                        style="background: #ccc; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; color: #333;">
                         Cancelar
                     </button>
                     <button type="submit" class="btn-primary">Salvar Alterações</button>
@@ -894,6 +888,8 @@
     </div>
 
     <script type="module" src="js/admin.js"></script>
+    <script type="module" src="js/hub_analytics.js"></script>
+    <script type="module" src="js/third_party.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 
