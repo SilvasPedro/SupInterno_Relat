@@ -1,14 +1,12 @@
-/**
- * ============================================================
- * MÓDULO: HUB DE COLABORADORES (hub.js)
- * Responsável pela visualização em Cards e Análise Detalhada
- * ============================================================
- */
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { 
+    getFirestore, collection, getDocs, doc, setDoc, updateDoc 
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { 
+    getAuth, createUserWithEmailAndPassword 
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-// Configuração (Mesma do admin.js para garantir acesso)
+// Configuração Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCWve8E4PIwEeBf5nATJnFnlJkSe9YkbPE",
     authDomain: "suporte-interno-ece8c.firebaseapp.com",
@@ -20,15 +18,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-// Estado local do Hub
-let currentAnalysisUserId = null;
-let chartAnalysisQa = null;
-let chartAnalysisVol = null;
+// Cache global para evitar erros de aspas no HTML
+window.usersCache = {};
 
-/**
- * 1. CARREGA A GRID DE CARDS
- */
+// ============================================================
+// 1. CARREGAR GRID DE COLABORADORES
+// ============================================================
 export async function loadCollaboratorsHub() {
     const grid = document.getElementById('colaboradores-grid');
     if (!grid) return;
@@ -36,42 +33,52 @@ export async function loadCollaboratorsHub() {
     grid.innerHTML = "<p style='padding:20px; color:#666;'>Carregando colaboradores...</p>";
 
     try {
-        const q = await getDocs(collection(db, "users"));
+        const querySnapshot = await getDocs(collection(db, "users"));
         let usersList = [];
+        window.usersCache = {}; // Limpa cache
 
-        q.forEach((docSnap) => {
+        querySnapshot.forEach((docSnap) => {
             const user = docSnap.data();
-            if (user.cargo !== 'admin') {
-                usersList.push({ id: docSnap.id, ...user });
+            // Salva no cache global usando o ID como chave
+            window.usersCache[docSnap.id] = { id: docSnap.id, ...user };
+
+            if (user.cargo !== 'admin' && user.email !== 'admin@hubdesk.com') {
+                usersList.push(window.usersCache[docSnap.id]);
             }
         });
 
         usersList.sort((a, b) => a.nome.localeCompare(b.nome));
 
         grid.innerHTML = "";
-
+        
         if (usersList.length === 0) {
-            grid.innerHTML = "<p>Nenhum colaborador encontrado.</p>";
+            grid.innerHTML = "<p>Nenhum colaborador cadastrado.</p>";
             return;
         }
 
         usersList.forEach((user) => {
-            const initials = user.nome.charAt(0).toUpperCase();
-            
+            const initials = user.nome ? user.nome.charAt(0).toUpperCase() : '?';
             const avatarHtml = user.photoUrl 
                 ? `<img src="${user.photoUrl}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid var(--color-cream); margin: 0 auto 10px; display:block;">`
                 : `<div class="collab-avatar">${initials}</div>`;
 
-            // CORREÇÃO AQUI: Chamamos window.openCollaboratorAnalytics (definida no hub_analytics.js)
+            // AQUI ESTÁ A CORREÇÃO DO BOTÃO:
+            // Usamos a classe .btn-edit-card (definida no CSS acima)
+            // E passamos apenas o ID para a função buscar do cache
             grid.innerHTML += `
                 <div class="collab-card">
+                    <button class="btn-edit-card" onclick="window.openEditCollaborator('${user.id}')" title="Editar ${user.nome}">
+                        <i class="material-icons" style="font-size: 16px;">edit</i>
+                    </button>
+
                     <div class="collab-header">
                         ${avatarHtml}
                         <div class="collab-name">${user.nome}</div>
-                        <div class="collab-role">${user.cargo || 'Colaborador'}</div>
+                        <div class="collab-role">${user.cargo || 'Sem Cargo'}</div>
                     </div>
                     <div class="collab-body">
-                        <span class="collab-dept">${user.departamento || 'Geral'}</span>
+                        <span class="collab-dept">${user.departamento || 'Geral'}</span> | 
+                        <span style="font-size:11px; color:#666;">${user.turno || 'Turno N/A'}</span>
                         <div class="collab-status">
                             <i class="material-icons" style="font-size:14px;">check_circle</i> Ativo
                         </div>
@@ -87,164 +94,103 @@ export async function loadCollaboratorsHub() {
 
     } catch (e) {
         console.error("Erro ao carregar Hub:", e);
-        grid.innerHTML = "<p>Erro ao carregar lista de colaboradores.</p>";
+        grid.innerHTML = "<p>Erro ao carregar lista.</p>";
     }
 }
 
-/**
- * 2. ABRE O MODAL DE ANÁLISE (DRILL-DOWN)
- * Tornamos global (window) para funcionar no onclick do HTML gerado acima
- */
-window.openCollaboratorAnalysis = (uid, name, role, dept) => {
-    currentAnalysisUserId = uid;
+// ============================================================
+// 2. CONTROLE DO MODAL (ABRIR/FECHAR)
+// ============================================================
+
+window.openNewCollaboratorModal = () => {
+    const modal = document.getElementById('modal-novo-colaborador');
+    if(!modal) return alert("Erro: Modal não encontrado no HTML");
     
-    // Preenche cabeçalho
-    document.getElementById('analysis-name').innerText = name;
-    document.getElementById('analysis-role').innerText = `${role} - ${dept}`;
+    modal.style.display = 'block';
+    document.getElementById('form-colaborador').reset();
+    document.getElementById('edit-user-id').value = ""; 
+    document.getElementById('modal-colaborador-title').innerText = "Novo Colaborador";
     
-    // Define datas padrão (Mês atual)
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1); 
-    
-    // Ajusta formato para input date (YYYY-MM-DD)
-    document.getElementById('analysis-start-date').valueAsDate = firstDay;
-    document.getElementById('analysis-end-date').valueAsDate = today;
+    document.getElementById('group-colab-password').style.display = 'block';
+    document.getElementById('colab-senha').required = true;
+    document.getElementById('colab-email').disabled = false;
+};
 
-    // Exibe Modal
-    document.getElementById('modal-collaborator-analysis').style.display = 'block';
+// Nova função que busca do Cache pelo ID (Segura)
+window.openEditCollaborator = (userId) => {
+    const user = window.usersCache[userId];
+    if (!user) return alert("Erro: Usuário não encontrado no cache.");
 
-    // Carrega dados
-    loadCollaboratorMetrics();
-}
+    const modal = document.getElementById('modal-novo-colaborador');
+    if(!modal) return alert("Erro: Modal não encontrado");
 
-/**
- * 3. BUSCA E CALCULA AS MÉTRICAS DO COLABORADOR
- */
-window.loadCollaboratorMetrics = async () => {
-    if (!currentAnalysisUserId) return;
+    modal.style.display = 'block';
+    document.getElementById('modal-colaborador-title').innerText = "Editar Colaborador";
+    document.getElementById('edit-user-id').value = user.id;
 
-    // Elementos de KPI no Modal
-    const kpiTotal = document.getElementById('an-total-vol');
-    const kpiQa = document.getElementById('an-avg-qa');
-    const kpiTel = document.getElementById('an-avg-tma-tel');
-    const kpiChat = document.getElementById('an-avg-tma-chat');
+    // Preenche campos com verificação de nulo
+    document.getElementById('colab-nome').value = user.nome || "";
+    document.getElementById('colab-email').value = user.email || "";
+    document.getElementById('colab-cargo').value = user.cargo || "";
+    document.getElementById('colab-depto').value = user.departamento || "";
+    document.getElementById('colab-turno').value = user.turno || "";
 
-    // Estado de carregamento
-    kpiTotal.innerText = "...";
-    
-    const startDateStr = document.getElementById('analysis-start-date').value;
-    const endDateStr = document.getElementById('analysis-end-date').value;
+    document.getElementById('group-colab-password').style.display = 'none';
+    document.getElementById('colab-senha').required = false;
+    document.getElementById('colab-email').disabled = true;
+};
+
+window.closeCollabModal = () => {
+    document.getElementById('modal-novo-colaborador').style.display = 'none';
+};
+
+// ============================================================
+// 3. SALVAR (Lógica Mantida)
+// ============================================================
+window.handleSaveCollaborator = async () => {
+    const btn = document.getElementById('btn-save-colab');
+    const originalText = btn.innerText;
+    btn.innerText = "Salvando...";
+    btn.disabled = true;
+
+    const id = document.getElementById('edit-user-id').value;
+    const nome = document.getElementById('colab-nome').value;
+    const email = document.getElementById('colab-email').value;
+    const cargo = document.getElementById('colab-cargo').value;
+    const departamento = document.getElementById('colab-depto').value;
+    const turno = document.getElementById('colab-turno').value;
+    const senha = document.getElementById('colab-senha').value;
 
     try {
-        // Busca métricas apenas deste usuário
-        const q = query(collection(db, "weekly_metrics"), where("userId", "==", currentAnalysisUserId));
-        const snap = await getDocs(q);
-
-        let filteredDocs = [];
-        
-        snap.forEach(d => {
-            const data = d.data();
-            // Filtro de Data em memória (simples e funcional para datas YYYY-MM-DD)
-            if (data.weekStart >= startDateStr && data.weekStart <= endDateStr) {
-                filteredDocs.push(data);
-            }
-        });
-
-        // Ordena Cronologicamente
-        filteredDocs.sort((a, b) => new Date(a.weekStart) - new Date(b.weekStart));
-
-        // Cálculos de Média e Totais
-        let sumVol = 0, sumQa = 0, sumTmaTel = 0, sumTmaChat = 0;
-        let count = 0;
-        let countTel = 0, countChat = 0; // Para médias mais precisas se houver 0
-
-        // Arrays para os Gráficos
-        let labels = [];
-        let dataQa = [];
-        let dataVol = [];
-
-        filteredDocs.forEach(d => {
-            const vol = (d.atendimentosFinalizados || 0);
-            sumVol += vol;
+        if (id) {
+            // Edição
+            const userRef = doc(db, "users", id);
+            await updateDoc(userRef, { nome, cargo, departamento, turno });
+            alert("Dados atualizados com sucesso!");
+        } else {
+            // Novo
+            if (senha.length < 6) throw new Error("A senha deve ter no mínimo 6 caracteres.");
             
-            // Só soma na média se houver valor lançado
-            if(d.notaMonitoria > 0) sumQa += Number(d.notaMonitoria);
-            if(d.tmaTelefonia > 0) { sumTmaTel += Number(d.tmaTelefonia); countTel++; }
-            if(d.tmaHuggy > 0) { sumTmaChat += Number(d.tmaHuggy); countChat++; }
-            
-            count++;
+            const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+            const secondaryAuth = getAuth(secondaryApp);
+            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, senha);
+            const newUserId = userCredential.user.uid;
 
-            // Labels e Dados Chart.js
-            const dateLabel = d.weekStart.split('-').reverse().slice(0, 2).join('/'); // DD/MM
-            labels.push(dateLabel);
-            dataQa.push(d.notaMonitoria || 0);
-            dataVol.push(vol);
-        });
+            await setDoc(doc(db, "users", newUserId), {
+                nome, email, cargo, departamento, turno,
+                createdAt: new Date().toISOString(), photoUrl: ""
+            });
+            alert("Colaborador cadastrado com sucesso!");
+        }
 
-        // Atualiza Interface
-        kpiTotal.innerText = sumVol;
-        kpiQa.innerText = count > 0 ? (sumQa / count).toFixed(1) : "-";
-        kpiTel.innerText = countTel > 0 ? (sumTmaTel / countTel).toFixed(2) : "-";
-        kpiChat.innerText = countChat > 0 ? (sumTmaChat / countChat).toFixed(2) : "-";
+        window.closeCollabModal();
+        loadCollaboratorsHub();
 
-        // Renderiza Gráficos
-        renderAnalysisCharts(labels, dataQa, dataVol);
-
-    } catch (e) {
-        console.error("Erro na análise:", e);
-        alert("Erro ao carregar dados detalhados.");
+    } catch (error) {
+        console.error("Erro ao salvar:", error);
+        alert("Erro: " + error.message);
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
     }
-}
-
-/**
- * 4. RENDERIZA OS GRÁFICOS DO MODAL
- */
-function renderAnalysisCharts(labels, dataQa, dataVol) {
-    const ctxQa = document.getElementById('chartAnalysisQa');
-    const ctxVol = document.getElementById('chartAnalysisVol');
-
-    // Destroi gráficos antigos para não sobrepor
-    if (chartAnalysisQa) chartAnalysisQa.destroy();
-    if (chartAnalysisVol) chartAnalysisVol.destroy();
-
-    // 1. Gráfico de Qualidade (Linha Suave)
-    chartAnalysisQa = new Chart(ctxQa, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Nota Monitoria',
-                data: dataQa,
-                borderColor: '#28a745',
-                backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, max: 100 } }
-        }
-    });
-
-    // 2. Gráfico de Volume (Barras)
-    chartAnalysisVol = new Chart(ctxVol, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Atendimentos Finalizados',
-                data: dataVol,
-                backgroundColor: '#6f42c1',
-                borderRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true } }
-        }
-    });
-}
+};

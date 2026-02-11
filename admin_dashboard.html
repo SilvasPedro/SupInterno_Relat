@@ -170,7 +170,7 @@
                     <h1>Hub de Colaboradores</h1>
                     <p style="color: #666; font-size: 13px;">Selecione um card para ver a análise profunda.</p>
                 </div>
-                <button onclick="openModal()" class="btn-primary">+ Novo Colaborador</button>
+                <button onclick="openNewCollaboratorModal()" class="btn-primary">+ Novo Colaborador</button>
             </div>
 
             <div id="colaboradores-grid" class="collaborators-grid">
@@ -642,21 +642,61 @@
             </div>
         </div>
     </main>
-
-    <div id="modal-new-user" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Novo Colaborador</h2>
-            <form id="form-add-user">
-                <input type="text" id="new-name" placeholder="Nome Completo" required>
-                <input type="email" id="new-email" placeholder="E-mail Corporativo" required>
-                <input type="text" id="new-cargo" placeholder="Cargo (ex: Atendente)" required>
-                <input type="text" id="new-dept" placeholder="Departamento" required>
-                <p style="font-size: 12px; color: #666;">A senha padrão será: <b>mudar123</b></p>
-                <button type="submit">Cadastrar</button>
-            </form>
+<div id="modal-novo-colaborador" class="modal" style="z-index: 2001;">
+    <div class="modal-content" style="width: 100%; max-width: 500px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 id="modal-colaborador-title" style="margin: 0; color: var(--color-dark-brown);">Novo Colaborador</h2>
+            <span class="close" onclick="closeCollabModal()">&times;</span>
         </div>
+
+        <form id="form-colaborador" onsubmit="event.preventDefault(); window.handleSaveCollaborator();">
+            <input type="hidden" id="edit-user-id">
+
+            <div class="form-group">
+                <label>Nome Completo *</label>
+                <input type="text" id="colab-nome" class="form-input" required placeholder="Ex: Ana Silva">
+            </div>
+
+            <div class="form-group">
+                <label>Email de Acesso *</label>
+                <input type="email" id="colab-email" class="form-input" required placeholder="email@empresa.com">
+                <small id="email-help" style="color:#666; font-size:11px;">Este email será usado para login.</small>
+            </div>
+
+            <div class="form-group" id="group-colab-password">
+                <label>Senha Inicial *</label>
+                <input type="password" id="colab-senha" class="form-input" placeholder="Mínimo 6 caracteres">
+            </div>
+
+            <div class="row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Cargo *</label>
+                    <input type="text" id="colab-cargo" class="form-input" required placeholder="Ex: Auxiliar de Suporte">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Departamento</label>
+                    <input type="text" id="colab-depto" class="form-input" placeholder="Ex: N1, N2...">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Turno *</label>
+                <select id="colab-turno" class="form-input" required>
+                    <option value="">Selecione...</option>
+                    <option value="Manhã I">Manhã I</option>
+                    <option value="Manhã II">Manhã II</option>
+                    <option value="Tarde">Tarde / Intermediário</option>
+                    <option value="Noturno">Noturno</option>
+                </select>
+            </div>
+
+            <div style="text-align: right; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                <button type="button" onclick="closeCollabModal()" class="btn-secondary" style="margin-right: 10px;">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btn-save-colab">Salvar Colaborador</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <div id="modal-kpi-details" class="modal">
         <div class="modal-content">
