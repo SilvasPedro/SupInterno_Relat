@@ -27,7 +27,7 @@ let chartAnalysisQa = null;
 let chartAnalysisVol = null;
 
 /**
- * 1. CARREGA A GRID DE CARDS (Substitui a antiga tabela)
+ * 1. CARREGA A GRID DE CARDS
  */
 export async function loadCollaboratorsHub() {
     const grid = document.getElementById('colaboradores-grid');
@@ -41,13 +41,11 @@ export async function loadCollaboratorsHub() {
 
         q.forEach((docSnap) => {
             const user = docSnap.data();
-            // Ignora admins na listagem de colaboradores
             if (user.cargo !== 'admin') {
                 usersList.push({ id: docSnap.id, ...user });
             }
         });
 
-        // Ordena alfabeticamente
         usersList.sort((a, b) => a.nome.localeCompare(b.nome));
 
         grid.innerHTML = "";
@@ -60,26 +58,28 @@ export async function loadCollaboratorsHub() {
         usersList.forEach((user) => {
             const initials = user.nome.charAt(0).toUpperCase();
             
-            // Tratamento para caso tenha foto (se implementou) ou usa inicial
             const avatarHtml = user.photoUrl 
                 ? `<img src="${user.photoUrl}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid var(--color-cream); margin: 0 auto 10px; display:block;">`
                 : `<div class="collab-avatar">${initials}</div>`;
 
+            // CORREÇÃO AQUI: Chamamos window.openCollaboratorAnalytics (definida no hub_analytics.js)
             grid.innerHTML += `
-                <div class="collab-card" onclick="window.openCollaboratorAnalysis('${user.id}', '${user.nome}', '${user.cargo || 'Colaborador'}', '${user.departamento || 'Geral'}')">
+                <div class="collab-card">
                     <div class="collab-header">
                         ${avatarHtml}
                         <div class="collab-name">${user.nome}</div>
-                        <div class="collab-role">${user.cargo}</div>
+                        <div class="collab-role">${user.cargo || 'Colaborador'}</div>
                     </div>
                     <div class="collab-body">
-                        <span class="collab-dept">${user.departamento || 'Sem setor'}</span>
+                        <span class="collab-dept">${user.departamento || 'Geral'}</span>
                         <div class="collab-status">
                             <i class="material-icons" style="font-size:14px;">check_circle</i> Ativo
                         </div>
                     </div>
                     <div class="collab-footer">
-                        <button class="btn-view-analysis">Ver Análise Completa</button>
+                        <button class="btn-view-analysis" onclick="window.openCollaboratorAnalytics('${user.id}', '${user.nome}')">
+                            VER ANÁLISE COMPLETA
+                        </button>
                     </div>
                 </div>
             `;
