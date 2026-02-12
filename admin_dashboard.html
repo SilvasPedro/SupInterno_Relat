@@ -36,9 +36,6 @@
             <li onclick="showSection('all-occurrences', this); loadAllOccurrences()">
                 <i class="material-icons">view_list</i> Todas Ocorrências
             </li>
-            <li onclick="showSection('relatorio_detalhado', this); loadRelatorioDetalhado()">
-                <i class="material-icons">table_chart</i> Relatório Detalhado
-            </li>
             <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 15px;">
             <li onclick="showSection('terceirizada-dash', this); loadThirdPartyDashboard()">
                 <i class="material-icons">business</i> Dash Terceirizada
@@ -343,53 +340,91 @@
             </div>
         </div>
 
-        <div id="section-ocorrencias" class="section" style="display:none;">
-            <h1>Registrar Ocorrência / Feedback</h1>
-            <form id="form-ocorrencias" class="metrics-form">
-                <div class="form-group-header">
-                    <div class="input-block">
-                        <label>Colaborador</label>
-                        <select id="occur-user-select" required>
-                            <option value="">Carregando...</option>
-                        </select>
-                    </div>
-                    <div class="input-block">
-                        <label>Data do Fato</label>
-                        <input type="date" id="occur-date" required>
-                    </div>
-                </div>
-                <div class="input-block">
-                    <label>Tipo de Ocorrência</label>
-                    <div class="radio-group">
-                        <label class="radio-label positive">
-                            <input type="radio" name="occur-type" value="positive" required>
-                            <span>👍 Positiva</span>
-                        </label>
-
-                        <label class="radio-label neutral">
-                            <input type="radio" name="occur-type" value="neutral">
-                            <span>ℹ️ Neutra</span>
-                        </label>
-                        <label class="radio-label negative">
-                            <input type="radio" name="occur-type" value="negative">
-                            <span>👎 Negativa</span>
-                        </label>
-                    </div>
-                </div>
-                <br>
-                <div class="input-block">
-                    <label>Título Resumido</label>
-                    <input type="text" id="occur-title" placeholder="Ex: Atraso" required>
-                </div>
-                <div class="input-block">
-                    <label>Descrição Detalhada</label>
-                    <textarea id="occur-desc" rows="5" placeholder="Descreva..."
-                        style="padding:10px; width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:4px;"></textarea>
-                </div>
-                <button type="submit" class="btn-save-metrics" style="background-color: #6610f2;">Registrar
-                    Feedback</button>
-            </form>
+<div id="section-ocorrencias" class="section" style="display:none;">
+    <div class="header-flex">
+        <div>
+            <h1>Registrar Feedback</h1>
+            <p style="color: #666; font-size: 13px;">Registre elogios, pontes de atenção ou orientações.</p>
         </div>
+    </div>
+
+    <div class="metrics-form" style="border-top: 5px solid var(--color-main-red); max-width: 900px; margin: 0 auto;">
+        <form id="form-ocorrencias">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="input-block">
+                    <label><i class="material-icons" style="font-size:14px; vertical-align:middle;">person</i> Colaborador</label>
+                    <select id="occur-user-select" required style="background-color: #f8f9fa;">
+                        <option value="">Carregando lista...</option>
+                    </select>
+                </div>
+                <div class="input-block">
+                    <label><i class="material-icons" style="font-size:14px; vertical-align:middle;">event</i> Data do Fato</label>
+                    <input type="date" id="occur-date" required style="background-color: #f8f9fa;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="input-block">
+                    <label><i class="material-icons" style="font-size:14px; vertical-align:middle;">radar</i> Meio de Identificação</label>
+                    <select id="occur-origin" required>
+                        <option value="">Selecione a origem...</option>
+                        <option value="Sistema/ERP">💻 Sistema / ERP</option>
+                        <option value="Telefonia">📞 Telefonia (Gravador)</option>
+                        <option value="Chat">💬 Chat / Huggy</option>
+                        <option value="Presencial">👀 Presencial / Observação</option>
+                    </select>
+                </div>
+                <div class="input-block">
+                    <label><i class="material-icons" style="font-size:14px; vertical-align:middle;">confirmation_number</i> Protocolo (Opcional)</label>
+                    <input type="text" id="occur-protocol" placeholder="Ex: 2026..." style="border-color: #ddd;">
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px dashed #eee; margin: 25px 0;">
+
+            <div class="input-block" style="margin-bottom: 25px;">
+                <label style="margin-bottom: 12px; display:block;">Tipo de Registro</label>
+                <div class="radio-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <label class="radio-label positive" style="justify-content: center; text-align: center; height: auto; flex-direction: column; gap: 5px;">
+                        <input type="radio" name="occur-type" value="positive" required style="margin:0;">
+                        <span style="font-size: 20px;">👍</span>
+                        <span style="font-size: 13px;">Elogio</span>
+                    </label>
+
+                    <label class="radio-label neutral" style="justify-content: center; text-align: center; height: auto; flex-direction: column; gap: 5px;">
+                        <input type="radio" name="occur-type" value="neutral" style="margin:0;">
+                        <span style="font-size: 20px;">ℹ️</span>
+                        <span style="font-size: 13px;">Orientação</span>
+                    </label>
+
+                    <label class="radio-label negative" style="justify-content: center; text-align: center; height: auto; flex-direction: column; gap: 5px;">
+                        <input type="radio" name="occur-type" value="negative" style="margin:0;">
+                        <span style="font-size: 20px;">👎</span>
+                        <span style="font-size: 13px;">Ponto de Atenção</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="input-block">
+                <label>Título Resumido</label>
+                <input type="text" id="occur-title" placeholder="Ex: Atraso na entrega, Elogio do cliente..." required>
+            </div>
+            
+            <div class="input-block">
+                <label>Descrição Detalhada</label>
+                <textarea id="occur-desc" rows="5" placeholder="Descreva o fato, a orientação passada e o plano de ação se houver..."
+                    style="padding:15px; width:100%; border:1px solid #ddd; border-radius:8px; resize: vertical; font-family: inherit;"></textarea>
+            </div>
+
+            <div style="text-align: right; margin-top: 30px;">
+                <button type="submit" class="btn-primary" style="padding: 12px 40px; font-size: 16px; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="material-icons">save</i> Registrar Feedback
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
         <div id="section-all-occurrences" class="section" style="display:none;">
             <div class="header-flex">
@@ -452,31 +487,6 @@
                         <tbody id="all-occurrences-body"></tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-
-        <div id="section-relatorio_detalhado" class="section" style="display:none;">
-            <div class="header-flex" style="align-items: flex-start;">
-                <div>
-                    <h1>Relatório Detalhado</h1>
-                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
-                        <label for="filter-date-select" style="font-weight: 600; color: var(--color-taupe);">
-                            <i class="material-icons" style="font-size: 18px; vertical-align: middle;">filter_list</i>
-                            Filtrar Semana:
-                        </label>
-                        <select id="filter-date-select" onchange="renderDetailedContent()"
-                            style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; min-width: 200px;">
-                            <option value="all">Carregando datas...</option>
-                        </select>
-                    </div>
-                </div>
-                <button onclick="loadRelatorioDetalhado()" class="btn-primary" title="Atualizar Dados">
-                    <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
-                </button>
-            </div>
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-            <div id="relatorio-detalhado-content">
-                <p style="color:#666; padding: 20px;">Selecione uma data acima ou clique em atualizar.</p>
             </div>
         </div>
 

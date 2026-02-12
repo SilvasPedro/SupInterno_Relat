@@ -40,30 +40,27 @@
 
     <main class="main-content">
 
-        <div id="section-dashboard" class="section">
-            <div class="header-flex">
-                <h1>Meu Desempenho</h1>
-                <span id="current-date" style="color: #666;"></span>
-            </div>
+<div id="section-dashboard" class="section">
+    <div class="header-flex">
+        <h1>Meu Desempenho</h1>
+        <span id="current-date" style="color: #666;"></span>
+    </div>
 
-            <div id="cards-container">
-                <p>Carregando dados...</p>
-            </div>
+    <div id="cards-container"></div> 
 
-            <br>
-            <hr><br>
+    <br><hr><br>
 
-            <div class="charts-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="metric-card">
-                    <h3>Evolução da Monitoria</h3>
-                    <canvas id="chartMonitoria"></canvas>
-                </div>
-                <div class="metric-card">
-                    <h3>Produtividade (Atendimentos)</h3>
-                    <canvas id="chartProdutividade"></canvas>
-                </div>
-            </div>
+    <div class="charts-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="metric-card">
+            <h3>Evolução da Monitoria</h3>
+            <canvas id="chartMonitoria"></canvas>
         </div>
+        <div class="metric-card">
+            <h3>Produtividade (Finalizados)</h3>
+            <canvas id="chartProdutividade"></canvas>
+        </div>
+    </div>
+</div>
 
         <div id="section-feedbacks" class="section" style="display:none;">
             <h1>Histórico de Feedbacks</h1>

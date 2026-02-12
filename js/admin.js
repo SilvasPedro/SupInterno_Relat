@@ -1,10 +1,3 @@
-/**
- * ============================================================================
- * ERP GESTÃO - MÓDULO ADMINISTRATIVO (PRINCIPAL - COMPLETO)
- * Versão: Integrada com Hub.js e Correções de KPIs
- * ============================================================================
- */
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
     getAuth,
@@ -381,29 +374,54 @@ if (formSector) {
     });
 }
 
-// D. Submit Ocorrências
+// D. Submit Ocorrências (ATUALIZADO)
 const formOccur = document.getElementById('form-ocorrencias');
 if (formOccur) {
+    // Clone para remover listeners antigos e evitar duplicação
     const newForm = formOccur.cloneNode(true);
     formOccur.parentNode.replaceChild(newForm, formOccur);
+    
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const uid = document.getElementById('occur-user-select').value;
         const typeEl = document.querySelector('input[name="occur-type"]:checked');
-        if (!uid || !typeEl) return alert("Preencha todos os campos.");
+        
+        // Novos Campos
+        const origin = document.getElementById('occur-origin').value;
+        const protocol = document.getElementById('occur-protocol').value;
+
+        if (!uid || !typeEl || !origin) return alert("Preencha todos os campos obrigatórios.");
+        
         try {
             const sel = document.getElementById('occur-user-select');
+            
+            // Salva no Firebase com os novos campos
             await setDoc(doc(collection(db, "occurrences")), {
-                userId: uid, userName: sel.options[sel.selectedIndex].text,
+                userId: uid,
+                userName: sel.options[sel.selectedIndex].text,
                 date: document.getElementById('occur-date').value,
                 type: typeEl.value,
+                origin: origin,       // Salva a origem (Sistema, Presencial...)
+                protocol: protocol,   // Salva o protocolo (ou vazio)
                 title: document.getElementById('occur-title').value,
                 description: document.getElementById('occur-desc').value,
-                read: false, createdAt: new Date()
+                read: false,
+                createdAt: new Date()
             });
-            alert("Feedback registrado!");
+            
+            alert("Feedback registrado com sucesso!");
             newForm.reset();
-        } catch (e) { alert("Erro: " + e.message); }
+            
+            // Opcional: Recarregar lista se estiver aberta
+            if(document.getElementById('section-all-occurrences').style.display === 'block') {
+                loadAllOccurrences();
+            }
+
+        } catch (e) { 
+            console.error(e);
+            alert("Erro ao registrar: " + e.message); 
+        }
     });
 }
 
