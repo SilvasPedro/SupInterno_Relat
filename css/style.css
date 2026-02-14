@@ -1030,3 +1030,64 @@ button[onclick*="openHistory"]:hover {
 .mini-card .value.highlight {
     color: #28a745;
 }
+
+/* ============================================================
+   ESTILO DE TABELA EM FORMATO DE CARDS (OCORRÊNCIAS)
+   ============================================================ */
+
+/* Faz com que as linhas se separem */
+.table-cards {
+    border-collapse: separate !important; 
+    border-spacing: 0 15px !important; /* Espaço vertical entre as linhas */
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Remove fundo da tabela container para focar nas linhas */
+.table-cards thead tr th {
+    border: none;
+    background: transparent;
+    color: #666;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding-bottom: 5px;
+}
+
+/* Estilo de cada linha (Card) */
+.table-cards tbody tr {
+    background: #fff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02); /* Sombra suave */
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.table-cards tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+
+/* Arredondamento das bordas da linha (Truque no TD) */
+.table-cards tbody td {
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding: 20px 15px; /* Mais espaçamento interno */
+    vertical-align: middle;
+}
+
+.table-cards tbody td:first-child {
+    border-left: 1px solid #eee; /* Borda esquerda */
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.table-cards tbody td:last-child {
+    border-right: 1px solid #eee; /* Borda direita */
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/* Botões de Ação na Tabela */
+.action-group {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}

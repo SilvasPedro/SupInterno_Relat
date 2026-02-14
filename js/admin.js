@@ -522,23 +522,103 @@ window.applyOccurrenceFilters = () => {
 window.renderOccurrencesTable = (dataList) => {
     const tbody = document.getElementById('all-occurrences-body');
     tbody.innerHTML = "";
-    if (dataList.length === 0) { tbody.innerHTML = "<tr><td colspan='7'>Nenhum registro.</td></tr>"; return; }
+    if (dataList.length === 0) { tbody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>Nenhum registro encontrado.</td></tr>"; return; }
 
     dataList.forEach(item => {
         const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
-        let rowStyle = item.type === 'positive' ? 'border-left:4px solid green' : (item.type === 'negative' ? 'border-left:4px solid red' : 'border-left:4px solid gray');
+        
+        // Cores da borda lateral baseada no tipo
+        let borderStyle = "5px solid #ccc";
+        let typeIcon = "❓";
+        
+        if (item.type === 'positive') { borderStyle = "5px solid #28a745"; typeIcon = "👍"; }
+        else if (item.type === 'neutral') { borderStyle = "5px solid #ffc107"; typeIcon = "ℹ️"; }
+        else if (item.type === 'negative') { borderStyle = "5px solid #dc3545"; typeIcon = "👎"; }
+
+        const statusBadge = item.read 
+            ? '<span style="color:#28a745; background:#e8f5e9; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold;">Lido</span>' 
+            : '<span style="color:#d63384; background:#f3e5f5; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold;">Pendente</span>';
+
+        // TRUNCAR DESCRIÇÃO PARA NÃO QUEBRAR O LAYOUT
+        const descShort = item.description.length > 50 ? item.description.substring(0, 50) + "..." : item.description;
 
         tbody.innerHTML += `
-            <tr style="${rowStyle}">
-                <td>${dateFmt}</td>
-                <td><strong>${item.userName}</strong></td>
-                <td>${item.type}</td>
+            <tr>
+                <td style="border-left: ${borderStyle}; font-weight:bold; color:#555;">${dateFmt}</td>
+                <td style="font-size: 15px; font-weight: 600;">${item.userName}</td>
+                <td style="font-size: 20px; text-align:center;">${typeIcon}</td>
                 <td>${item.title}</td>
-                <td>${item.description.substring(0, 60)}...</td>
-                <td>${item.read ? 'Lido' : 'Pendente'}</td>
-                <td><button onclick="prepareEditOccurrence('${item.id}')" class="action-btn btn-edit"><i class="material-icons">edit</i></button></td>
+                <td style="color:#666; font-size:13px;">${descShort}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <div class="action-group">
+                        <button onclick="viewOccurrence('${item.id}')" class="action-btn" style="background: var(--color-taupe); color: white;" title="Ver Completo">
+                            <i class="material-icons" style="font-size: 18px;">visibility</i>
+                        </button>
+                        <button onclick="prepareEditOccurrence('${item.id}')" class="action-btn" style="background: #ffc107; color: #333;" title="Editar">
+                            <i class="material-icons" style="font-size: 18px;">edit</i>
+                        </button>
+                        <button onclick="deleteOccurrence('${item.id}')" class="action-btn" style="background: #dc3545; color: white;" title="Excluir">
+                            <i class="material-icons" style="font-size: 18px;">delete</i>
+                        </button>
+                    </div>
+                </td>
             </tr>`;
     });
+};
+
+// B. FUNÇÃO DE VISUALIZAR (NOVA)
+window.viewOccurrence = (id) => {
+    const item = occurrencesCache.find(o => o.id === id);
+    if (!item) return;
+
+    const modal = document.getElementById('modal-view-occurrence');
+    const content = document.getElementById('view-occur-content');
+    
+    let color = item.type === 'positive' ? '#28a745' : (item.type === 'negative' ? '#dc3545' : '#ffc107');
+    const dateFmt = item.date.split('-').reverse().join('/');
+
+    content.innerHTML = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <div>
+                <small style="color:#999;">COLABORADOR</small>
+                <div style="font-size:18px; font-weight:bold;">${item.userName}</div>
+            </div>
+            <div style="text-align:right;">
+                <small style="color:#999;">DATA</small>
+                <div style="font-size:16px;">${dateFmt}</div>
+            </div>
+        </div>
+        
+        <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:20px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div><small style="color:#999;">ORIGEM</small><br><strong>${item.origin || 'Não informado'}</strong></div>
+            <div><small style="color:#999;">PROTOCOLO</small><br><strong>${item.protocol || '---'}</strong></div>
+        </div>
+
+        <div style="border-left: 5px solid ${color}; padding-left: 15px; margin-bottom: 20px;">
+            <h3 style="color:${color}; margin:0 0 10px 0;">${item.title}</h3>
+            <p style="line-height:1.6; color:#444; white-space: pre-line;">${item.description}</p>
+        </div>
+        
+        <div style="font-size:12px; color:#999; text-align:right;">
+            ID do Registro: ${item.id}
+        </div>
+    `;
+    modal.style.display = 'block';
+};
+
+// C. FUNÇÃO DE DELETAR (NOVA)
+window.deleteOccurrence = async (id) => {
+    if(!confirm("⚠️ Tem certeza absoluta que deseja excluir este feedback? Esta ação não pode ser desfeita.")) return;
+
+    try {
+        await deleteDoc(doc(db, "occurrences", id));
+        alert("Ocorrência excluída com sucesso.");
+        // Atualiza cache e tabela
+        loadAllOccurrences();
+    } catch (e) {
+        alert("Erro ao excluir: " + e.message);
+    }
 };
 
 window.clearOccurrenceFilters = () => {
@@ -653,16 +733,46 @@ window.prepareEditMetric = async (id) => {
     }
 };
 
+// D. FUNÇÃO DE EDITAR (ATUALIZADA COM ORIGEM/PROTOCOLO)
 window.prepareEditOccurrence = (id) => {
     const item = occurrencesCache.find(o => o.id === id);
     if (!item) return;
+
     document.getElementById('edit-occur-id').value = item.id;
     document.getElementById('edit-occur-date').value = item.date;
     document.getElementById('edit-occur-title').value = item.title;
     document.getElementById('edit-occur-desc').value = item.description;
-    const radios = document.getElementsByName('edit-occur-type');
-    for (const r of radios) { if (r.value === item.type) r.checked = true; }
+    
+    // Novos Campos
+    document.getElementById('edit-occur-protocol').value = item.protocol || '';
+    document.getElementById('edit-occur-origin').value = item.origin || 'Sistema/ERP'; // Default se vazio
+    document.getElementById('edit-occur-type-select').value = item.type;
+
     document.getElementById('modal-edit-occurrence').style.display = 'block';
+};
+
+window.saveEditedOccurrence = async (event) => {
+    event.preventDefault();
+    
+    const id = document.getElementById('edit-occur-id').value;
+    
+    const updatedData = {
+        date: document.getElementById('edit-occur-date').value,
+        title: document.getElementById('edit-occur-title').value,
+        description: document.getElementById('edit-occur-desc').value,
+        type: document.getElementById('edit-occur-type-select').value,
+        origin: document.getElementById('edit-occur-origin').value,
+        protocol: document.getElementById('edit-occur-protocol').value
+    };
+
+    try {
+        await updateDoc(doc(db, "occurrences", id), updatedData);
+        alert("Atualizado com sucesso!"); 
+        closeEditModal(); 
+        loadAllOccurrences(); // Recarrega a tabela
+    } catch (e) { 
+        alert("Erro: " + e.message); 
+    }
 };
 
 window.closeEditModal = () => { document.getElementById('modal-edit-occurrence').style.display = 'none'; };

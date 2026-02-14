@@ -452,18 +452,18 @@
                     </div>
                 </div>
             </div>
-            <div class="metric-card">
+            <div class="metric-card" style="background: transparent; border: none; box-shadow: none;">
                 <div style="overflow-x: auto;">
-                    <table class="data-table">
+                    <table class="data-table table-cards">
                         <thead>
                             <tr>
                                 <th>Data</th>
                                 <th>Colaborador</th>
                                 <th>Tipo</th>
                                 <th>Título</th>
-                                <th style="width: 35%;">Detalhes</th>
+                                <th style="width: 30%;">Resumo</th>
                                 <th>Status</th>
-                                <th>Ações</th>
+                                <th style="text-align: center;">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="all-occurrences-body"></tbody>
@@ -749,33 +749,58 @@
         </div>
     </div>
 
-    <div id="modal-edit-occurrence" class="modal">
+    <div id="modal-view-occurrence" class="modal">
         <div class="modal-content" style="max-width: 600px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="color: var(--color-dark-brown); margin: 0;">👁️ Detalhes do Feedback</h2>
+                <span class="close"
+                    onclick="document.getElementById('modal-view-occurrence').style.display='none'">&times;</span>
+            </div>
+            <div id="view-occur-content"></div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button onclick="document.getElementById('modal-view-occurrence').style.display='none'"
+                    class="btn-primary" style="background-color: #6c757d;">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-edit-occurrence" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
             <span class="close" onclick="closeEditModal()">&times;</span>
             <h2 style="color: var(--color-dark-brown); margin-bottom: 20px;">✏️ Editar Feedback</h2>
 
             <form id="form-edit-occurrence" onsubmit="saveEditedOccurrence(event)">
                 <input type="hidden" id="edit-occur-id">
-                <div class="input-block">
-                    <label>Data do Fato</label>
-                    <input type="date" id="edit-occur-date" required>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                    <div class="input-block">
+                        <label>Data do Fato</label>
+                        <input type="date" id="edit-occur-date" required>
+                    </div>
+                    <div class="input-block">
+                        <label>Protocolo (Opcional)</label>
+                        <input type="text" id="edit-occur-protocol">
+                    </div>
                 </div>
 
-                <div class="input-block">
-                    <label>Tipo de Ocorrência</label>
-                    <div class="radio-group">
-                        <label class="radio-label positive">
-                            <input type="radio" name="edit-occur-type" value="positive" required>
-                            <span>👍 Positiva</span>
-                        </label>
-                        <label class="radio-label neutral">
-                            <input type="radio" name="edit-occur-type" value="neutral">
-                            <span>ℹ️ Neutra</span>
-                        </label>
-                        <label class="radio-label negative">
-                            <input type="radio" name="edit-occur-type" value="negative">
-                            <span>👎 Negativa</span>
-                        </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                    <div class="input-block">
+                        <label>Meio de Identificação</label>
+                        <select id="edit-occur-origin" required>
+                            <option value="Sistema/ERP">💻 Sistema / ERP</option>
+                            <option value="Telefonia">📞 Telefonia (Gravador)</option>
+                            <option value="Chat">💬 Chat / Huggy</option>
+                            <option value="Presencial">👀 Presencial / Observação</option>
+                        </select>
+                    </div>
+                    <div class="input-block">
+                        <label>Tipo</label>
+                        <select id="edit-occur-type-select" required style="font-weight: bold;">
+                            <option value="positive">👍 Elogio</option>
+                            <option value="neutral">ℹ️ Orientação</option>
+                            <option value="negative">👎 Ponto de Atenção</option>
+                        </select>
                     </div>
                 </div>
 
@@ -786,13 +811,13 @@
 
                 <div class="input-block">
                     <label>Descrição Detalhada</label>
-                    <textarea id="edit-occur-desc" rows="5" required
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
+                    <textarea id="edit-occur-desc" rows="6" required
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
                 </div>
 
                 <div style="text-align: right; margin-top: 20px;">
                     <button type="button" onclick="closeEditModal()"
-                        style="background: #ccc; margin-right: 10px; color: #333;">Cancelar</button>
+                        style="background: #ccc; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; color: #333;">Cancelar</button>
                     <button type="submit" class="btn-primary">Salvar Alterações</button>
                 </div>
             </form>
