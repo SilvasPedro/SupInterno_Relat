@@ -778,14 +778,39 @@ window.saveEditedOccurrence = async (event) => {
 window.closeEditModal = () => { document.getElementById('modal-edit-occurrence').style.display = 'none'; };
 window.saveEditedOccurrence = async (event) => {
     event.preventDefault();
+    
+    // Pega o ID (campo oculto)
     const id = document.getElementById('edit-occur-id').value;
-    const date = document.getElementById('edit-occur-date').value;
-    const title = document.getElementById('edit-occur-title').value;
-    const desc = document.getElementById('edit-occur-desc').value;
-    const type = document.querySelector('input[name="edit-occur-type"]:checked').value;
+    
+    // Verifica se os elementos existem antes de pegar o valor para evitar o erro
+    const typeSelect = document.getElementById('edit-occur-type-select');
+    const originInput = document.getElementById('edit-occur-origin');
+    const protocolInput = document.getElementById('edit-occur-protocol');
+
+    const updatedData = {
+        date: document.getElementById('edit-occur-date').value,
+        title: document.getElementById('edit-occur-title').value,
+        description: document.getElementById('edit-occur-desc').value,
+        
+        // Novos campos com verificação de segurança
+        type: typeSelect ? typeSelect.value : 'neutral',
+        origin: originInput ? originInput.value : 'Sistema/ERP',
+        protocol: protocolInput ? protocolInput.value : ''
+    };
+
     try {
-        await updateDoc(doc(db, "occurrences", id), { date, title, description: desc, type });
-        alert("Atualizado!"); closeEditModal(); loadAllOccurrences();
-    } catch (e) { alert("Erro: " + e.message); }
+        await updateDoc(doc(db, "occurrences", id), updatedData);
+        alert("Atualizado com sucesso!"); 
+        
+        closeEditModal(); 
+        
+        // Atualiza a tabela se a função existir
+        if (typeof loadAllOccurrences === 'function') {
+            loadAllOccurrences();
+        }
+    } catch (e) { 
+        console.error(e);
+        alert("Erro ao salvar: " + e.message); 
+    }
 };
 
