@@ -82,13 +82,13 @@ onAuthStateChanged(auth, async (user) => {
 window.showSection = (sectionId) => {
     // 1. Esconde todas as seções
     document.querySelectorAll('.section').forEach(el => el.style.display = 'none');
-    
+
     // 2. Atualiza menu ativo
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
     // Pequeno hack para achar o LI pai do onclick
     const allLinks = document.querySelectorAll('.nav-links li');
     allLinks.forEach(li => {
-        if(li.getAttribute('onclick') && li.getAttribute('onclick').includes(sectionId)) {
+        if (li.getAttribute('onclick') && li.getAttribute('onclick').includes(sectionId)) {
             li.classList.add('active');
         }
     });
@@ -181,7 +181,7 @@ async function loadDashboardData() {
         avgTmaTel: (u.accTmaTel / u.count).toFixed(2),
         avgTmaChat: (u.accTmaChat / u.count).toFixed(2),
         avgMonitoria: (u.accMonitoria / u.count).toFixed(1),
-        avgVolume: (u.accFinalizados / u.count).toFixed(1), 
+        avgVolume: (u.accFinalizados / u.count).toFixed(1),
         totalVolume: u.accFinalizados
     }));
 
@@ -209,20 +209,20 @@ function updateSectorKPI(curr, prev, key, elId, trendId, isTime) {
         let prevVal = isTime ? timeToSeconds(prev[key]) : prev[key];
 
         if (currVal > prevVal) {
-            trend.innerHTML = "▲"; 
+            trend.innerHTML = "▲";
             trend.style.color = "#dc3545"; // Vermelho se subir (geralmente ruim para tempo/reincidencia, adaptar se necessario)
         } else if (currVal < prevVal) {
-            trend.innerHTML = "▼"; 
+            trend.innerHTML = "▼";
             trend.style.color = "#28a745"; // Verde se descer
         } else {
-            trend.innerHTML = "─"; 
+            trend.innerHTML = "─";
             trend.style.color = "#ccc";
         }
-        
+
         // Exceção: FCR subir é bom
-        if(key === 'fcr') {
-             if (currVal > prevVal) trend.style.color = "#28a745";
-             else if (currVal < prevVal) trend.style.color = "#dc3545";
+        if (key === 'fcr') {
+            if (currVal > prevVal) trend.style.color = "#28a745";
+            else if (currVal < prevVal) trend.style.color = "#dc3545";
         }
     }
 }
@@ -268,19 +268,19 @@ window.openDetailModal = (type) => {
     let header = "Valor";
     let sortFn, valKey;
 
-    switch(type) {
-        case 'team-tel': title.innerText = "TMA Telefonia"; header = "Média (min)"; valKey = 'avgTmaTel'; sortFn = (a,b)=>b.avgTmaTel - a.avgTmaTel; break;
-        case 'team-chat': title.innerText = "TMA Chat"; header = "Média (min)"; valKey = 'avgTmaChat'; sortFn = (a,b)=>b.avgTmaChat - a.avgTmaChat; break;
-        case 'team-vol': title.innerText = "Produtividade"; header = "Média Finalizados"; valKey = 'avgVolume'; sortFn = (a,b)=>b.avgVolume - a.avgVolume; break;
-        case 'best-qa': title.innerText = "Qualidade"; header = "Nota Média"; valKey = 'avgMonitoria'; sortFn = (a,b)=>b.avgMonitoria - a.avgMonitoria; break;
-        case 'max-tel': title.innerText = "Ranking TMA Tel"; header = "Tempo Médio"; valKey = 'avgTmaTel'; sortFn = (a,b)=>b.avgTmaTel - a.avgTmaTel; break;
-        case 'max-chat': title.innerText = "Ranking TMA Chat"; header = "Tempo Médio"; valKey = 'avgTmaChat'; sortFn = (a,b)=>b.avgTmaChat - a.avgTmaChat; break;
+    switch (type) {
+        case 'team-tel': title.innerText = "TMA Telefonia"; header = "Média (min)"; valKey = 'avgTmaTel'; sortFn = (a, b) => b.avgTmaTel - a.avgTmaTel; break;
+        case 'team-chat': title.innerText = "TMA Chat"; header = "Média (min)"; valKey = 'avgTmaChat'; sortFn = (a, b) => b.avgTmaChat - a.avgTmaChat; break;
+        case 'team-vol': title.innerText = "Produtividade"; header = "Média Finalizados"; valKey = 'avgVolume'; sortFn = (a, b) => b.avgVolume - a.avgVolume; break;
+        case 'best-qa': title.innerText = "Qualidade"; header = "Nota Média"; valKey = 'avgMonitoria'; sortFn = (a, b) => b.avgMonitoria - a.avgMonitoria; break;
+        case 'max-tel': title.innerText = "Ranking TMA Tel"; header = "Tempo Médio"; valKey = 'avgTmaTel'; sortFn = (a, b) => b.avgTmaTel - a.avgTmaTel; break;
+        case 'max-chat': title.innerText = "Ranking TMA Chat"; header = "Tempo Médio"; valKey = 'avgTmaChat'; sortFn = (a, b) => b.avgTmaChat - a.avgTmaChat; break;
     }
 
     thVal.innerText = header;
     data.sort(sortFn);
     data.forEach((u, i) => {
-        tbody.innerHTML += `<tr><td>${i+1}º ${u.name}</td><td>${u[valKey]}</td></tr>`;
+        tbody.innerHTML += `<tr><td>${i + 1}º ${u.name}</td><td>${u[valKey]}</td></tr>`;
     });
 };
 
@@ -327,9 +327,11 @@ if (formMetrics) {
 
         const data = {
             userId, userName, weekStart, createdAt: new Date(),
-            atendimentosAbertos: Number(document.getElementById('at-abertos').value),
+            // Removido: atendimentosAbertos
+            // Removido: ligacoesRealizadas
+
+            // Campos mantidos:
             atendimentosFinalizados: Number(document.getElementById('at-finalizados').value),
-            ligacoesRealizadas: Number(document.getElementById('lig-realizadas').value || 0),
             ligacoesRecebidas: Number(document.getElementById('lig-recebidas').value || 0),
             ligacoesPerdidas: Number(document.getElementById('lig-perdidas').value || 0),
             tmeTelefonia: Number(document.getElementById('tme-tel').value || 0),
@@ -380,22 +382,22 @@ if (formOccur) {
     // Clone para remover listeners antigos e evitar duplicação
     const newForm = formOccur.cloneNode(true);
     formOccur.parentNode.replaceChild(newForm, formOccur);
-    
+
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const uid = document.getElementById('occur-user-select').value;
         const typeEl = document.querySelector('input[name="occur-type"]:checked');
-        
+
         // Novos Campos
         const origin = document.getElementById('occur-origin').value;
         const protocol = document.getElementById('occur-protocol').value;
 
         if (!uid || !typeEl || !origin) return alert("Preencha todos os campos obrigatórios.");
-        
+
         try {
             const sel = document.getElementById('occur-user-select');
-            
+
             // Salva no Firebase com os novos campos
             await setDoc(doc(collection(db, "occurrences")), {
                 userId: uid,
@@ -409,18 +411,18 @@ if (formOccur) {
                 read: false,
                 createdAt: new Date()
             });
-            
+
             alert("Feedback registrado com sucesso!");
             newForm.reset();
-            
+
             // Opcional: Recarregar lista se estiver aberta
-            if(document.getElementById('section-all-occurrences').style.display === 'block') {
+            if (document.getElementById('section-all-occurrences').style.display === 'block') {
                 loadAllOccurrences();
             }
 
-        } catch (e) { 
+        } catch (e) {
             console.error(e);
-            alert("Erro ao registrar: " + e.message); 
+            alert("Erro ao registrar: " + e.message);
         }
     });
 }
@@ -428,10 +430,10 @@ if (formOccur) {
 function resetMetricFormState() {
     isEditingMetric = false; editingMetricId = null;
     const btn = document.querySelector('#form-metrics button[type="submit"]');
-    if(btn) { btn.innerText = "Salvar Métricas da Semana"; btn.style.backgroundColor = ""; }
+    if (btn) { btn.innerText = "Salvar Métricas da Semana"; btn.style.backgroundColor = ""; }
     const sel = document.getElementById('metric-user-select');
     const dat = document.getElementById('metric-date');
-    if(sel) sel.disabled = false; if(dat) dat.disabled = false;
+    if (sel) sel.disabled = false; if (dat) dat.disabled = false;
     document.getElementById('form-metrics').reset();
 }
 
@@ -444,16 +446,16 @@ window.loadSectorHistory = async () => {
     const tbody = document.getElementById('sector-history-body');
     if (!tbody) return;
     tbody.innerHTML = "<tr><td colspan='5'>Carregando...</td></tr>";
-    
+
     try {
         const q = await getDocs(collection(db, "sector_metrics"));
         let docs = [];
         q.forEach(doc => docs.push(doc.data()));
         docs.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
-        
+
         tbody.innerHTML = "";
         if (docs.length === 0) { tbody.innerHTML = "<tr><td colspan='5'>Vazio.</td></tr>"; return; }
-        
+
         docs.forEach(d => {
             const dateFmt = d.weekStart.split('-').reverse().join('/');
             tbody.innerHTML += `
@@ -471,22 +473,22 @@ window.loadSectorHistory = async () => {
     } catch (e) { tbody.innerHTML = "<tr><td colspan='5'>Erro.</td></tr>"; }
 }
 
-window.deleteSectorKPI = async (id) => { 
-    if (!confirm("Tem certeza?")) return; 
-    await deleteDoc(doc(db, "sector_metrics", id)); 
-    loadSectorHistory(); loadDashboardData(); 
+window.deleteSectorKPI = async (id) => {
+    if (!confirm("Tem certeza?")) return;
+    await deleteDoc(doc(db, "sector_metrics", id));
+    loadSectorHistory(); loadDashboardData();
 }
 
-window.prepareEditSectorKPI = async (id) => { 
-    const docSnap = await getDoc(doc(db, "sector_metrics", id)); 
-    if (!docSnap.exists()) return; 
-    const data = docSnap.data(); 
-    showSection('lancamentos'); 
-    document.getElementById('sector-date').value = data.weekStart; 
-    document.getElementById('kpi-tmr').value = data.tmr; 
-    document.getElementById('kpi-fcr').value = data.fcr; 
-    document.getElementById('kpi-reincidencia').value = data.reincidência || data.reincidencia; 
-    window.scrollTo(0, 0); 
+window.prepareEditSectorKPI = async (id) => {
+    const docSnap = await getDoc(doc(db, "sector_metrics", id));
+    if (!docSnap.exists()) return;
+    const data = docSnap.data();
+    showSection('lancamentos');
+    document.getElementById('sector-date').value = data.weekStart;
+    document.getElementById('kpi-tmr').value = data.tmr;
+    document.getElementById('kpi-fcr').value = data.fcr;
+    document.getElementById('kpi-reincidencia').value = data.reincidência || data.reincidencia;
+    window.scrollTo(0, 0);
 }
 
 // B. Lista de Ocorrências
@@ -507,7 +509,7 @@ window.applyOccurrenceFilters = () => {
     const nameFilter = document.getElementById('filter-occur-name').value.toLowerCase();
     const typeFilter = document.getElementById('filter-occur-type').value;
     const dateFilter = document.getElementById('filter-occur-date').value;
-    
+
     const filteredData = occurrencesCache.filter(item => {
         const matchName = nameFilter ? (item.userName || '').toLowerCase().includes(nameFilter) : true;
         const matchType = typeFilter !== 'all' ? item.type === typeFilter : true;
@@ -525,14 +527,14 @@ window.renderOccurrencesTable = (dataList) => {
     dataList.forEach(item => {
         const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
         let rowStyle = item.type === 'positive' ? 'border-left:4px solid green' : (item.type === 'negative' ? 'border-left:4px solid red' : 'border-left:4px solid gray');
-        
+
         tbody.innerHTML += `
             <tr style="${rowStyle}">
                 <td>${dateFmt}</td>
                 <td><strong>${item.userName}</strong></td>
                 <td>${item.type}</td>
                 <td>${item.title}</td>
-                <td>${item.description.substring(0,60)}...</td>
+                <td>${item.description.substring(0, 60)}...</td>
                 <td>${item.read ? 'Lido' : 'Pendente'}</td>
                 <td><button onclick="prepareEditOccurrence('${item.id}')" class="action-btn btn-edit"><i class="material-icons">edit</i></button></td>
             </tr>`;
@@ -590,7 +592,7 @@ window.renderDetailedContent = () => {
                 <td><button onclick="viewMetricDetailAdmin('${r.userId}_${r.weekStart}')" class="action-btn"><i class="material-icons">visibility</i></button></td>
             </tr>
         `).join('');
-        
+
         container.innerHTML += `
             <div class="metric-card" style="margin-bottom:20px;">
                 <h3>🗓️ ${date.split('-').reverse().join('/')}</h3>
@@ -609,36 +611,46 @@ window.viewMetricDetailAdmin = async (docId) => {
     const docRef = doc(db, "weekly_metrics", docId);
     try {
         const snap = await getDoc(docRef);
-        if(snap.exists()) {
-             prepareEditMetric(docId); // Atalho: Abre o formulário de edição preenchido para visualização
+        if (snap.exists()) {
+            prepareEditMetric(docId); // Atalho: Abre o formulário de edição preenchido para visualização
         }
-    } catch(e) { alert("Erro ao abrir."); }
+    } catch (e) { alert("Erro ao abrir."); }
 };
 
 window.prepareEditMetric = async (id) => {
     const snap = await getDoc(doc(db, "weekly_metrics", id));
     if (!snap.exists()) return;
     const data = snap.data();
-    showSection('lancamentos');
-    const sel = document.getElementById('metric-user-select');
-    if(sel) { sel.value = data.userId; sel.disabled = true; }
-    const dat = document.getElementById('metric-date');
-    if(dat) { dat.value = data.weekStart; dat.disabled = true; }
 
-    document.getElementById('at-abertos').value = data.atendimentosAbertos;
+    showSection('lancamentos');
+
+    const sel = document.getElementById('metric-user-select');
+    if (sel) { sel.value = data.userId; sel.disabled = true; }
+
+    const dat = document.getElementById('metric-date');
+    if (dat) { dat.value = data.weekStart; dat.disabled = true; }
+
+    // Campos atualizados conforme novo HTML
     document.getElementById('at-finalizados').value = data.atendimentosFinalizados;
     document.getElementById('lig-recebidas').value = data.ligacoesRecebidas || 0;
-    document.getElementById('lig-realizadas').value = data.ligacoesRealizadas || 0;
+    // Removido: lig-realizadas
     document.getElementById('lig-perdidas').value = data.ligacoesPerdidas || 0;
     document.getElementById('tma-tel').value = data.tmaTelefonia;
     document.getElementById('tme-tel').value = data.tmeTelefonia || 0;
+    // Removido: at-abertos
     document.getElementById('at-huggy').value = data.atendimentosHuggy;
     document.getElementById('tma-huggy').value = data.tmaHuggy;
     document.getElementById('nota-monitoria').value = data.notaMonitoria;
 
-    isEditingMetric = true; editingMetricId = id;
+    isEditingMetric = true;
+    editingMetricId = id;
+
     const btn = document.querySelector('#form-metrics button[type="submit"]');
-    if(btn) { btn.innerText = "Atualizar Dados"; btn.style.backgroundColor = "#ffc107"; btn.style.color = "#333"; }
+    if (btn) {
+        btn.innerText = "Atualizar Dados";
+        btn.style.backgroundColor = "#ffc107";
+        btn.style.color = "#333";
+    }
 };
 
 window.prepareEditOccurrence = (id) => {
