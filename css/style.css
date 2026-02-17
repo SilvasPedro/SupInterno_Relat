@@ -1211,3 +1211,115 @@ button[onclick*="openHistory"]:hover {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ============================================================
+   14. MODERN DASHBOARD (NOVO)
+   ============================================================ */
+
+/* Grid de 4 colunas para as médias */
+.grid-four {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+/* Grid 2x2 para os gráficos */
+.charts-grid-2x2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+/* Estilo Moderno do Card */
+.modern-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04); /* Sombra ultra suave */
+    border: 1px solid rgba(0,0,0,0.03);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.modern-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* Barra lateral colorida decorativa */
+.card-decoration {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    border-radius: 4px 0 0 4px;
+}
+
+.modern-card h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #888;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.modern-card .value {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--color-dark-brown);
+    line-height: 1.2;
+}
+
+.modern-card .sub-text {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+}
+
+/* Ícone flutuante no card */
+.card-icon {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 50%;
+    padding: 10px;
+    color: #ccc;
+    transition: all 0.3s;
+}
+
+.modern-card:hover .card-icon {
+    background: var(--bg-body);
+    transform: scale(1.1);
+}
+
+/* Container do gráfico */
+.chart-box {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.03);
+    height: 320px; /* Altura fixa para alinhar */
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.chart-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #444;
+}
