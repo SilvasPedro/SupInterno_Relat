@@ -1,35 +1,217 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Colaboradores - Login</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <title>Login - Suporte Interno</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           ESTILO EXCLUSIVO DE LOGIN (MODERNO)
+           ========================================= */
+        
+        :root {
+            --color-coffee-dark: #2c1e1c;
+            --color-coffee-med: #4e342e;
+            --color-coffee-light: #8d6e63;
+            --color-taupe: #d7ccc8;
+            --color-accent: #ff7043; /* Um toque de cor para destaque */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            /* GRADIENTE DE FUNDO SOFISTICADO */
+            background: linear-gradient(135deg, var(--color-coffee-dark) 0%, var(--color-coffee-med) 50%, var(--color-coffee-light) 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 120s ease infinite; /* Animação suave do fundo */
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* CARD DE LOGIN (Efeito Vidro) */
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 50px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            backdrop-filter: blur(10px); /* Efeito Blur atrás */
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+        }
+
+        /* LOGO E TÍTULO */
+        .logo-area {
+            margin-bottom: 30px;
+        }
+
+        .logo-area i {
+            font-size: 48px;
+            color: var(--color-coffee-med);
+            background: var(--color-taupe);
+            padding: 15px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .login-container h2 {
+            color: var(--color-coffee-dark);
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        
+        .login-container p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        /* CAMPOS DE INPUT */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px 12px 45px; /* Espaço para o ícone */
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #fafafa;
+            color: #333;
+        }
+
+        .input-group input:focus {
+            border-color: var(--color-coffee-med);
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(78, 52, 46, 0.1);
+        }
+
+        /* BOTÃO */
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to right, var(--color-coffee-med), var(--color-coffee-dark));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(44, 30, 28, 0.2);
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(44, 30, 28, 0.3);
+            background: linear-gradient(to right, var(--color-coffee-dark), var(--color-coffee-med));
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* MENSAGEM DE ERRO */
+        #error-msg {
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 15px;
+            min-height: 20px;
+            font-weight: 500;
+        }
+
+        /* Responsividade */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+                width: 90%;
+            }
+        }
+    </style>
 </head>
 <body>
 
     <div class="login-container">
-        <div id="login-box">
-            <img src="assets/logo.png" alt="" width="100%">
-            <form id="login-form">
-                <input type="email" id="email" placeholder="Seu E-mail" required>
-                <input type="password" id="password" placeholder="Sua Senha" required>
-                <button type="submit">Entrar</button>
-            </form>
-            <p id="error-msg" class="error"></p>
+        <div class="logo-area">
+            <i class="material-icons">analytics</i>
+            <h2>Hubdesk</h2>
+            <p>Faça login para acessar o painel</p>
         </div>
 
-        <div id="first-access-box" style="display: none;">
-            <h2>Bem-vindo!</h2>
-            <p>Este é seu primeiro acesso. Por segurança, defina uma nova senha.</p>
-            <form id="new-password-form">
-                <input type="password" id="new-pass" placeholder="Nova Senha (mín 6 caracteres)" required>
-                <input type="password" id="confirm-pass" placeholder="Confirme a Nova Senha" required>
-                <button type="submit">Atualizar Senha e Entrar</button>
-            </form>
-            <p id="first-access-error" class="error"></p>
-        </div>
+        <form id="login-form">
+            <div class="input-group">
+                <label>Email Corporativo</label>
+                <div class="input-wrapper">
+                    <i class="material-icons">email</i>
+                    <input type="email" id="email" placeholder="nome@empresa.com" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Senha</label>
+                <div class="input-wrapper">
+                    <i class="material-icons">lock</i>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit">ACESSAR SISTEMA</button>
+            <div id="error-msg"></div>
+        </form>
     </div>
 
     <script type="module" src="js/auth.js"></script>
