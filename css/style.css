@@ -1640,3 +1640,9 @@ button[onclick*="openHistory"]:hover {
     font-style: italic;
     border-radius: 8px;
 }
+
+/* Botão de Excluir no Card */
+.h-card-header button:hover {
+    background-color: #ffebee !important;
+    border-radius: 50%;
+}

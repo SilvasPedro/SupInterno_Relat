@@ -129,6 +129,29 @@ function timeToSeconds(timeStr) {
 async function loadDashboardData() {
     console.log("Calculando Dashboard Completo...");
 
+    // 1. Busca Auditorias para cálculo de Conformidade
+    let allAudits = [];
+    try {
+        const qAudits = await getDocs(collection(db, "audits"));
+        qAudits.forEach(doc => allAudits.push(doc.data()));
+    } catch (e) { console.error("Erro audits", e); }
+
+    // 2. Cálculo Global: Soma todos os 'Conforme' dividido pelo Total de Auditorias
+    let globalAuditTotal = 0;
+    let globalAuditConforme = 0;
+
+    allAudits.forEach(audit => {
+        globalAuditTotal++;
+        if(audit.status === 'Conforme') {
+            globalAuditConforme++;
+        }
+    });
+
+    // Regra de 3 simples para a %
+    const globalQaPercent = globalAuditTotal > 0 
+        ? ((globalAuditConforme / globalAuditTotal) * 100).toFixed(1) 
+        : 0;
+
     // A. Busca Dados Individuais (Métricas Semanais)
     if (allMetricsCache.length === 0) {
         try {
@@ -185,7 +208,7 @@ async function loadDashboardData() {
         totalVolume: u.accFinalizados
     }));
 
-    processGlobalKPIs(globalAggregatedData);
+    processGlobalKPIs(globalAggregatedData, globalQaPercent);
 
     if (typeof renderDashboardCharts === "function") {
         renderDashboardCharts(globalAggregatedData, allMetricsCache);
@@ -227,19 +250,55 @@ function updateSectorKPI(curr, prev, key, elId, trendId, isTime) {
     }
 }
 
-function processGlobalKPIs(users) {
+function processGlobalKPIs(users, globalQaPercent) {
     if (users.length === 0) { resetKpis(); return; }
 
-    const calcAvg = (k) => (users.reduce((acc, u) => acc + parseFloat(u[k]), 0) / users.length).toFixed(1);
-    const calcAvgTime = (k) => (users.reduce((acc, u) => acc + parseFloat(u[k]), 0) / users.length).toFixed(2);
+    // Calcula médias apenas de quem tem métricas lançadas (KPIs de tempo/volume)
+    const usersWithMetrics = users.filter(u => u.avgVolume > 0 || u.avgTmaTel > 0);
+    let avgTmaTel = 0, avgTmaChat = 0, avgVol = 0;
 
-    updateCard('kpi-team-tel', calcAvgTime('avgTmaTel') + " min");
-    updateCard('kpi-team-chat', calcAvgTime('avgTmaChat') + " min");
-    updateCard('kpi-team-vol', parseFloat(calcAvg('avgVolume')).toFixed(0));
+    if(usersWithMetrics.length > 0) {
+        avgTmaTel = (usersWithMetrics.reduce((acc, u) => acc + parseFloat(u.avgTmaTel), 0) / usersWithMetrics.length).toFixed(2);
+        avgTmaChat = (usersWithMetrics.reduce((acc, u) => acc + parseFloat(u.avgTmaChat), 0) / usersWithMetrics.length).toFixed(2);
+        avgVol = (usersWithMetrics.reduce((acc, u) => acc + parseFloat(u.avgVolume), 0) / usersWithMetrics.length).toFixed(0);
+    }
 
-    // Rankings
-    const bestQa = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
-    if (bestQa) { updateCard('kpi-best-qa', bestQa.avgMonitoria); updateCard('kpi-best-qa-name', bestQa.name.split(' ')[0]); }
+    updateCard('kpi-team-tel', avgTmaTel + " min");
+    updateCard('kpi-team-chat', avgTmaChat + " min");
+    updateCard('kpi-team-vol', avgVol);
+
+    // --- CORREÇÃO DINÂMICA DO CARD QA ---
+    updateCard('kpi-team-qa', globalQaPercent + "%");
+    
+    const qaEl = document.getElementById('kpi-team-qa');
+    const qaCard = qaEl ? qaEl.closest('.metric-card') : null; // Pega o card pai para mudar a borda
+
+    if(qaEl) {
+        // Converte para número para garantir que a comparação funcione
+        const numVal = parseFloat(globalQaPercent);
+        let color = '#dc3545'; // Vermelho (Padrão/Baixo)
+
+        if(numVal >= 90) {
+            color = '#28a745'; // Verde (Meta)
+        } else if(numVal >= 75) {
+            color = '#ffc107'; // Amarelo (Atenção)
+        }
+
+        // Aplica a cor no Texto
+        qaEl.style.color = color;
+        
+        // Aplica a cor na Borda do Card (Opcional, mas recomendado)
+        if (qaCard) {
+            qaCard.style.borderLeftColor = color;
+        }
+    }
+
+    // --- Rankings ---
+    const bestMonitoria = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
+    if (bestMonitoria) { 
+        updateCard('kpi-best-qa', bestMonitoria.avgMonitoria); 
+        updateCard('kpi-best-qa-name', bestMonitoria.name.split(' ')[0]); 
+    }
 
     const maxTel = [...users].sort((a, b) => b.avgTmaTel - a.avgTmaTel)[0];
     if (maxTel) { updateCard('kpi-max-tel', maxTel.avgTmaTel + " min"); updateCard('kpi-max-tel-name', maxTel.name.split(' ')[0]); }
@@ -248,8 +307,11 @@ function processGlobalKPIs(users) {
     if (maxChat) { updateCard('kpi-max-chat', maxChat.avgTmaChat + " min"); updateCard('kpi-max-chat-name', maxChat.name.split(' ')[0]); }
 }
 
+
 function updateCard(id, val) { const el = document.getElementById(id); if (el) el.innerText = val; }
-function resetKpis() { ['kpi-team-tel', 'kpi-team-chat', 'kpi-team-vol', 'kpi-best-qa', 'kpi-max-tel', 'kpi-max-chat'].forEach(id => updateCard(id, '--')); }
+function resetKpis() { 
+    ['kpi-team-tel', 'kpi-team-chat', 'kpi-team-vol', 'kpi-best-qa', 'kpi-max-tel', 'kpi-max-chat', 'kpi-team-qa'].forEach(id => updateCard(id, '--')); 
+}
 window.forceDashboardRefresh = async () => { allMetricsCache = []; resetKpis(); await loadDashboardData(); alert("Dados atualizados!"); };
 
 // ============================================================
@@ -261,6 +323,7 @@ window.openDetailModal = (type) => {
     const tbody = document.getElementById('modal-kpi-body');
     const thVal = document.getElementById('modal-kpi-col-value');
 
+    if(!modal) return;
     modal.style.display = 'block';
     tbody.innerHTML = "";
 
@@ -269,10 +332,16 @@ window.openDetailModal = (type) => {
     let sortFn, valKey;
 
     switch (type) {
+        case 'team-qa': // <--- NOVO CASE
+            title.innerText = "Ranking de Qualidade (QA)"; 
+            header = "Nota Média"; 
+            valKey = 'avgMonitoria'; 
+            sortFn = (a, b) => b.avgMonitoria - a.avgMonitoria; 
+            break;
         case 'team-tel': title.innerText = "TMA Telefonia"; header = "Média (min)"; valKey = 'avgTmaTel'; sortFn = (a, b) => b.avgTmaTel - a.avgTmaTel; break;
         case 'team-chat': title.innerText = "TMA Chat"; header = "Média (min)"; valKey = 'avgTmaChat'; sortFn = (a, b) => b.avgTmaChat - a.avgTmaChat; break;
         case 'team-vol': title.innerText = "Produtividade"; header = "Média Finalizados"; valKey = 'avgVolume'; sortFn = (a, b) => b.avgVolume - a.avgVolume; break;
-        case 'best-qa': title.innerText = "Qualidade"; header = "Nota Média"; valKey = 'avgMonitoria'; sortFn = (a, b) => b.avgMonitoria - a.avgMonitoria; break;
+        case 'best-qa': title.innerText = "Qualidade (Top)"; header = "Nota Média"; valKey = 'avgMonitoria'; sortFn = (a, b) => b.avgMonitoria - a.avgMonitoria; break;
         case 'max-tel': title.innerText = "Ranking TMA Tel"; header = "Tempo Médio"; valKey = 'avgTmaTel'; sortFn = (a, b) => b.avgTmaTel - a.avgTmaTel; break;
         case 'max-chat': title.innerText = "Ranking TMA Chat"; header = "Tempo Médio"; valKey = 'avgTmaChat'; sortFn = (a, b) => b.avgTmaChat - a.avgTmaChat; break;
     }
@@ -813,4 +882,3 @@ window.saveEditedOccurrence = async (event) => {
         alert("Erro ao salvar: " + e.message); 
     }
 };
-
