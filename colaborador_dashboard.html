@@ -123,52 +123,30 @@
 
         <div id="section-history" class="section" style="display:none;">
             <div class="header-flex">
-                <h1>Meus Dados Completos</h1>
+                <div>
+                    <h1>Histórico Completo</h1>
+                    <p style="color: #666;">Visão detalhada de toda a sua jornada.</p>
+                </div>
+                <button onclick="window.loadFullHistory()" class="btn-primary"
+                    style="background: var(--color-taupe); padding: 8px 15px; font-size: 13px;">
+                    <i class="material-icons" style="vertical-align: middle;">refresh</i> Atualizar
+                </button>
             </div>
 
-            <div class="metric-card" style="margin-bottom: 30px;">
-                <h3
-                    style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
-                    📊 Histórico de Métricas
-                </h3>
-                <div style="overflow-x: auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Semana</th>
-                                <th>Monitoria</th>
-                                <th>TMA Tel</th>
-                                <th>TMA Chat</th>
-                                <th>Vol. Total</th>
-                                <th>Detalhes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-metrics-body">
-                        </tbody>
-                    </table>
-                </div>
+            <h3
+                style="color: var(--color-dark-brown); margin: 30px 0 15px 0; display:flex; align-items:center; gap:10px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <i class="material-icons">analytics</i> Histórico de Desempenho
+            </h3>
+            <div id="history-metrics-grid" class="history-grid">
+                <p style="color:#666;">Carregando métricas...</p>
             </div>
 
-            <div class="metric-card">
-                <h3
-                    style="color: var(--color-dark-brown); margin-bottom: 20px; border-bottom: 2px solid var(--color-cream); padding-bottom: 10px;">
-                    💬 Histórico de Feedbacks
-                </h3>
-                <div style="overflow-x: auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Título</th>
-                                <th>Descrição</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-occurrences-body">
-                        </tbody>
-                    </table>
-                </div>
+            <h3
+                style="color: var(--color-dark-brown); margin: 40px 0 15px 0; display:flex; align-items:center; gap:10px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <i class="material-icons">feedback</i> Histórico de Apontamentos
+            </h3>
+            <div id="history-occurrences-grid" class="history-grid">
+                <p style="color:#666;">Carregando feedbacks...</p>
             </div>
         </div>
         <div id="section-minhas-auditorias" class="section" style="display:none;">
@@ -276,6 +254,7 @@
     </div>
 
     <script type="module" src="js/colaborador.js"></script>
+    <script type="module" src="js/colaborador_history.js"></script>
     <script type="module" src="js/colaborador_audit.js"></script>
 </body>
 

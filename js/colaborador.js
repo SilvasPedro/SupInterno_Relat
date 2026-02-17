@@ -23,13 +23,23 @@ let metricsHistoryCache = [];
 // ============================================================
 // NAVEGAÇÃO E UTILITÁRIOS
 // ============================================================
+// Substitua a função showSection por esta:
 window.showSection = (sectionId) => {
     document.querySelectorAll('.section').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
+
     const activeLink = document.querySelector(`.nav-links li[onclick*="'${sectionId}'"]`);
     if (activeLink) activeLink.classList.add('active');
+
     const target = document.getElementById('section-' + sectionId);
-    if (target) target.style.display = 'block';
+    if (target) {
+        target.style.display = 'block';
+        
+        // GATILHO DE CORREÇÃO: Se abrir histórico, carrega os dados
+        if (sectionId === 'history' && typeof window.loadFullHistory === 'function') {
+            window.loadFullHistory();
+        }
+    }
 };
 
 window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
@@ -41,6 +51,8 @@ function timeToSeconds(timeStr) {
     while (p.length > 0) { s += m * parseInt(p.pop(), 10); m *= 60; }
     return s;
 }
+
+
 
 // ============================================================
 // LÓGICA DE DADOS (DASHBOARD)
@@ -56,6 +68,8 @@ onAuthStateChanged(auth, async (user) => {
         window.location.href = "index.html";
     }
 });
+
+
 
 async function loadDashboardData(uid) {
     try {
