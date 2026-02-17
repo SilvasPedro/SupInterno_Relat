@@ -43,6 +43,10 @@
             <li onclick="showSection('terceirizada-form', this)">
                 <i class="material-icons">rate_review</i> Avaliar Terceirizada
             </li>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 15px;">
+            <li onclick="showSection('auditoria', this); window.loadAuditTemplatesOptions()">
+                <i class="material-icons">fact_check</i> Auditoria QA
+            </li>
             <li onclick="logout()" class="logout-btn">
                 <i class="material-icons">logout</i> Sair
             </li>
@@ -633,6 +637,141 @@
                 </form>
             </div>
         </div>
+
+        <div id="section-auditoria" class="section" style="display:none;">
+            <div class="header-flex">
+                <div>
+                    <h1>Auditoria de Qualidade</h1>
+                    <p style="color: #666;">Auditoria de processos e conformidade técnica.</p>
+                </div>
+                <div>
+                    <button onclick="toggleAuditMode('audit')" class="btn-primary" style="background: var(--color-taupe);">Nova Auditoria</button>
+                    <button onclick="toggleAuditMode('config')" class="btn-primary" style="background: var(--color-dark-brown);">⚙️ Configurar Processos</button>
+                </div>
+            </div>
+
+            <div id="audit-perform-container">
+                <div class="metrics-form" style="border-left: 5px solid var(--color-main-red);">
+                    <form id="form-audit-execution">
+                        <h3 style="color: var(--color-dark-brown); margin-bottom: 20px;">📝 Dados do Atendimento</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <div class="input-block">
+                                <label>Data da Auditoria</label>
+                                <input type="date" id="audit-date" required>
+                            </div>
+                            <div class="input-block">
+                                <label>Colaborador Avaliado</label>
+                                <select id="audit-user-select" required>
+                                    <option value="">Carregando...</option>
+                                </select>
+                            </div>
+                            <div class="input-block">
+                                <label>Protocolo</label>
+                                <input type="number" id="audit-protocol" placeholder="Apenas números" required>
+                            </div>
+                            <div class="input-block">
+                                <label>Data do Ocorrido</label>
+                                <input type="date" id="audit-occurrence-date" required>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
+
+                        <div class="input-block">
+                            <label style="font-size: 16px;">📂 Selecione o Processo Auditado</label>
+                            <select id="audit-process-select" onchange="renderAuditChecklist()" style="font-size: 16px; padding: 12px; font-weight: bold; color: var(--color-dark-brown);" required>
+                                <option value="">Selecione um processo...</option>
+                                </select>
+                        </div>
+
+                        <div id="checklist-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee; display: none;">
+                            <h4 style="margin-bottom: 15px; color: #666;">✅ Checklist de Verificação</h4>
+                            <div id="checklist-items-area"></div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                            <div class="input-block">
+                                <label>Observações do Auditor</label>
+                                <textarea id="audit-obs" rows="4" placeholder="Detalhes sobre a falha ou observações gerais..."></textarea>
+                            </div>
+                            
+                            <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                                <label style="margin-bottom: 10px;">Resultado da Auditoria</label>
+                                <div id="audit-status-display" style="font-size: 20px; font-weight: bold; color: #ccc; padding: 10px; background: #eee; border-radius: 6px;">
+                                    Aguardando Checklist
+                                </div>
+                                <input type="hidden" id="audit-final-status" value="">
+                            </div>
+                        </div>
+
+                        <div style="text-align: right; margin-top: 20px;">
+                            <button type="submit" class="btn-primary" style="padding: 15px 40px;">💾 Salvar Auditoria</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div style="margin-top: 40px;">
+                    <h3>Histórico Recente de Auditorias</h3>
+                    <div style="overflow-x: auto; margin-top: 15px;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Colaborador</th>
+                                    <th>Processo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-history-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="audit-config-container" style="display: none;">
+                <div class="metrics-form" style="border-left: 5px solid #007bff;">
+                    <h3 style="color: #007bff; margin-bottom: 20px;">⚙️ Gerenciar Modelos de Checklist</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <form id="form-audit-template">
+                                <input type="hidden" id="template-id"> <div class="input-block">
+                                    <label>Nome do Processo (Ex: Lentidão, Sem Acesso)</label>
+                                    <input type="text" id="template-name" placeholder="Digite o nome do processo..." required>
+                                </div>
+
+                                <div class="input-block">
+                                    <label>Adicionar Critério ao Checklist</label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="text" id="new-criteria-input" placeholder="Ex: Verificar sinal óptico...">
+                                        <button type="button" onclick="addCriteriaToList()" class="btn-primary" style="width: auto;">+</button>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom: 20px;">
+                                    <label>Itens do Checklist:</label>
+                                    <ul id="temp-criteria-list" class="checklist-config-list">
+                                        <li style="color: #999; font-style: italic; padding: 10px;">Nenhum critério adicionado ainda.</li>
+                                    </ul>
+                                </div>
+
+                                <button type="submit" class="btn-primary" style="width: 100%;">Salvar Modelo de Processo</button>
+                                <button type="button" onclick="resetTemplateForm()" style="width: 100%; margin-top: 10px; background: #ccc; border:none; padding: 10px; border-radius: 8px; cursor: pointer;">Cancelar / Limpar</button>
+                            </form>
+                        </div>
+
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            <h4>Modelos Cadastrados</h4>
+                            <div id="templates-list-container" style="margin-top: 15px;">
+                                <p>Carregando...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
     <div id="modal-novo-colaborador" class="modal" style="z-index: 2001;">
         <div class="modal-content" style="width: 100%; max-width: 500px;">
@@ -973,6 +1112,7 @@
     </div>
 
     <script type="module" src="js/admin.js"></script>
+    <script type="module" src="js/audit.js"></script>
     <script type="module" src="js/hub_analytics.js"></script>
     <script type="module" src="js/third_party.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

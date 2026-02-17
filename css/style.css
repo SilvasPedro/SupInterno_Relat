@@ -1091,3 +1091,93 @@ button[onclick*="openHistory"]:hover {
     gap: 8px;
     justify-content: center;
 }
+
+/* ============================================================
+   13. ESTILOS DE AUDITORIA
+   ============================================================ */
+
+/* Lista de Configuração (Modo Edição) */
+.checklist-config-list {
+    list-style: none;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-top: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: white;
+}
+
+.checklist-config-list li {
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.checklist-config-list li:last-child {
+    border-bottom: none;
+}
+
+.btn-remove-item {
+    background: #ffebee;
+    color: #dc3545;
+    border: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-remove-item:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Checklist de Execução (Modo Auditoria) */
+.audit-check-item {
+    background: white;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.audit-check-item:hover {
+    border-color: var(--color-main-red);
+    background: #fffdfd;
+}
+
+.audit-check-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+    cursor: pointer;
+    accent-color: var(--color-main-red); /* Cor do checkbox moderno */
+}
+
+.audit-check-item span {
+    font-size: 15px;
+    color: #333;
+}
+
+/* Cards de Templates na lista lateral */
+.template-card-mini {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid var(--color-taupe);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
