@@ -1,11 +1,10 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+// Mantenha os imports de funções específicas do CDN, mas REMOVA initializeApp, getAuth e getFirestore
 import {
-    getAuth,
     onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
 import {
-    getFirestore,
     collection,
     getDocs,
     doc,
@@ -17,24 +16,15 @@ import {
     where
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+// --- IMPORTAÇÃO CENTRALIZADA (NOVO) ---
+import { auth, db } from "./config/firebase_config.js"; 
+
 // --- MÓDULOS EXTERNOS ---
 import { renderDashboardCharts } from "./charts.js";
-import "./history.js"; // Mantém compatibilidade com histórico legado
-import { loadCollaboratorsHub } from "./hub.js"; // <--- NOVO HUB DE CARDS
+import "./history.js";
+import { loadCollaboratorsHub } from "./hub.js";
 
-// 1. CONFIGURAÇÃO FIREBASE
-const firebaseConfig = {
-    apiKey: "AIzaSyCWve8E4PIwEeBf5nATJnFnlJkSe9YkbPE",
-    authDomain: "suporte-interno-ece8c.firebaseapp.com",
-    projectId: "suporte-interno-ece8c",
-    storageBucket: "suporte-interno-ece8c.firebasestorage.app",
-    messagingSenderId: "154422890108",
-    appId: "1:154422890108:web:efe6f03bc4c55dc11483f9"
-};
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 // --- ESTADO GLOBAL ---
 let allMetricsCache = [];
@@ -142,14 +132,14 @@ async function loadDashboardData() {
 
     allAudits.forEach(audit => {
         globalAuditTotal++;
-        if(audit.status === 'Conforme') {
+        if (audit.status === 'Conforme') {
             globalAuditConforme++;
         }
     });
 
     // Regra de 3 simples para a %
-    const globalQaPercent = globalAuditTotal > 0 
-        ? ((globalAuditConforme / globalAuditTotal) * 100).toFixed(1) 
+    const globalQaPercent = globalAuditTotal > 0
+        ? ((globalAuditConforme / globalAuditTotal) * 100).toFixed(1)
         : 0;
 
     // A. Busca Dados Individuais (Métricas Semanais)
@@ -257,7 +247,7 @@ function processGlobalKPIs(users, globalQaPercent) {
     const usersWithMetrics = users.filter(u => u.avgVolume > 0 || u.avgTmaTel > 0);
     let avgTmaTel = 0, avgTmaChat = 0, avgVol = 0;
 
-    if(usersWithMetrics.length > 0) {
+    if (usersWithMetrics.length > 0) {
         avgTmaTel = (usersWithMetrics.reduce((acc, u) => acc + parseFloat(u.avgTmaTel), 0) / usersWithMetrics.length).toFixed(2);
         avgTmaChat = (usersWithMetrics.reduce((acc, u) => acc + parseFloat(u.avgTmaChat), 0) / usersWithMetrics.length).toFixed(2);
         avgVol = (usersWithMetrics.reduce((acc, u) => acc + parseFloat(u.avgVolume), 0) / usersWithMetrics.length).toFixed(0);
@@ -269,24 +259,24 @@ function processGlobalKPIs(users, globalQaPercent) {
 
     // --- CORREÇÃO DINÂMICA DO CARD QA ---
     updateCard('kpi-team-qa', globalQaPercent + "%");
-    
+
     const qaEl = document.getElementById('kpi-team-qa');
     const qaCard = qaEl ? qaEl.closest('.metric-card') : null; // Pega o card pai para mudar a borda
 
-    if(qaEl) {
+    if (qaEl) {
         // Converte para número para garantir que a comparação funcione
         const numVal = parseFloat(globalQaPercent);
         let color = '#dc3545'; // Vermelho (Padrão/Baixo)
 
-        if(numVal >= 90) {
+        if (numVal >= 90) {
             color = '#28a745'; // Verde (Meta)
-        } else if(numVal >= 75) {
+        } else if (numVal >= 75) {
             color = '#ffc107'; // Amarelo (Atenção)
         }
 
         // Aplica a cor no Texto
         qaEl.style.color = color;
-        
+
         // Aplica a cor na Borda do Card (Opcional, mas recomendado)
         if (qaCard) {
             qaCard.style.borderLeftColor = color;
@@ -295,9 +285,9 @@ function processGlobalKPIs(users, globalQaPercent) {
 
     // --- Rankings ---
     const bestMonitoria = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
-    if (bestMonitoria) { 
-        updateCard('kpi-best-qa', bestMonitoria.avgMonitoria); 
-        updateCard('kpi-best-qa-name', bestMonitoria.name.split(' ')[0]); 
+    if (bestMonitoria) {
+        updateCard('kpi-best-qa', bestMonitoria.avgMonitoria);
+        updateCard('kpi-best-qa-name', bestMonitoria.name.split(' ')[0]);
     }
 
     const maxTel = [...users].sort((a, b) => b.avgTmaTel - a.avgTmaTel)[0];
@@ -309,8 +299,8 @@ function processGlobalKPIs(users, globalQaPercent) {
 
 
 function updateCard(id, val) { const el = document.getElementById(id); if (el) el.innerText = val; }
-function resetKpis() { 
-    ['kpi-team-tel', 'kpi-team-chat', 'kpi-team-vol', 'kpi-best-qa', 'kpi-max-tel', 'kpi-max-chat', 'kpi-team-qa'].forEach(id => updateCard(id, '--')); 
+function resetKpis() {
+    ['kpi-team-tel', 'kpi-team-chat', 'kpi-team-vol', 'kpi-best-qa', 'kpi-max-tel', 'kpi-max-chat', 'kpi-team-qa'].forEach(id => updateCard(id, '--'));
 }
 window.forceDashboardRefresh = async () => { allMetricsCache = []; resetKpis(); await loadDashboardData(); alert("Dados atualizados!"); };
 
@@ -323,7 +313,7 @@ window.openDetailModal = (type) => {
     const tbody = document.getElementById('modal-kpi-body');
     const thVal = document.getElementById('modal-kpi-col-value');
 
-    if(!modal) return;
+    if (!modal) return;
     modal.style.display = 'block';
     tbody.innerHTML = "";
 
@@ -333,10 +323,10 @@ window.openDetailModal = (type) => {
 
     switch (type) {
         case 'team-qa': // <--- NOVO CASE
-            title.innerText = "Ranking de Qualidade (QA)"; 
-            header = "Nota Média"; 
-            valKey = 'avgMonitoria'; 
-            sortFn = (a, b) => b.avgMonitoria - a.avgMonitoria; 
+            title.innerText = "Ranking de Qualidade (QA)";
+            header = "Nota Média";
+            valKey = 'avgMonitoria';
+            sortFn = (a, b) => b.avgMonitoria - a.avgMonitoria;
             break;
         case 'team-tel': title.innerText = "TMA Telefonia"; header = "Média (min)"; valKey = 'avgTmaTel'; sortFn = (a, b) => b.avgTmaTel - a.avgTmaTel; break;
         case 'team-chat': title.innerText = "TMA Chat"; header = "Média (min)"; valKey = 'avgTmaChat'; sortFn = (a, b) => b.avgTmaChat - a.avgTmaChat; break;
@@ -595,17 +585,17 @@ window.renderOccurrencesTable = (dataList) => {
 
     dataList.forEach(item => {
         const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '-';
-        
+
         // Cores da borda lateral baseada no tipo
         let borderStyle = "5px solid #ccc";
         let typeIcon = "❓";
-        
+
         if (item.type === 'positive') { borderStyle = "5px solid #28a745"; typeIcon = "👍"; }
         else if (item.type === 'neutral') { borderStyle = "5px solid #ffc107"; typeIcon = "ℹ️"; }
         else if (item.type === 'negative') { borderStyle = "5px solid #dc3545"; typeIcon = "👎"; }
 
-        const statusBadge = item.read 
-            ? '<span style="color:#28a745; background:#e8f5e9; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold;">Lido</span>' 
+        const statusBadge = item.read
+            ? '<span style="color:#28a745; background:#e8f5e9; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold;">Lido</span>'
             : '<span style="color:#d63384; background:#f3e5f5; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold;">Pendente</span>';
 
         // TRUNCAR DESCRIÇÃO PARA NÃO QUEBRAR O LAYOUT
@@ -643,7 +633,7 @@ window.viewOccurrence = (id) => {
 
     const modal = document.getElementById('modal-view-occurrence');
     const content = document.getElementById('view-occur-content');
-    
+
     let color = item.type === 'positive' ? '#28a745' : (item.type === 'negative' ? '#dc3545' : '#ffc107');
     const dateFmt = item.date.split('-').reverse().join('/');
 
@@ -678,7 +668,7 @@ window.viewOccurrence = (id) => {
 
 // C. FUNÇÃO DE DELETAR (NOVA)
 window.deleteOccurrence = async (id) => {
-    if(!confirm("⚠️ Tem certeza absoluta que deseja excluir este feedback? Esta ação não pode ser desfeita.")) return;
+    if (!confirm("⚠️ Tem certeza absoluta que deseja excluir este feedback? Esta ação não pode ser desfeita.")) return;
 
     try {
         await deleteDoc(doc(db, "occurrences", id));
@@ -811,7 +801,7 @@ window.prepareEditOccurrence = (id) => {
     document.getElementById('edit-occur-date').value = item.date;
     document.getElementById('edit-occur-title').value = item.title;
     document.getElementById('edit-occur-desc').value = item.description;
-    
+
     // Novos Campos
     document.getElementById('edit-occur-protocol').value = item.protocol || '';
     document.getElementById('edit-occur-origin').value = item.origin || 'Sistema/ERP'; // Default se vazio
@@ -822,9 +812,9 @@ window.prepareEditOccurrence = (id) => {
 
 window.saveEditedOccurrence = async (event) => {
     event.preventDefault();
-    
+
     const id = document.getElementById('edit-occur-id').value;
-    
+
     const updatedData = {
         date: document.getElementById('edit-occur-date').value,
         title: document.getElementById('edit-occur-title').value,
@@ -836,21 +826,21 @@ window.saveEditedOccurrence = async (event) => {
 
     try {
         await updateDoc(doc(db, "occurrences", id), updatedData);
-        alert("Atualizado com sucesso!"); 
-        closeEditModal(); 
+        alert("Atualizado com sucesso!");
+        closeEditModal();
         loadAllOccurrences(); // Recarrega a tabela
-    } catch (e) { 
-        alert("Erro: " + e.message); 
+    } catch (e) {
+        alert("Erro: " + e.message);
     }
 };
 
 window.closeEditModal = () => { document.getElementById('modal-edit-occurrence').style.display = 'none'; };
 window.saveEditedOccurrence = async (event) => {
     event.preventDefault();
-    
+
     // Pega o ID (campo oculto)
     const id = document.getElementById('edit-occur-id').value;
-    
+
     // Verifica se os elementos existem antes de pegar o valor para evitar o erro
     const typeSelect = document.getElementById('edit-occur-type-select');
     const originInput = document.getElementById('edit-occur-origin');
@@ -860,7 +850,7 @@ window.saveEditedOccurrence = async (event) => {
         date: document.getElementById('edit-occur-date').value,
         title: document.getElementById('edit-occur-title').value,
         description: document.getElementById('edit-occur-desc').value,
-        
+
         // Novos campos com verificação de segurança
         type: typeSelect ? typeSelect.value : 'neutral',
         origin: originInput ? originInput.value : 'Sistema/ERP',
@@ -869,16 +859,16 @@ window.saveEditedOccurrence = async (event) => {
 
     try {
         await updateDoc(doc(db, "occurrences", id), updatedData);
-        alert("Atualizado com sucesso!"); 
-        
-        closeEditModal(); 
-        
+        alert("Atualizado com sucesso!");
+
+        closeEditModal();
+
         // Atualiza a tabela se a função existir
         if (typeof loadAllOccurrences === 'function') {
             loadAllOccurrences();
         }
-    } catch (e) { 
+    } catch (e) {
         console.error(e);
-        alert("Erro ao salvar: " + e.message); 
+        alert("Erro ao salvar: " + e.message);
     }
 };

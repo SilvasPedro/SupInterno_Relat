@@ -2,20 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// --- 1. CONFIGURAÇÃO DO FIREBASE ---
-// COPIE E COLE SUA CONFIGURAÇÃO AQUI (Do Console do Firebase)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCWve8E4PIwEeBf5nATJnFnlJkSe9YkbPE",
-    authDomain: "suporte-interno-ece8c.firebaseapp.com",
-    projectId: "suporte-interno-ece8c",
-    storageBucket: "suporte-interno-ece8c.firebasestorage.app",
-    messagingSenderId: "154422890108",
-    appId: "1:154422890108:web:efe6f03bc4c55dc11483f9"
-  };
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { auth, db } from "./config/firebase_config.js"; 
 
 // --- 2. ELEMENTOS DO DOM ---
 const loginForm = document.getElementById('login-form');

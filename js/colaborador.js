@@ -1,20 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-// CONFIGURAÇÃO
-const firebaseConfig = {
-    apiKey: "AIzaSyCWve8E4PIwEeBf5nATJnFnlJkSe9YkbPE",
-    authDomain: "suporte-interno-ece8c.firebaseapp.com",
-    projectId: "suporte-interno-ece8c",
-    storageBucket: "suporte-interno-ece8c.firebasestorage.app",
-    messagingSenderId: "154422890108",
-    appId: "1:154422890108:web:efe6f03bc4c55dc11483f9"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { auth, db } from "./config/firebase_config.js"; 
 
 // Variáveis de Gráfico globais para permitir destruição/recriação
 let chartInstances = {}; 

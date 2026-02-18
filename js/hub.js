@@ -6,19 +6,7 @@ import {
     getAuth, createUserWithEmailAndPassword 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-// Configuração Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyCWve8E4PIwEeBf5nATJnFnlJkSe9YkbPE",
-    authDomain: "suporte-interno-ece8c.firebaseapp.com",
-    projectId: "suporte-interno-ece8c",
-    storageBucket: "suporte-interno-ece8c.firebasestorage.app",
-    messagingSenderId: "154422890108",
-    appId: "1:154422890108:web:efe6f03bc4c55dc11483f9"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+import { auth, db } from "./config/firebase_config.js"; 
 
 // Cache global para evitar erros de aspas no HTML
 window.usersCache = {};
