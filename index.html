@@ -8,16 +8,16 @@
     <link rel="shortcut icon" href="assets/favicon.png" type="image/x-icon">
     
     <style>
-        /* =========================================
-           ESTILO EXCLUSIVO DE LOGIN (MODERNO)
+/* =========================================
+           ESTILO EXCLUSIVO DE LOGIN (MODERNO E MONOCROMÁTICO)
            ========================================= */
         
         :root {
-            --color-coffee-dark: #2c1e1c;
-            --color-coffee-med: #4e342e;
-            --color-coffee-light: #8d6e63;
-            --color-taupe: #d7ccc8;
-            --color-accent: #ff7043; /* Um toque de cor para destaque */
+            --color-mono-dark: #1a1a1a;   /* Preto quase absoluto */
+            --color-mono-med: #333333;    /* Cinza escuro */
+            --color-mono-light: #666666;  /* Cinza médio */
+            --color-taupe-light: #e0e0e0; /* Cinza claro */
+            --color-accent: #000000;      /* Preto puro para destaque */
         }
 
         * {
@@ -34,9 +34,10 @@
             justify-content: center;
             align-items: center;
             
-            /* GRADIENTE DE FUNDO SOFISTICADO */
-            background: linear-gradient(135deg, var(--color-coffee-dark) 0%, var(--color-coffee-med) 50%, var(--color-coffee-light) 100%);
+            /* GRADIENTE DE FUNDO SOFISTICADO (Tons de Cinza/Preto) */
+            background: linear-gradient(135deg, var(--color-mono-dark) 0%, var(--color-mono-med) 50%, var(--color-mono-dark) 100%);
             background-size: 400% 400%;
+            animation: gradientBG 45s ease infinite;
         }
 
         @keyframes gradientBG {
@@ -50,12 +51,12 @@
             background: rgba(255, 255, 255, 0.95);
             padding: 40px 50px;
             border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
             width: 100%;
             max-width: 400px;
             text-align: center;
             position: relative;
-            backdrop-filter: blur(10px); /* Efeito Blur atrás */
+            backdrop-filter: blur(10px);
             transform: translateY(0);
             transition: transform 0.3s ease;
         }
@@ -71,23 +72,23 @@
 
         .logo-area i {
             font-size: 48px;
-            color: var(--color-coffee-med);
-            background: var(--color-taupe);
+            color: var(--color-mono-dark);
+            background: var(--color-taupe-light);
             padding: 15px;
             border-radius: 50%;
             margin-bottom: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .login-container h2 {
-            color: var(--color-coffee-dark);
+            color: var(--color-accent);
             font-weight: 700;
             margin-bottom: 5px;
             font-size: 24px;
         }
         
         .login-container p {
-            color: #777;
+            color: var(--color-mono-light);
             font-size: 14px;
             margin-bottom: 30px;
         }
@@ -103,7 +104,7 @@
             display: block;
             font-size: 12px;
             font-weight: 600;
-            color: #666;
+            color: var(--color-mono-light);
             margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -123,27 +124,27 @@
 
         .input-group input {
             width: 100%;
-            padding: 12px 15px 12px 45px; /* Espaço para o ícone */
+            padding: 12px 15px 12px 45px;
             border: 2px solid #eee;
             border-radius: 8px;
             font-size: 15px;
             transition: all 0.3s;
             background: #fafafa;
-            color: #333;
+            color: var(--color-mono-dark);
         }
 
         .input-group input:focus {
-            border-color: var(--color-coffee-med);
+            border-color: var(--color-mono-med);
             background: white;
             outline: none;
-            box-shadow: 0 0 0 4px rgba(78, 52, 46, 0.1);
+            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
         }
 
         /* BOTÃO */
         button {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(to right, var(--color-coffee-med), var(--color-coffee-dark));
+            background: linear-gradient(to right, var(--color-mono-med), var(--color-mono-dark));
             color: white;
             border: none;
             border-radius: 8px;
@@ -152,26 +153,35 @@
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(44, 30, 28, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         button:hover {
             transform: scale(1.02);
-            box-shadow: 0 6px 20px rgba(44, 30, 28, 0.3);
-            background: linear-gradient(to right, var(--color-coffee-dark), var(--color-coffee-med));
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, var(--color-mono-dark), var(--color-accent));
         }
 
         button:active {
             transform: scale(0.98);
         }
 
-        /* MENSAGEM DE ERRO */
+        /* MENSAGEM DE ERRO NEUTRA */
         #error-msg {
-            color: #dc3545;
+            color: var(--color-mono-dark);
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px;
             font-size: 13px;
             margin-top: 15px;
             min-height: 20px;
-            font-weight: 500;
+            font-weight: 600;
+            display: none; /* Oculte por padrão se estiver vazio */
+        }
+        
+        #error-msg:not(:empty) {
+            display: block; /* Mostra apenas quando tiver conteúdo */
         }
 
         /* Responsividade */
