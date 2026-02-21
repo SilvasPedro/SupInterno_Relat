@@ -12,54 +12,57 @@
 
 <body>
 
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
+        <button class="toggle-sidebar-btn" onclick="toggleSidebar()">
+            <i class="material-icons" id="toggle-icon">menu_open</i>
+        </button>
         <div class="sidebar-header">
-            <img src="assets/logo.png" alt="" width="80%" height="auto">
+            <img src="assets/logo.png" id="sidebar-logo" alt="Logo" width="80%" height="auto">
             <p id="admin-name">Carregando...</p>
         </div>
         <ul class="nav-links">
             <li onclick="showSection('dashboard', this)" class="active">
-                <i class="material-icons">dashboard</i> Visão Geral
+                <i class="material-icons">dashboard</i> <span>Visão Geral</span>
             </li>
             <li onclick="showSection('colaboradores', this)">
-                <i class="material-icons">people</i> Hub Colaboradores
+                <i class="material-icons">people</i> <span>Hub Colaboradores</span>
             </li>
             <li onclick="showSection('lancamentos', this)">
-                <i class="material-icons">assessment</i> Lançar Desempenho
+                <i class="material-icons">assessment</i> <span>Lançar Desempenho</span>
             </li>
 
             <li onclick="showSection('sector-history', this); loadSectorHistory()">
-                <i class="material-icons">timeline</i> Histórico KPIs
+                <i class="material-icons">timeline</i> <span>Histórico KPIs</span>
             </li>
             <li onclick="showSection('ocorrencias', this)">
-                <i class="material-icons">feedback</i> Nova Ocorrência
+                <i class="material-icons">feedback</i> <span>Nova Ocorrência</span>
             </li>
             <li onclick="showSection('all-occurrences', this); loadAllOccurrences()">
-                <i class="material-icons">view_list</i> Todas Ocorrências
+                <i class="material-icons">view_list</i> <span>Todas Ocorrências</span>
             </li>
             <li onclick="showSection('gerenciar-avaliacoes', this); window.initMetricsManager()">
-                <i class="material-icons">library_books</i> Gerenciar Avaliações
+                <i class="material-icons">library_books</i> <span>Gerenciar Avaliações</span>
             </li>
             <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 15px;">
             <li onclick="showSection('terceirizada-dash', this); loadThirdPartyDashboard()">
-                <i class="material-icons">business</i> Dash Terceirizada
+                <i class="material-icons">business</i> <span>Dash Terceirizada</span>
             </li>
             <li onclick="showSection('terceirizada-form', this)">
-                <i class="material-icons">rate_review</i> Avaliar Terceirizada
+                <i class="material-icons">rate_review</i> <span>Avaliar Terceirizada</span>
             </li>
             <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 15px;">
             <li onclick="showSection('auditoria', this); window.loadAuditTemplatesOptions()">
-                <i class="material-icons">fact_check</i> Auditoria QA
+                <i class="material-icons">fact_check</i> <span>Auditoria QA</span>
             </li>
             <li onclick="logout()" class="logout-btn">
-                <i class="material-icons">logout</i> Sair
+                <i class="material-icons">logout</i> <span>Sair</span>
             </li>
         </ul>
     </nav>
 
     <main class="main-content">
 
-<div id="section-dashboard" class="section">
+        <div id="section-dashboard" class="section">
             <div class="header-flex">
                 <div>
                     <h1>Visão Geral da Gestão</h1>
@@ -67,69 +70,75 @@
                 </div>
                 <div style="display:flex; gap:10px;">
                     <span id="last-update" style="font-size:12px; color:#888; align-self:center;"></span>
-                    <button onclick="forceDashboardRefresh()" class="btn-primary" title="Recalcular Dados" style="padding: 10px 15px;">
+                    <button onclick="forceDashboardRefresh()" class="btn-primary" title="Recalcular Dados"
+                        style="padding: 10px 15px;">
                         <i class="material-icons" style="font-size: 20px; vertical-align: middle;">sync</i>
                     </button>
                 </div>
             </div>
 
-            <h3 style="margin-bottom: 15px; color: var(--color-taupe); font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
+            <h3
+                style="margin-bottom: 15px; color: var(--color-taupe); font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
                 🚀 KPIs Globais do Setor
             </h3>
             <div class="metrics-grid">
-                <div class="metric-card kpi-card" style="border-left: 5px solid #6f42c1;">
+                <div class="metric-card kpi-card">
                     <h3>⏱️ TMR (Setor)</h3>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <h1 id="kpi-sector-tmr" style="font-size: 2.5em; margin: 0; color: #6f42c1;">--:--</h1>
+                        <h1 id="kpi-sector-tmr" style="font-size: 2.5em;">--:--</h1>
                         <span id="trend-tmr" style="font-size: 1.5em; font-weight: bold;"></span>
                     </div>
-                    <p>Tempo Médio de Resolução</p>
+                    <p>Meta: ≦ 00:20:00</p>
                 </div>
 
-                <div class="metric-card kpi-card" style="border-left: 5px solid #17a2b8;">
+                <div class="metric-card kpi-card">
                     <h3>🎯 FCR (Setor)</h3>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <h1 id="kpi-sector-fcr" style="font-size: 2.5em; margin: 0; color: #17a2b8;">--%</h1>
+                        <h1 id="kpi-sector-fcr" style="font-size: 2.5em;">--%</h1>
                         <span id="trend-fcr" style="font-size: 1.5em; font-weight: bold;"></span>
                     </div>
-                    <p>Resolução no 1º Contato</p>
+                    <p>Meta: ≧ 80%</p>
                 </div>
 
-                <div class="metric-card kpi-card" style="border-left: 5px solid #dc3545;">
+                <div class="metric-card kpi-card">
                     <h3>🔄 Reincidência</h3>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <h1 id="kpi-sector-rein" style="font-size: 2.5em; margin: 0; color: #dc3545;">--%</h1>
+                        <h1 id="kpi-sector-rein" style="font-size: 2.5em;">--%</h1>
                         <span id="trend-rein" style="font-size: 1.5em; font-weight: bold;"></span>
                     </div>
-                    <p>Taxa de Retorno</p>
+                    <p>Meta: ≦ 20%</p>
                 </div>
             </div>
 
             <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0 30px 0;">
 
-            <h3 style="margin-bottom: 15px; color: var(--color-main-red); font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
+            <h3
+                style="margin-bottom: 15px; color: var(--color-main-red); font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
                 👥 Performance Média da Equipe
             </h3>
             <div class="metrics-grid">
-                <div class="metric-card kpi-card"  style="border-left: 5px solid #28a745; cursor:pointer;">
+                <div class="metric-card kpi-card" style="border-left: 5px solid #28a745; cursor:pointer;">
                     <h3>⭐ Média QA (Geral)</h3>
                     <h1 id="kpi-team-qa">--</h1>
                     <p>Média de todos os colaboradores</p>
                 </div>
 
-                <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')" style="border-left: 5px solid #6f42c1; cursor:pointer;">
+                <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')"
+                    style="border-left: 5px solid #6f42c1; cursor:pointer;">
                     <h3>✅ Vol. Médio / Agente</h3>
                     <h1 id="kpi-team-vol" style="color: #6f42c1;">0</h1>
                     <p>Finalizações Semanais</p>
                 </div>
 
-                <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')" style="border-left: 5px solid #007bff; cursor:pointer;">
+                <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')"
+                    style="border-left: 5px solid #007bff; cursor:pointer;">
                     <h3>📞 TMA Médio (Voz)</h3>
                     <h1 id="kpi-team-tel" style="color: #007bff;">--:--</h1>
                     <p>Tempo Médio em Linha</p>
                 </div>
 
-                <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')" style="border-left: 5px solid #17a2b8; cursor:pointer;">
+                <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')"
+                    style="border-left: 5px solid #17a2b8; cursor:pointer;">
                     <h3>💬 TMA Médio (Chat)</h3>
                     <h1 id="kpi-team-chat" style="color: #17a2b8;">--:--</h1>
                     <p>Tempo Médio de Chat</p>
@@ -138,23 +147,27 @@
 
             <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0 30px 0;">
 
-            <h3 style="margin-bottom: 15px; color: #555; font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
+            <h3
+                style="margin-bottom: 15px; color: #555; font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
                 🏆 Destaques & Pontos de Atenção
             </h3>
             <div class="metrics-grid">
-                <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')" style="border-left: 5px solid #ffc107; cursor:pointer;">
+                <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')"
+                    style="border-left: 5px solid #ffc107; cursor:pointer;">
                     <h3>🥇 Top 1 Qualidade</h3>
                     <h1 id="kpi-best-qa" style="color: #d39e00;">--</h1>
                     <p id="kpi-best-qa-name" style="font-weight:bold; color:#555;">--</p>
                 </div>
 
-                <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')" style="border-left: 5px solid #dc3545; cursor:pointer;">
+                <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')"
+                    style="border-left: 5px solid #dc3545; cursor:pointer;">
                     <h3>⚠️ Maior TMA (Voz)</h3>
                     <h1 id="kpi-max-tel" style="color: #dc3545;">--:--</h1>
                     <p id="kpi-max-tel-name" style="font-weight:bold; color:#555;">--</p>
                 </div>
 
-                <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')" style="border-left: 5px solid #dc3545; cursor:pointer;">
+                <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')"
+                    style="border-left: 5px solid #dc3545; cursor:pointer;">
                     <h3>⚠️ Maior TMA (Chat)</h3>
                     <h1 id="kpi-max-chat" style="color: #dc3545;">--:--</h1>
                     <p id="kpi-max-chat-name" style="font-weight:bold; color:#555;">--</p>
@@ -162,9 +175,10 @@
             </div>
 
             <br>
-            
+
             <h3 style="margin-top: 20px; margin-bottom: 20px; color: var(--color-dark-brown);">📈 Análise Gráfica</h3>
-            <div class="charts-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
+            <div class="charts-container"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
                 <div class="metric-card">
                     <h4 style="margin-bottom: 15px; color: #666;">Ranking Qualidade (Monitoria)</h4>
                     <div style="height: 300px;"><canvas id="chartRankingMonitoria"></canvas></div>
@@ -201,7 +215,7 @@
             <h1>Lançamento de Desempenho</h1>
 
             <div class="metrics-form" style="border-left: 5px solid #6f42c1; margin-bottom: 30px;">
-                <h2 style="color: #6f42c1; margin-bottom: 20px;">🚀 Indicadores Globais do Setor</h2>
+                <h2>🚀 Indicadores Globais do Setor</h2>
                 <form id="form-sector-metrics">
                     <div class="form-group-header">
                         <div class="input-block">
@@ -817,20 +831,22 @@
                 </div>
             </div>
 
-            <div class="metrics-form" style="margin-bottom: 25px; padding: 20px; border-left: 5px solid var(--color-taupe);">
+            <div class="metrics-form"
+                style="margin-bottom: 25px; padding: 20px; border-left: 5px solid var(--color-taupe);">
                 <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
                     <div class="input-block">
                         <label>Filtrar por Colaborador</label>
                         <select id="filter-metrics-user" onchange="window.filterMetricsManager()">
                             <option value="">Todos os Colaboradores</option>
-                            </select>
+                        </select>
                     </div>
                     <div class="input-block">
                         <label>Filtrar por Data (Semana)</label>
                         <input type="date" id="filter-metrics-date" onchange="window.filterMetricsManager()">
                     </div>
                     <div>
-                        <button onclick="window.initMetricsManager()" class="btn-primary" style="height: 48px; display: flex; align-items: center; gap: 5px;">
+                        <button onclick="window.initMetricsManager()" class="btn-primary"
+                            style="height: 48px; display: flex; align-items: center; gap: 5px;">
                             <i class="material-icons">refresh</i> Atualizar
                         </button>
                     </div>
@@ -846,11 +862,12 @@
             <div class="modal-content" style="max-width: 500px;">
                 <h3 style="margin-bottom: 20px; color: var(--color-dark-brown);">✏️ Editar Avaliação Semanal</h3>
                 <input type="hidden" id="edit-metric-id">
-                
+
                 <form id="form-edit-metric">
                     <div style="margin-bottom: 15px;">
                         <label style="font-size:12px; color:#666;">Colaborador</label>
-                        <input type="text" id="edit-metric-name" disabled style="background:#eee; border:1px solid #ddd; width:100%; padding:8px; border-radius:4px;">
+                        <input type="text" id="edit-metric-name" disabled
+                            style="background:#eee; border:1px solid #ddd; width:100%; padding:8px; border-radius:4px;">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -864,23 +881,36 @@
                         </div>
                     </div>
 
-                    <h4 style="font-size:14px; margin: 15px 0 10px 0; color:#555; border-bottom:1px solid #eee; padding-bottom:5px;">Telefonia</h4>
+                    <h4
+                        style="font-size:14px; margin: 15px 0 10px 0; color:#555; border-bottom:1px solid #eee; padding-bottom:5px;">
+                        Telefonia</h4>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div class="input-block"><label>TMA (min)</label><input type="number" step="0.01" id="edit-tma-tel"></div>
-                        <div class="input-block"><label>TME (seg)</label><input type="number" step="0.01" id="edit-tme-tel"></div>
-                        <div class="input-block"><label>Lig. Recebidas</label><input type="number" id="edit-lig-rec"></div>
-                        <div class="input-block"><label>Lig. Perdidas</label><input type="number" id="edit-lig-per"></div>
+                        <div class="input-block"><label>TMA (min)</label><input type="number" step="0.01"
+                                id="edit-tma-tel"></div>
+                        <div class="input-block"><label>TME (seg)</label><input type="number" step="0.01"
+                                id="edit-tme-tel"></div>
+                        <div class="input-block"><label>Lig. Recebidas</label><input type="number" id="edit-lig-rec">
+                        </div>
+                        <div class="input-block"><label>Lig. Perdidas</label><input type="number" id="edit-lig-per">
+                        </div>
                     </div>
 
-                    <h4 style="font-size:14px; margin: 15px 0 10px 0; color:#555; border-bottom:1px solid #eee; padding-bottom:5px;">Chat / Volume</h4>
+                    <h4
+                        style="font-size:14px; margin: 15px 0 10px 0; color:#555; border-bottom:1px solid #eee; padding-bottom:5px;">
+                        Chat / Volume</h4>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div class="input-block"><label>TMA Chat (min)</label><input type="number" step="0.01" id="edit-tma-chat"></div>
-                        <div class="input-block"><label>Atend. Chat</label><input type="number" id="edit-vol-chat"></div>
-                        <div class="input-block" style="grid-column: span 2;"><label>Total Atendimentos Finalizados</label><input type="number" id="edit-vol-total"></div>
+                        <div class="input-block"><label>TMA Chat (min)</label><input type="number" step="0.01"
+                                id="edit-tma-chat"></div>
+                        <div class="input-block"><label>Atend. Chat</label><input type="number" id="edit-vol-chat">
+                        </div>
+                        <div class="input-block" style="grid-column: span 2;"><label>Total Atendimentos
+                                Finalizados</label><input type="number" id="edit-vol-total"></div>
                     </div>
 
                     <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end;">
-                        <button type="button" onclick="document.getElementById('modal-edit-metric').style.display='none'" style="background: #ccc; border:none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancelar</button>
+                        <button type="button"
+                            onclick="document.getElementById('modal-edit-metric').style.display='none'"
+                            style="background: #ccc; border:none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancelar</button>
                         <button type="submit" class="btn-primary">Salvar Alterações</button>
                     </div>
                 </form>

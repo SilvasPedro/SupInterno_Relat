@@ -293,3 +293,23 @@ function renderLineChart(canvasId, labels, labelName, dataValues, color, isPerce
         }
     });
 }
+
+window.toggleSidebar = () => {
+    const sidebar = document.getElementById('sidebar');
+    const icon = document.getElementById('toggle-icon');
+    const logo = document.getElementById('sidebar-logo'); // Busca a imagem da logo
+    
+    sidebar.classList.toggle('collapsed');
+    
+    if (sidebar.classList.contains('collapsed')) {
+        icon.innerText = 'menu';
+        // Troca para a logo reduzida (usando o favicon do seu projeto)
+        logo.src = 'assets/favicon.png'; 
+        logo.style.width = '40px'; // Garante o tamanho reduzido via JS também
+    } else {
+        icon.innerText = 'menu_open';
+        // Volta para a logo principal
+        logo.src = 'assets/logo.png'; 
+        logo.style.width = '150px'; // Volta para a proporção normal
+    }
+};

@@ -14,25 +14,28 @@
 
 <body>
 
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
+        <button class="toggle-sidebar-btn" onclick="toggleSidebar()">
+            <i class="material-icons" id="toggle-icon">menu_open</i>
+        </button>
         <div class="sidebar-header">
-            <img src="assets/logo.png" alt="" width="100%" height="auto">
+            <img src="assets/logo.png" alt="" width="150px" height="auto">
             <p id="user-name">Carregando...</p>
         </div>
         <ul class="nav-links">
             <li class="active" onclick="showSection('dashboard')">
-                <i class="material-icons">show_chart</i> Minha Performance
+                <i class="material-icons">show_chart</i> <span>Minha Performance</span>
             </li>
 
             <li onclick="showSection('history')">
-                <i class="material-icons">table_view</i> Histórico Completo
+                <i class="material-icons">table_view</i> <span>Histórico Completo</span>
             </li>
             <li onclick="showSection('minhas-auditorias', this); window.loadMyAudits()">
-                <i class="material-icons">assignment_turned_in</i> Minhas Auditorias
+                <i class="material-icons">assignment_turned_in</i> <span>Minhas Auditorias</span>
             </li>
             <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 15px;">
             <li onclick="logout()" class="logout-btn">
-                <i class="material-icons">logout</i> Sair
+                <i class="material-icons">logout</i> <span>Sair</span>
             </li>
         </ul>
     </nav>
