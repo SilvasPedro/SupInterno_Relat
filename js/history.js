@@ -1,5 +1,5 @@
 import { collection, query, where, getDocs, doc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import { auth, db } from "./config/firebase_config.js"; 
+import { auth, db } from "./config/firebase_config.js";
 
 // ============================================================
 // 1. ABRIR HISTÓRICO (LISTAGEM)
@@ -27,7 +27,7 @@ async function loadMetricsList(uid) {
     try {
         const q = query(collection(db, "weekly_metrics"), where("userId", "==", uid));
         const snap = await getDocs(q);
-        
+
         // Ordena por data (mais recente primeiro)
         let docs = [];
         snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
@@ -42,7 +42,7 @@ async function loadMetricsList(uid) {
         docs.forEach(data => {
             // Formata data
             const dateFmt = data.weekStart.split('-').reverse().slice(0, 2).join('/');
-            
+
             div.innerHTML += `
 <div class="history-item" style="border-left: 4px solid #007bff; display:flex; justify-content:space-between; align-items:center; padding:15px; margin-bottom:10px; background:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
         
@@ -103,9 +103,9 @@ async function loadOccurrencesList(uid) {
             else if (data.type === 'neutral') color = '#6c757d'; // Cinza
             else color = '#dc3545';
             // ------------------------------------------
-            
+
             const dateFmt = data.date.split('-').reverse().slice(0, 2).join('/');
-            
+
             div.innerHTML += `
                 <div class="history-item" style="border-left: 4px solid ${color}; display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:10px; background:white; border-radius:4px; box-shadow:0 1px 2px rgba(0,0,0,0.1);">
                     <div class="history-info">
@@ -136,7 +136,7 @@ async function loadOccurrencesList(uid) {
 window.viewMetricDetailAdmin = async (docId) => {
     const modal = document.getElementById('modal-metric-view-admin');
     const content = document.getElementById('admin-metric-view-content');
-    
+
     modal.style.display = 'block';
     content.innerHTML = "<div style='padding:20px; text-align:center; color:#666;'><i class='material-icons spinning'>sync</i> Buscando dados...</div>";
 
@@ -151,7 +151,7 @@ window.viewMetricDetailAdmin = async (docId) => {
 
         const data = snap.data();
         const dataFmt = data.weekStart ? data.weekStart.split('-').reverse().join('/') : 'Data Inválida';
-        
+
         // --- DADOS DIRETOS DO BANCO ---
         const ligRecebidas = data.ligacoesRecebidas || 0;
         const ligRealizadas = data.ligacoesRealizadas || 0;
@@ -258,7 +258,7 @@ window.deleteItem = async (colName, docId, uid) => {
     try {
         await deleteDoc(doc(db, colName, docId));
         alert("Registro excluído!");
-        
+
         // Recarrega as listas do modal
         if (colName === 'weekly_metrics') loadMetricsList(uid);
         else loadOccurrencesList(uid);

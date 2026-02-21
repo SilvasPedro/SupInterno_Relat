@@ -87,6 +87,7 @@ body {
     margin-bottom: 5px;
 }
 
+
 .sidebar-header p {
     font-size: 13px;
     opacity: 0.8;
@@ -226,6 +227,7 @@ h1 {
     font-weight: 700;
     color: var(--color-dark-brown);
     position: relative;
+    width: fit-content;
 }
 
 h1::after {

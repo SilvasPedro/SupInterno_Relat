@@ -17,7 +17,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // --- IMPORTAÇÃO CENTRALIZADA (NOVO) ---
-import { auth, db } from "./config/firebase_config.js"; 
+import { auth, db } from "./config/firebase_config.js";
 
 // --- MÓDULOS EXTERNOS ---
 import { renderDashboardCharts } from "./charts.js";
@@ -287,14 +287,19 @@ function processGlobalKPIs(users, globalQaPercent) {
     const bestMonitoria = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
     if (bestMonitoria) {
         updateCard('kpi-best-qa', bestMonitoria.avgMonitoria);
-        updateCard('kpi-best-qa-name', bestMonitoria.name.split(' ')[0]);
+        updateCard('kpi-best-qa-name', bestMonitoria.name.split(' ').slice(0, 2).join(' '));
     }
 
     const maxTel = [...users].sort((a, b) => b.avgTmaTel - a.avgTmaTel)[0];
-    if (maxTel) { updateCard('kpi-max-tel', maxTel.avgTmaTel + " min"); updateCard('kpi-max-tel-name', maxTel.name.split(' ')[0]); }
-
+    if (maxTel) {
+        updateCard('kpi-max-tel', maxTel.avgTmaTel + " min");
+        updateCard('kpi-max-tel-name', maxTel.name.split(' ').slice(0, 2).join(' '));
+    }
     const maxChat = [...users].sort((a, b) => b.avgTmaChat - a.avgTmaChat)[0];
-    if (maxChat) { updateCard('kpi-max-chat', maxChat.avgTmaChat + " min"); updateCard('kpi-max-chat-name', maxChat.name.split(' ')[0]); }
+    if (maxChat) {
+        updateCard('kpi-max-chat', maxChat.avgTmaChat + " min");
+        updateCard('kpi-max-chat-name', maxChat.name.split(' ').slice(0, 2).join(' '));
+    }
 }
 
 
@@ -877,18 +882,18 @@ window.toggleSidebar = () => {
     const sidebar = document.getElementById('sidebar');
     const icon = document.getElementById('toggle-icon');
     const logo = document.getElementById('sidebar-logo'); // Busca a imagem da logo
-    
+
     sidebar.classList.toggle('collapsed');
-    
+
     if (sidebar.classList.contains('collapsed')) {
         icon.innerText = 'menu';
         // Troca para a logo reduzida (usando o favicon do seu projeto)
-        logo.src = 'assets/favicon.png'; 
+        logo.src = 'assets/favicon.png';
         logo.style.width = '40px'; // Garante o tamanho reduzido via JS também
     } else {
         icon.innerText = 'menu_open';
         // Volta para a logo principal
-        logo.src = 'assets/logo.png'; 
+        logo.src = 'assets/logo.png';
         logo.style.width = '150px'; // Volta para a proporção normal
     }
 };

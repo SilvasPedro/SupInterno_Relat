@@ -117,30 +117,30 @@
                 👥 Performance Média da Equipe
             </h3>
             <div class="metrics-grid">
-                <div class="metric-card kpi-card" style="border-left: 5px solid #28a745; cursor:pointer;">
-                    <h3>⭐ Média QA (Geral)</h3>
+                <div class="metric-card kpi-card">
+                    <h3>⭐ Média QA (Equipe)</h3>
                     <h1 id="kpi-team-qa">--</h1>
-                    <p>Média de todos os colaboradores</p>
+                    <p>Média do departamento</p>
                 </div>
 
                 <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')"
-                    style="border-left: 5px solid #6f42c1; cursor:pointer;">
+                    style="cursor:pointer;">
                     <h3>✅ Vol. Médio / Agente</h3>
-                    <h1 id="kpi-team-vol" style="color: #6f42c1;">0</h1>
+                    <h1 id="kpi-team-vol">0</h1>
                     <p>Finalizações Semanais</p>
                 </div>
 
                 <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')"
-                    style="border-left: 5px solid #007bff; cursor:pointer;">
+                    style="cursor:pointer;">
                     <h3>📞 TMA Médio (Voz)</h3>
-                    <h1 id="kpi-team-tel" style="color: #007bff;">--:--</h1>
+                    <h1 id="kpi-team-tel">--:--</h1>
                     <p>Tempo Médio em Linha</p>
                 </div>
 
                 <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')"
-                    style="border-left: 5px solid #17a2b8; cursor:pointer;">
+                    style="cursor:pointer;">
                     <h3>💬 TMA Médio (Chat)</h3>
-                    <h1 id="kpi-team-chat" style="color: #17a2b8;">--:--</h1>
+                    <h1 id="kpi-team-chat">--:--</h1>
                     <p>Tempo Médio de Chat</p>
                 </div>
             </div>
@@ -153,21 +153,21 @@
             </h3>
             <div class="metrics-grid">
                 <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')"
-                    style="border-left: 5px solid #ffc107; cursor:pointer;">
+                    style="cursor:pointer;">
                     <h3>🥇 Top 1 Qualidade</h3>
-                    <h1 id="kpi-best-qa" style="color: #d39e00;">--</h1>
+                    <h1 id="kpi-best-qa" style="color: #bd992d;">--</h1>
                     <p id="kpi-best-qa-name" style="font-weight:bold; color:#555;">--</p>
                 </div>
 
                 <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')"
-                    style="border-left: 5px solid #dc3545; cursor:pointer;">
+                    style="cursor:pointer;">
                     <h3>⚠️ Maior TMA (Voz)</h3>
                     <h1 id="kpi-max-tel" style="color: #dc3545;">--:--</h1>
                     <p id="kpi-max-tel-name" style="font-weight:bold; color:#555;">--</p>
                 </div>
 
                 <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')"
-                    style="border-left: 5px solid #dc3545; cursor:pointer;">
+                    style="cursor:pointer;">
                     <h3>⚠️ Maior TMA (Chat)</h3>
                     <h1 id="kpi-max-chat" style="color: #dc3545;">--:--</h1>
                     <p id="kpi-max-chat-name" style="font-weight:bold; color:#555;">--</p>
@@ -214,7 +214,7 @@
         <div id="section-lancamentos" class="section" style="display:none;">
             <h1>Lançamento de Desempenho</h1>
 
-            <div class="metrics-form" style="border-left: 5px solid #6f42c1; margin-bottom: 30px;">
+            <div class="metrics-form" style="margin-top: 30px;">
                 <h2>🚀 Indicadores Globais do Setor</h2>
                 <form id="form-sector-metrics">
                     <div class="form-group-header">
@@ -224,7 +224,7 @@
                         </div>
                         <div class="input-block" style="display:flex; align-items:flex-end;">
                             <button type="submit" class="btn-primary"
-                                style="background-color: #6f42c1; width: 100%;">Salvar KPIs do Setor</button>
+                                style="width: 100%;">Salvar KPIs do Setor</button>
                         </div>
                     </div>
                     <div class="metrics-grid">
@@ -355,7 +355,7 @@
             </div>
 
             <div class="metrics-form"
-                style="border-top: 5px solid var(--color-main-red); max-width: 900px; margin: 0 auto;">
+                style="border-top: 5px solid var(--color-main-red); margin: 0 auto;>
                 <form id="form-ocorrencias">
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
