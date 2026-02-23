@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Suporte Interno</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="shortcut icon" href="assets/favicon.png" type="image/x-icon">
-    
+
     <style>
-/* =========================================
+        /* =========================================
            ESTILO EXCLUSIVO DE LOGIN (MODERNO E MONOCROMÁTICO)
            ========================================= */
-        
+
         :root {
-            --color-mono-dark: #1a1a1a;   /* Preto quase absoluto */
-            --color-mono-med: #333333;    /* Cinza escuro */
-            --color-mono-light: #666666;  /* Cinza médio */
-            --color-taupe-light: #e0e0e0; /* Cinza claro */
-            --color-accent: #000000;      /* Preto puro para destaque */
+            --color-mono-dark: #1a1a1a;
+            /* Preto quase absoluto */
+            --color-mono-med: #333333;
+            /* Cinza escuro */
+            --color-mono-light: #666666;
+            /* Cinza médio */
+            --color-taupe-light: #e0e0e0;
+            /* Cinza claro */
+            --color-accent: #000000;
+            /* Preto puro para destaque */
         }
 
         * {
@@ -33,7 +39,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            
+
             /* GRADIENTE DE FUNDO SOFISTICADO (Tons de Cinza/Preto) */
             background: linear-gradient(135deg, var(--color-mono-dark) 0%, var(--color-mono-med) 50%, var(--color-mono-dark) 100%);
             background-size: 400% 400%;
@@ -41,9 +47,17 @@
         }
 
         @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         /* CARD DE LOGIN (Efeito Vidro) */
@@ -86,7 +100,7 @@
             margin-bottom: 5px;
             font-size: 24px;
         }
-        
+
         .login-container p {
             color: var(--color-mono-light);
             font-size: 14px;
@@ -177,11 +191,13 @@
             margin-top: 15px;
             min-height: 20px;
             font-weight: 600;
-            display: none; /* Oculte por padrão se estiver vazio */
+            display: none;
+            /* Oculte por padrão se estiver vazio */
         }
-        
+
         #error-msg:not(:empty) {
-            display: block; /* Mostra apenas quando tiver conteúdo */
+            display: block;
+            /* Mostra apenas quando tiver conteúdo */
         }
 
         /* Responsividade */
@@ -193,6 +209,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="login-container">
@@ -226,4 +243,5 @@
 
     <script type="module" src="js/auth.js"></script>
 </body>
+
 </html>
