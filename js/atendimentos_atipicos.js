@@ -1,5 +1,5 @@
-import { 
-    collection, getDocs, doc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy 
+import {
+    collection, getDocs, doc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import { auth, db } from "./config/firebase_config.js";
 
@@ -22,15 +22,15 @@ window.loadLocaisProblema = async () => {
     try {
         const q = query(collection(db, "atipicos_locais"));
         const snap = await getDocs(q);
-        
+
         select.innerHTML = '<option value="">Selecione o local...</option>';
         let locais = [];
         snap.forEach(d => locais.push({ id: d.id, nome: d.data().nome }));
-        
-        locais.sort((a,b) => a.nome.localeCompare(b.nome)).forEach(l => {
+
+        locais.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(l => {
             select.innerHTML += `<option value="${l.nome}">${l.nome}</option>`;
         });
-    } catch(e) { console.error("Erro ao carregar locais", e); }
+    } catch (e) { console.error("Erro ao carregar locais", e); }
 };
 
 window.promptNovoLocal = async () => {
@@ -39,9 +39,9 @@ window.promptNovoLocal = async () => {
 
     try {
         await addDoc(collection(db, "atipicos_locais"), { nome: novo.trim() });
-        alert("Local adicionado!");
+        window.showNotification("Local adicionado!", "success");
         window.loadLocaisProblema();
-    } catch(e) { alert("Erro ao adicionar local."); }
+    } catch (e) { window.showNotification("Erro ao adicionar local.", "error"); }
 };
 
 // ==========================================
@@ -56,15 +56,15 @@ window.loadAtendimentosAtipicos = async () => {
     try {
         const q = query(collection(db, "atendimentos_atipicos"));
         const snap = await getDocs(q);
-        
+
         atipicosCache = [];
         snap.forEach(d => atipicosCache.push({ id: d.id, ...d.data() }));
-        
+
         // Ordena por data do ocorrido (mais recente primeiro)
         atipicosCache.sort((a, b) => new Date(b.data) - new Date(a.data));
-        
+
         window.applyAtipicoFilters();
-    } catch(e) { grid.innerHTML = "<p>Erro ao carregar.</p>"; }
+    } catch (e) { grid.innerHTML = "<p>Erro ao carregar.</p>"; }
 };
 
 window.applyAtipicoFilters = () => {
@@ -99,7 +99,7 @@ function renderAtipicosGrid(data) {
 
     data.forEach(item => {
         const dateFmt = item.data.split('-').reverse().join('/');
-        
+
         // Cores de Status
         let color = '#ffc107'; let bg = '#fff3cd'; // Pendente
         if (item.status === 'Resolvido') { color = '#28a745'; bg = '#d4edda'; }
@@ -165,7 +165,7 @@ window.saveAtipico = async (e) => {
     const id = document.getElementById('atipico-id').value;
     const statusVal = document.querySelector('input[name="atipico-status"]:checked').value;
     const btnSubmit = e.target.querySelector('button[type="submit"]');
-    
+
     // Bloqueia o botão para evitar duplos cliques
     btnSubmit.disabled = true;
     btnSubmit.innerText = "Salvando...";
@@ -184,19 +184,19 @@ window.saveAtipico = async (e) => {
         };
 
         if (id) {
-            delete payload.registradoPor; 
+            delete payload.registradoPor;
             await updateDoc(doc(db, "atendimentos_atipicos", id), payload);
-            alert("Registro atualizado com sucesso!");
+            window.showNotification("Registro atualizado com sucesso!", "success");
         } else {
             payload.criadoEm = new Date().toISOString();
             await addDoc(collection(db, "atendimentos_atipicos"), payload);
-            alert("Registro salvo com sucesso!");
+            window.showNotification("Registro salvo com sucesso!", "success");
         }
-        
+
         window.closeModalAtipico();
         window.loadAtendimentosAtipicos();
-    } catch(err) { 
-        alert("Erro ao salvar: " + err.message); 
+    } catch (err) {
+        window.showNotification("Erro ao salvar: " + err.message, "error");
     } finally {
         btnSubmit.disabled = false;
         btnSubmit.innerText = "Salvar Registro";
@@ -205,7 +205,7 @@ window.saveAtipico = async (e) => {
 
 window.editAtipico = (id) => {
     const item = atipicosCache.find(i => i.id === id);
-    if(!item) return;
+    if (!item) return;
 
     document.getElementById('atipico-id').value = id;
     document.getElementById('atipico-cliente').value = item.cliente;
@@ -214,9 +214,9 @@ window.editAtipico = (id) => {
     document.getElementById('atipico-meio').value = item.meio;
     document.getElementById('atipico-local').value = item.local;
     document.getElementById('atipico-detalhes').value = item.detalhes || '';
-    
+
     const radios = document.getElementsByName('atipico-status');
-    for (const r of radios) { if(r.value === item.status) r.checked = true; }
+    for (const r of radios) { if (r.value === item.status) r.checked = true; }
 
     document.getElementById('modal-atipico-title').innerText = "Editar Registro Atípico";
     document.getElementById('modal-atipico').style.display = 'flex';
@@ -226,9 +226,9 @@ window.deleteAtipico = async (id) => {
     if (!confirm("⚠️ Tem certeza que deseja excluir este registro?")) return;
     try {
         await deleteDoc(doc(db, "atendimentos_atipicos", id));
-        alert("Excluído com sucesso.");
+        window.showNotification("Excluído com sucesso.", "warning");
         window.loadAtendimentosAtipicos();
-    } catch(e) { alert("Erro ao excluir."); }
+    } catch (e) { window.showNotification("Erro ao excluir.", "error"); }
 };
 
 window.openDetalhesModal = (id) => {
@@ -236,8 +236,8 @@ window.openDetalhesModal = (id) => {
     if (!item) return;
 
     const dateFmt = item.data.split('-').reverse().join('/');
-    const detalhesTexto = item.detalhes && item.detalhes.trim() !== '' 
-        ? item.detalhes 
+    const detalhesTexto = item.detalhes && item.detalhes.trim() !== ''
+        ? item.detalhes
         : 'Nenhuma informação adicional registrada.';
 
     const contentDiv = document.getElementById('atipico-detalhes-content');
