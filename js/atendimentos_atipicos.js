@@ -1,8 +1,7 @@
 import { 
     collection, getDocs, doc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
-import { auth, db, storage } from "./config/firebase_config.js"; // Garanta que o storage está vindo daqui
+import { auth, db } from "./config/firebase_config.js";
 
 let atipicosCache = [];
 let isAdminMode = false; // Define se o usuário atual é admin
@@ -109,7 +108,7 @@ function renderAtipicosGrid(data) {
         // Validação de Permissão: Pode editar se for Admin OU se for o autor
         const canEdit = isAdminMode || item.registradoPor === currentUserEmail;
 
-const actionsHtml = canEdit ? `
+        const actionsHtml = canEdit ? `
             <div style="display: flex; width: 80%; gap: 10px;">
                 <button onclick="editAtipico('${item.id}')" style="flex: 1; display: flex; justify-content: center; align-items: center; background: #ffc107; color: #333; border: none; padding: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" title="Editar">
                     <i class="material-icons" style="font-size: 18px;">edit</i>
@@ -166,27 +165,12 @@ window.saveAtipico = async (e) => {
     const id = document.getElementById('atipico-id').value;
     const statusVal = document.querySelector('input[name="atipico-status"]:checked').value;
     const btnSubmit = e.target.querySelector('button[type="submit"]');
-    const statusText = document.getElementById('upload-status');
     
     // Bloqueia o botão para evitar duplos cliques
     btnSubmit.disabled = true;
     btnSubmit.innerText = "Salvando...";
 
     try {
-        let imageUrl = null;
-        const fileInput = document.getElementById('atipico-imagem');
-        const file = fileInput.files[0];
-
-        // Se o usuário selecionou uma imagem, faz o upload no Firebase Storage
-        if (file) {
-            statusText.style.display = 'block';
-            // Cria uma referência única para o arquivo com a data atual
-            const imageRef = ref(storage, `atendimentos_atipicos/${Date.now()}_${file.name}`);
-            await uploadBytes(imageRef, file);
-            imageUrl = await getDownloadURL(imageRef); // Pega a URL pública da imagem
-            statusText.style.display = 'none';
-        }
-
         const payload = {
             cliente: document.getElementById('atipico-cliente').value,
             data: document.getElementById('atipico-data').value,
@@ -198,11 +182,6 @@ window.saveAtipico = async (e) => {
             registradoPor: auth.currentUser ? auth.currentUser.email : 'Desconhecido',
             atualizadoEm: new Date().toISOString()
         };
-
-        // Só adiciona/atualiza a URL se uma nova imagem foi enviada
-        if (imageUrl) {
-            payload.imagemUrl = imageUrl;
-        }
 
         if (id) {
             delete payload.registradoPor; 
@@ -218,12 +197,9 @@ window.saveAtipico = async (e) => {
         window.loadAtendimentosAtipicos();
     } catch(err) { 
         alert("Erro ao salvar: " + err.message); 
-        statusText.style.display = 'none';
     } finally {
         btnSubmit.disabled = false;
         btnSubmit.innerText = "Salvar Registro";
-        // Limpa o input de arquivo
-        document.getElementById('atipico-imagem').value = "";
     }
 };
 
@@ -237,7 +213,7 @@ window.editAtipico = (id) => {
     document.getElementById('atipico-protocolo').value = item.protocolo;
     document.getElementById('atipico-meio').value = item.meio;
     document.getElementById('atipico-local').value = item.local;
-    document.getElementById('atipico-detalhes').value = item.detalhes || ''; // PREENCHE O NOVO CAMPO
+    document.getElementById('atipico-detalhes').value = item.detalhes || '';
     
     const radios = document.getElementsByName('atipico-status');
     for (const r of radios) { if(r.value === item.status) r.checked = true; }
@@ -264,16 +240,6 @@ window.openDetalhesModal = (id) => {
         ? item.detalhes 
         : 'Nenhuma informação adicional registrada.';
 
-    // Lógica para exibir a imagem se existir
-    const imagemHtml = item.imagemUrl ? `
-        <div style="margin-top: 15px;">
-            <strong>Captura de Tela:</strong><br>
-            <a href="${item.imagemUrl}" target="_blank" title="Clique para ampliar">
-                <img src="${item.imagemUrl}" alt="Anexo do atendimento" style="max-width: 100%; border-radius: 6px; margin-top: 8px; border: 1px solid #ddd; max-height: 250px; object-fit: cover;">
-            </a>
-        </div>
-    ` : '';
-
     const contentDiv = document.getElementById('atipico-detalhes-content');
     contentDiv.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
@@ -292,7 +258,6 @@ window.openDetalhesModal = (id) => {
             <strong>Mais Informações:</strong>
             <div style="background: #f9f9f9; padding: 12px; border-radius: 6px; border: 1px solid #ddd; white-space: pre-wrap; margin-top: 8px; min-height: 60px;">${detalhesTexto}</div>
         </div>
-        ${imagemHtml}
     `;
 
     document.getElementById('modal-atipico-detalhes').style.display = 'flex';
