@@ -121,7 +121,7 @@ const actionsHtml = canEdit ? `
         ` : '';
 
         grid.innerHTML += `
-            <div class="history-card" style="border-left: 5px solid ${color}; display: flex; flex-direction: column; justify-content: space-between; padding: 10px">
+            <div class="history-card" style="border-left: 5px solid ${color}; display: flex; flex-direction: column; justify-content: space-between; padding: 10px;">
                 <div>
                     <div class="h-card-header" style="flex-direction: column; align-items: flex-start; gap: 5px;">
                         <div style="display:flex; justify-content:space-between; width: 100%;">
