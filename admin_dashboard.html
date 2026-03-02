@@ -1564,15 +1564,17 @@
 
     <div id="modal-extract-report" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="max-width: 500px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
                 <h2 style="color: var(--color-dark-brown); margin: 0;">Extrair Relatório de Feedback</h2>
-                <span class="close" onclick="document.getElementById('modal-extract-report').style.display='none'">&times;</span>
+                <span class="close"
+                    onclick="document.getElementById('modal-extract-report').style.display='none'">&times;</span>
             </div>
-            
+
             <form id="form-extract-report" onsubmit="window.generateCollaboratorReport(event)">
                 <input type="hidden" id="report-user-id">
                 <input type="hidden" id="report-user-name">
-                
+
                 <p style="color: #666; font-size: 13px; margin-bottom: 20px;">
                     Selecione o período para buscar métricas e ocorrências e gerar o documento.
                 </p>
@@ -1587,12 +1589,43 @@
                         <input type="date" id="report-date-end" required>
                     </div>
                 </div>
-                
+
                 <div style="text-align: right; border-top: 1px solid #eee; padding-top: 15px;">
-                    <button type="button" onclick="document.getElementById('modal-extract-report').style.display='none'" style="background: #ccc; border:none; padding: 12px 20px; border-radius: 8px; cursor: pointer; margin-right: 10px; color:#333; font-weight:600;">Cancelar</button>
-                    <button type="submit" class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <button type="button" onclick="document.getElementById('modal-extract-report').style.display='none'"
+                        style="background: #ccc; border:none; padding: 12px 20px; border-radius: 8px; cursor: pointer; margin-right: 10px; color:#333; font-weight:600;">Cancelar</button>
+                    <button type="submit" class="btn-primary"
+                        style="display: inline-flex; align-items: center; gap: 8px;">
                         <i class="material-icons" style="font-size: 18px;">picture_as_pdf</i> Gerar Relatório
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-edit-audit" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="color: var(--color-dark-brown); margin: 0;">✏️ Editar Auditoria</h2>
+                <span class="close"
+                    onclick="document.getElementById('modal-edit-audit').style.display='none'">&times;</span>
+            </div>
+
+            <form id="form-edit-audit" onsubmit="saveEditedAudit(event)">
+                <input type="hidden" id="edit-audit-id">
+
+                <div class="input-block">
+                    <label>Data do Ocorrido</label>
+                    <input type="date" id="edit-audit-occurrence-date" required
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+
+                <div style="text-align: right; margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <button type="button" onclick="document.getElementById('modal-edit-audit').style.display='none'"
+                        style="background: #ccc; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; color: #333;">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary">Salvar Alteração</button>
                 </div>
             </form>
         </div>
@@ -1607,7 +1640,7 @@
     <script type="module" src="js/atendimentos_atipicos.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
-        window.showNotification = function(message, type = "success") {
+        window.showNotification = function (message, type = "success") {
             let bgColors = {
                 success: "linear-gradient(to right, #28a745, #218838)", // Verde
                 error: "linear-gradient(to right, #dc3545, #c82333)",   // Vermelho
@@ -1631,7 +1664,8 @@
         };
     </script>
     <script type="module" src="js/admin.js"></script>
-    </body>
+</body>
+
 </html>
 </body>
 

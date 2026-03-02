@@ -291,12 +291,59 @@ window.renderAuditTable = (docs) => {
                         <button onclick="viewAuditAdmin('${d.id}')" class="action-btn" style="background: var(--color-taupe); color: white;" title="Ver Detalhes">
                             <i class="material-icons" style="font-size: 18px;">visibility</i>
                         </button>
+                        <button onclick="openEditAuditModal('${d.id}')" class="action-btn btn-edit" title="Editar Data do Ocorrido">
+                            <i class="material-icons" style="font-size: 18px;">edit</i>
+                        </button>
                         <button onclick="deleteAudit('${d.id}')" class="action-btn btn-delete" title="Excluir"><i class="material-icons">delete</i></button>
                     </div>
                 </td>
             </tr>
         `;
     });
+};
+
+// Função para abrir o modal de edição e preencher a data
+window.openEditAuditModal = (id) => {
+    const audit = auditHistoryCache.find(a => a.id === id);
+    if (!audit) return;
+
+    document.getElementById('edit-audit-id').value = audit.id;
+    document.getElementById('edit-audit-occurrence-date').value = audit.occurrenceDate || '';
+    
+    document.getElementById('modal-edit-audit').style.display = 'flex';
+};
+
+// Função para salvar a alteração da data no Firebase
+window.saveEditedAudit = async (e) => {
+    e.preventDefault();
+    
+    const id = document.getElementById('edit-audit-id').value;
+    const newDate = document.getElementById('edit-audit-occurrence-date').value;
+
+    if (!id || !newDate) return;
+
+    try {
+        // Usamos setDoc com { merge: true } para atualizar apenas o campo desejado
+        await setDoc(doc(db, "audits", id), {
+            occurrenceDate: newDate
+        }, { merge: true });
+        
+        if (typeof window.showNotification === 'function') {
+            window.showNotification("Data do ocorrido atualizada com sucesso!", "success");
+        } else {
+            alert("Data do ocorrido atualizada com sucesso!");
+        }
+        
+        document.getElementById('modal-edit-audit').style.display = 'none';
+        loadAuditHistory(); // Recarrega a tabela para refletir a mudança
+    } catch (error) {
+        console.error("Erro ao atualizar data da auditoria:", error);
+        if (typeof window.showNotification === 'function') {
+            window.showNotification("Erro ao atualizar: " + error.message, "error");
+        } else {
+            alert("Erro ao atualizar: " + error.message);
+        }
+    }
 };
 
 window.applyAuditFilters = () => {
@@ -634,3 +681,4 @@ window.openQaNcModal = () => {
 
     document.getElementById('modal-qa-nc').style.display = 'flex';
 };
+
