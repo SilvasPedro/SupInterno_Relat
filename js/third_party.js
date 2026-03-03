@@ -1,9 +1,9 @@
 
-import { 
-    getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc 
+import {
+    getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query, where
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-import { auth, db } from "./config/firebase_config.js"; 
+import { auth, db } from "./config/firebase_config.js";
 
 // Estado Local
 let thirdPartyCache = [];
@@ -17,13 +17,13 @@ let chart3PTimelineInstance = null;
 window.loadThirdPartyDashboard = async () => {
     const tableBody = document.getElementById('table-3p-body');
     if (!tableBody) return;
-    
+
     tableBody.innerHTML = "<tr><td colspan='5'>Carregando dados...</td></tr>";
 
     try {
         const q = await getDocs(collection(db, "third_party_evaluations"));
-        thirdPartyCache = []; 
-        
+        thirdPartyCache = [];
+
         q.forEach(docSnap => {
             thirdPartyCache.push({ id: docSnap.id, ...docSnap.data() });
         });
@@ -33,7 +33,7 @@ window.loadThirdPartyDashboard = async () => {
 
         // Renderiza Inicial
         renderThirdPartyTable();
-        updateThirdPartyKPIsLogic(); 
+        updateThirdPartyKPIsLogic();
         processAndRenderTimeline();
 
     } catch (error) {
@@ -48,23 +48,23 @@ window.loadThirdPartyDashboard = async () => {
 
 window.renderThirdPartyTable = () => {
     const tableBody = document.getElementById('table-3p-body');
-    
+
     // Captura valores dos filtros
     const searchProtocol = document.getElementById('search-3p-protocol').value.trim().toLowerCase();
     const searchAgent = document.getElementById('search-3p-agent').value.trim().toLowerCase();
     const searchStart = document.getElementById('search-3p-start').value;
     const searchEnd = document.getElementById('search-3p-end').value;
-    
+
     tableBody.innerHTML = "";
 
     // Lógica de Filtragem Combinada
     const filteredData = thirdPartyCache.filter(item => {
         // 1. Filtro Protocolo
         const matchProtocol = (item.protocol || '').toLowerCase().includes(searchProtocol);
-        
+
         // 2. Filtro Atendente
         const matchAgent = (item.agent || '').toLowerCase().includes(searchAgent);
-        
+
         // 3. Filtro Data (Range)
         let matchDate = true;
         if (searchStart) matchDate = matchDate && (item.date >= searchStart);
@@ -135,7 +135,7 @@ function updateThirdPartyKPIsLogic() {
     document.getElementById('kpi-3p-total').innerText = total;
     document.getElementById('kpi-3p-leve').innerText = countLeve;
     document.getElementById('kpi-3p-grave').innerText = countGrave;
-    
+
     const perc = total > 0 ? ((countConf / total) * 100).toFixed(1) : 0;
     document.getElementById('kpi-3p-conformidade').innerText = perc + "%";
 
@@ -173,15 +173,15 @@ function processAndRenderTimeline() {
     thirdPartyCache.forEach(item => {
         const d = item.date;
         if (!groups[d]) groups[d] = { conf: 0, leve: 0, grave: 0 };
-        
+
         if (item.status === 'conformidade') groups[d].conf++;
         else if (item.status === 'nc_leve') groups[d].leve++;
         else if (item.status === 'nc_grave') groups[d].grave++;
     });
 
     const sortedDates = Object.keys(groups).sort();
-    const labels = sortedDates.map(date => date.split('-').reverse().slice(0,2).join('/'));
-    
+    const labels = sortedDates.map(date => date.split('-').reverse().slice(0, 2).join('/'));
+
     if (chart3PTimelineInstance) chart3PTimelineInstance.destroy();
 
     chart3PTimelineInstance = new Chart(ctx, {
@@ -213,7 +213,7 @@ setTimeout(() => {
         // Remove listeners antigos clonando (opcional, mas seguro)
         const newForm = formThirdParty.cloneNode(true);
         formThirdParty.parentNode.replaceChild(newForm, formThirdParty);
-        
+
         newForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const protocol = document.getElementById('tp-protocol').value;
@@ -301,7 +301,7 @@ window.saveEditedThirdPartyEvaluation = async (event) => {
     event.preventDefault();
     const docId = document.getElementById('edit-tp-id').value;
     const statusEl = document.querySelector('input[name="edit-tp-status"]:checked');
-    
+
     if (!docId) return;
 
     try {
@@ -319,3 +319,177 @@ window.saveEditedThirdPartyEvaluation = async (event) => {
         loadThirdPartyDashboard();
     } catch (e) { alert("Erro: " + e.message); }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('report-modal');
+    const btnOpen = document.getElementById('btn-open-report-modal');
+    const btnClose = document.getElementById('close-report-modal');
+    const form = document.getElementById('report-form');
+
+    if (!btnOpen || !form) return; // Segurança para não dar erro em outras telas
+
+    // 1. Controle do Modal
+    btnOpen.addEventListener('click', () => modal.style.display = 'flex');
+    btnClose.addEventListener('click', () => modal.style.display = 'none');
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    });
+
+    // 2. Busca no Firebase e Submissão
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const company = document.getElementById('report-company').value;
+        const startDate = document.getElementById('report-start-date').value;
+        const endDate = document.getElementById('report-end-date').value;
+        const btnSubmit = e.target.querySelector('button[type="submit"]');
+
+        // Feedback visual de carregamento
+        const originalBtnText = btnSubmit.innerText;
+        btnSubmit.innerText = "Buscando dados...";
+        btnSubmit.disabled = true;
+
+        try {
+            // Busca apenas os documentos da empresa selecionada
+            const q = query(
+                collection(db, "third_party_evaluations"),
+                where("company", "==", company)
+            );
+
+            const querySnapshot = await getDocs(q);
+            let dadosFiltrados = [];
+
+            // Filtra as datas e formata os dados
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+
+                // Verifica se a data do registro está dentro do período (YYYY-MM-DD)
+                if (data.date >= startDate && data.date <= endDate) {
+
+                    // Transforma o status do sistema em texto legível
+                    let statusAjustado = 'N/A';
+                    if (data.status === 'conformidade') statusAjustado = 'Conforme';
+                    else if (data.status === 'nc_leve') statusAjustado = 'NC Leve';
+                    else if (data.status === 'nc_grave') statusAjustado = 'NC Grave';
+
+                    dadosFiltrados.push({
+                        dataRegistroIso: data.date, // usado para ordenação
+                        dataRegistro: data.date.split('-').reverse().join('/'), // DD/MM/YYYY
+                        protocolo: data.protocol,
+                        colaborador: data.agent,
+                        status: statusAjustado,
+                        obs: data.comment || 'Sem observação'
+                    });
+                }
+            });
+
+            // Ordena os registros do mais antigo para o mais novo
+            dadosFiltrados.sort((a, b) => new Date(a.dataRegistroIso) - new Date(b.dataRegistroIso));
+
+            // Se não encontrar nada, avisa o usuário e cancela a geração do PDF
+            if (dadosFiltrados.length === 0) {
+                alert("Nenhum registro encontrado para esta empresa neste período.");
+                btnSubmit.innerText = originalBtnText;
+                btnSubmit.disabled = false;
+                return;
+            }
+
+            // Chama a função que constrói o layout HTML e converte em PDF
+            gerarPDFRelatorio(company, startDate, endDate, dadosFiltrados);
+            modal.style.display = 'none'; // Fecha o modal
+
+        } catch (error) {
+            console.error("Erro ao resgatar dados:", error);
+            alert("Erro ao buscar as informações no banco de dados.");
+        } finally {
+            // Restaura o botão
+            btnSubmit.innerText = originalBtnText;
+            btnSubmit.disabled = false;
+        }
+    });
+});
+
+// 3. Função para montar o layout e exportar via html2pdf (Aprimorada)
+function gerarPDFRelatorio(company, startDate, endDate, dados) {
+    const container = document.getElementById('pdf-content-container');
+    
+    // Início do HTML do relatório com CSS embutido para controle de impressão e quebra de texto
+    let htmlContent = `
+        <div style="padding: 20px; font-family: Arial, sans-serif; color: #333; width: 100%; box-sizing: border-box;">
+            <style>
+                /* Evita que a linha seja cortada no meio entre as páginas */
+                tr { page-break-inside: avoid !important; }
+                
+                /* Força a quebra de texto na coluna de observação para não vazar a tela */
+                .obs-column {
+                    word-wrap: break-word;
+                    white-space: pre-wrap;
+                    max-width: 350px; /* Limite máximo para a observação */
+                }
+            </style>
+
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #2c3e50;">Relatório de Qualidade - ${company}</h2>
+                <p style="margin-top: 5px; color: #666;">
+                    <strong>Período:</strong> ${startDate.split('-').reverse().join('/')} a ${endDate.split('-').reverse().join('/')}
+                </p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed;">
+                <thead>
+                    <tr style="background-color: #f8f9fa;">
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center; width: 10%;">Data</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center; width: 15%;">Protocolo</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left; width: 20%;">Atendente</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center; width: 15%;">Status</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left; width: 40%;">Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    // Preenche as linhas da tabela dinamicamente
+    dados.forEach(item => {
+        let corStatus = '#333';
+        if (item.status === 'Conforme') corStatus = '#28a745';
+        else if (item.status === 'NC Leve') corStatus = '#856404'; 
+        else if (item.status === 'NC Grave') corStatus = '#dc3545';
+
+        htmlContent += `
+            <tr>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">${item.dataRegistro}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;"><strong>${item.protocolo}</strong></td>
+                <td style="border: 1px solid #dee2e6; padding: 8px;">${item.colaborador}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: ${corStatus};">${item.status}</td>
+                <td class="obs-column" style="border: 1px solid #dee2e6; padding: 8px;">${item.obs}</td>
+            </tr>
+        `;
+    });
+
+    htmlContent += `
+                </tbody>
+            </table>
+            <div style="margin-top: 30px; text-align: right; font-size: 10px; color: #999;">
+                Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = htmlContent;
+
+    // Configuração do PDF otimizada para evitar cortes
+    const configPDF = {
+        margin:       [10, 10, 15, 10], // Margens: topo, direita, baixo, esquerda
+        filename:     `Relatorio_${company.replace(/\s+/g, '')}_${startDate}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true }, // Força uma largura de renderização
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: 'tr' } // Instrução rigorosa para não cortar <tr>
+    };
+
+    container.style.display = 'block'; 
+    html2pdf().set(configPDF).from(container).save().then(() => {
+        container.style.display = 'none';
+        container.innerHTML = ''; 
+    });
+}

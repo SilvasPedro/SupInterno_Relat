@@ -508,107 +508,111 @@
             </div>
         </div>
 
-        <div id="section-terceirizada-dash" class="section" style="display:none;">
-            <div class="header-flex">
-                <div>
-                    <h1>Painel da Terceirizada</h1>
-                    <p style="color: #666;">Acompanhamento de qualidade e conformidade.</p>
-                </div>
-                <button onclick="loadThirdPartyDashboard()" class="btn-primary" title="Atualizar">
-                    <i class="material-icons" style="font-size: 20px; vertical-align: middle;">refresh</i>
-                </button>
-            </div>
-
-            <div class="metrics-grid">
-                <div class="metric-card kpi-card" style="border-left: 5px solid #28a745;">
-                    <h3>✅ Conformidade</h3>
-                    <h1 id="kpi-3p-conformidade">0%</h1>
-                    <p>Taxa de Sucesso</p>
-                </div>
-                <div class="metric-card kpi-card" style="border-left: 5px solid #ffc107;">
-                    <h3>⚠️ NC Leves</h3>
-                    <h1 id="kpi-3p-leve">0</h1>
-                    <p>Total Registrado</p>
-                </div>
-                <div class="metric-card kpi-card" style="border-left: 5px solid #dc3545;">
-                    <h3>🚫 NC Graves</h3>
-                    <h1 id="kpi-3p-grave">0</h1>
-                    <p>Total Registrado</p>
-                </div>
-                <div class="metric-card kpi-card" style="border-left: 5px solid #007bff;">
-                    <h3>📋 Total Avaliações</h3>
-                    <h1 id="kpi-3p-total">0</h1>
-                    <p>Volume Analisado</p>
-                </div>
-            </div>
-
-            <div class="charts-container"
-                style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 30px;">
-
-                <div class="metric-card">
-                    <h4 style="margin-bottom: 15px; color: #666;">Distribuição de Status</h4>
-                    <div style="height: 300px;"><canvas id="chartThirdPartyStatus"></canvas></div>
-                </div>
-
-                <div class="metric-card">
-                    <h4 style="margin-bottom: 15px; color: #666;">Evolução Diária (Conformidade vs NC)</h4>
-                    <div style="height: 300px;"><canvas id="chartThirdPartyTimeline"></canvas></div>
-                </div>
-            </div>
-
-            <div class="metric-card" style="margin-top: 25px;">
-                <h4 style="color: #666; margin-bottom: 15px;">Filtros de Pesquisa</h4>
-
-                <div
-                    style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-
-                    <div style="flex: 1; min-width: 150px;">
-                        <label style="font-size: 11px; font-weight: bold; color: #555;">PROTOCOLO</label>
-                        <input type="text" id="search-3p-protocol" onkeyup="renderThirdPartyTable()"
-                            placeholder="Digite..."
-                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    </div>
-
-                    <div style="flex: 1; min-width: 150px;">
-                        <label style="font-size: 11px; font-weight: bold; color: #555;">ATENDENTE</label>
-                        <input type="text" id="search-3p-agent" onkeyup="renderThirdPartyTable()" placeholder="Nome..."
-                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    </div>
-
-                    <div style="flex: 1; min-width: 130px;">
-                        <label style="font-size: 11px; font-weight: bold; color: #555;">DATA INÍCIO</label>
-                        <input type="date" id="search-3p-start" onchange="renderThirdPartyTable()"
-                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    </div>
-
-                    <div style="flex: 1; min-width: 130px;">
-                        <label style="font-size: 11px; font-weight: bold; color: #555;">DATA FIM</label>
-                        <input type="date" id="search-3p-end" onchange="renderThirdPartyTable()"
-                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    </div>
-
-                    <button onclick="clearThirdPartyFilters()"
-                        style="padding: 9px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
-                        Limpar
-                    </button>
-                </div>
-
-                <div style="overflow-x: auto; max-height: 400px;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Protocolo</th>
-                                <th>Atendente</th>
-                                <th>Status</th>
-                                <th style="text-align: center;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-3p-body"></tbody>
-                    </table>
-                </div>
-            </div>
+<div id="section-terceirizada-dash" class="section" style="display:none;">
+    <div class="header-flex">
+        <div>
+            <h1>Painel da Terceirizada</h1>
+            <p style="color: #666;">Acompanhamento de qualidade e conformidade.</p>
         </div>
+        <div style="display: flex; gap: 10px;">
+            <button id="btn-open-report-modal" class="btn-primary" style="background: var(--color-taupe); display: flex; align-items: center; gap: 5px;">
+                <i class="material-icons" style="font-size: 20px;">picture_as_pdf</i> Emitir Relatório
+            </button>
+            <button onclick="loadThirdPartyDashboard()" class="btn-primary" title="Atualizar">
+                <i class="material-icons" style="font-size: 20px; vertical-align: middle;">refresh</i>
+            </button>
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card kpi-card" style="border-left: 5px solid #28a745;">
+            <h3>✅ Conformidade</h3>
+            <h1 id="kpi-3p-conformidade">0%</h1>
+            <p>Taxa de Sucesso</p>
+        </div>
+        <div class="metric-card kpi-card" style="border-left: 5px solid #ffc107;">
+            <h3>⚠️ NC Leves</h3>
+            <h1 id="kpi-3p-leve">0</h1>
+            <p>Total Registrado</p>
+        </div>
+        <div class="metric-card kpi-card" style="border-left: 5px solid #dc3545;">
+            <h3>🚫 NC Graves</h3>
+            <h1 id="kpi-3p-grave">0</h1>
+            <p>Total Registrado</p>
+        </div>
+        <div class="metric-card kpi-card" style="border-left: 5px solid #007bff;">
+            <h3>📋 Total Avaliações</h3>
+            <h1 id="kpi-3p-total">0</h1>
+            <p>Volume Analisado</p>
+        </div>
+    </div>
+
+    <div class="charts-container"
+        style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 30px;">
+
+        <div class="metric-card">
+            <h4 style="margin-bottom: 15px; color: #666;">Distribuição de Status</h4>
+            <div style="height: 300px;"><canvas id="chartThirdPartyStatus"></canvas></div>
+        </div>
+
+        <div class="metric-card">
+            <h4 style="margin-bottom: 15px; color: #666;">Evolução Diária (Conformidade vs NC)</h4>
+            <div style="height: 300px;"><canvas id="chartThirdPartyTimeline"></canvas></div>
+        </div>
+    </div>
+
+    <div class="metric-card" style="margin-top: 25px;">
+        <h4 style="color: #666; margin-bottom: 15px;">Filtros de Pesquisa</h4>
+
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 11px; font-weight: bold; color: #555;">PROTOCOLO</label>
+                <input type="text" id="search-3p-protocol" onkeyup="renderThirdPartyTable()"
+                    placeholder="Digite..."
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 11px; font-weight: bold; color: #555;">ATENDENTE</label>
+                <input type="text" id="search-3p-agent" onkeyup="renderThirdPartyTable()" placeholder="Nome..."
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="flex: 1; min-width: 130px;">
+                <label style="font-size: 11px; font-weight: bold; color: #555;">DATA INÍCIO</label>
+                <input type="date" id="search-3p-start" onchange="renderThirdPartyTable()"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="flex: 1; min-width: 130px;">
+                <label style="font-size: 11px; font-weight: bold; color: #555;">DATA FIM</label>
+                <input type="date" id="search-3p-end" onchange="renderThirdPartyTable()"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <button onclick="clearThirdPartyFilters()"
+                style="padding: 9px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                Limpar
+            </button>
+        </div>
+
+        <div style="overflow-x: auto; max-height: 400px;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Protocolo</th>
+                        <th>Atendente</th>
+                        <th>Status</th>
+                        <th style="text-align: center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="table-3p-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
         <div id="section-terceirizada-form" class="section" style="display:none;">
             <h1>Nova Avaliação (Terceirizada)</h1>
@@ -1630,6 +1634,49 @@
             </form>
         </div>
     </div>
+
+    <div id="report-modal" class="modal-overlay" style="display: none; z-index: 3000;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="color: var(--color-dark-brown); margin: 0;">Emitir Relatório</h2>
+                <span class="close" id="close-report-modal" style="cursor: pointer; font-size: 24px;">&times;</span>
+            </div>
+
+            <form id="report-form">
+                <div class="input-block" style="margin-bottom: 15px;">
+                    <label for="report-company">Empresa Avaliada</label>
+                    <select id="report-company" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        <option value="">Selecione uma empresa</option>
+                        <option value="Upcall">Upcall</option>
+                        </select>
+                </div>
+
+                <div class="input-block" style="margin-bottom: 15px;">
+                    <label for="report-start-date">Data Inicial</label>
+                    <input type="date" id="report-start-date" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+
+                <div class="input-block" style="margin-bottom: 25px;">
+                    <label for="report-end-date">Data Final</label>
+                    <input type="date" id="report-end-date" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+
+                <div style="text-align: right; border-top: 1px solid #eee; padding-top: 15px;">
+                    <button type="submit" class="btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <i class="material-icons" style="font-size: 18px;">picture_as_pdf</i> Gerar Relatório PDF
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+   <div id="pdf-content-container" style="display: none;"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script type="module" src="js/admin.js"></script>
+    <script type="module" src="js/audit.js"></script>
+    ...
 
     <script type="module" src="js/admin.js"></script>
     <script type="module" src="js/audit.js"></script>
