@@ -31,17 +31,16 @@ window.loadThirdPartyDashboard = async () => {
         // Ordena por data (mais recente primeiro)
         thirdPartyCache.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        // Renderiza Inicial
+        // Renderiza Inicial passando todo o cache (sem filtros aplicados)
         renderThirdPartyTable();
-        updateThirdPartyKPIsLogic();
-        processAndRenderTimeline();
+        updateThirdPartyKPIsLogic(thirdPartyCache);
+        processAndRenderTimeline(thirdPartyCache);
 
     } catch (error) {
         console.error("Erro dashboard 3P:", error);
         tableBody.innerHTML = "<tr><td colspan='5'>Erro ao carregar.</td></tr>";
     }
 };
-
 // ============================================================
 // 2. TABELA E FILTROS (ATUALIZADO)
 // ============================================================
@@ -119,32 +118,70 @@ window.clearThirdPartyFilters = () => {
 };
 
 // ============================================================
-// 3. GRÁFICOS E KPIs
+// NOVO: FILTROS DA DASHBOARD (KPIs e Gráficos)
 // ============================================================
 
-function updateThirdPartyKPIsLogic() {
-    let total = thirdPartyCache.length;
+window.applyThirdPartyDashFilter = () => {
+    const startDate = document.getElementById('dash-filter-start').value;
+    const endDate = document.getElementById('dash-filter-end').value;
+
+    // Filtra os dados com base no cache original
+    const filteredData = thirdPartyCache.filter(item => {
+        let isValid = true;
+        // A comparação de strings YYYY-MM-DD funciona perfeitamente em JS
+        if (startDate) isValid = isValid && (item.date >= startDate);
+        if (endDate) isValid = isValid && (item.date <= endDate);
+        return isValid;
+    });
+
+    // Atualiza apenas os Cards e Gráficos com os dados filtrados
+    updateThirdPartyKPIsLogic(filteredData);
+    processAndRenderTimeline(filteredData);
+};
+
+window.clearThirdPartyDashFilter = () => {
+    // Reseta os inputs
+    document.getElementById('dash-filter-start').value = "";
+    document.getElementById('dash-filter-end').value = "";
+    
+    // Volta a renderizar com os dados completos
+    updateThirdPartyKPIsLogic(thirdPartyCache);
+    processAndRenderTimeline(thirdPartyCache);
+};
+
+// ============================================================
+// 3. GRÁFICOS E KPIs (Refatorados para receber dados dinâmicos)
+// ============================================================
+
+// Agora recebe 'dataToRender' como parâmetro, tendo 'thirdPartyCache' como fallback de segurança
+function updateThirdPartyKPIsLogic(dataToRender = thirdPartyCache) {
+    let total = dataToRender.length;
     let countConf = 0, countLeve = 0, countGrave = 0;
 
-    thirdPartyCache.forEach(item => {
+    dataToRender.forEach(item => {
         if (item.status === 'conformidade') countConf++;
         else if (item.status === 'nc_leve') countLeve++;
         else if (item.status === 'nc_grave') countGrave++;
     });
 
+    // Atualiza os Cards (Quantidade de dados analisados)
     document.getElementById('kpi-3p-total').innerText = total;
     document.getElementById('kpi-3p-leve').innerText = countLeve;
     document.getElementById('kpi-3p-grave').innerText = countGrave;
 
+    // Calcula Assertividade (% de Conformidade) e previne divisão por zero
     const perc = total > 0 ? ((countConf / total) * 100).toFixed(1) : 0;
     document.getElementById('kpi-3p-conformidade').innerText = perc + "%";
 
+    // Atualiza o Gráfico de Rosca
     renderThirdPartyChart(countConf, countLeve, countGrave);
 }
 
 function renderThirdPartyChart(conf, leve, grave) {
     const ctx = document.getElementById('chartThirdPartyStatus');
     if (!ctx) return;
+    
+    // Destrói a instância anterior para evitar sobreposição de canvas
     if (chart3PStatusInstance) chart3PStatusInstance.destroy();
 
     chart3PStatusInstance = new Chart(ctx, {
@@ -165,12 +202,13 @@ function renderThirdPartyChart(conf, leve, grave) {
     });
 }
 
-function processAndRenderTimeline() {
+// Também passa a receber os dados como argumento
+function processAndRenderTimeline(dataToRender = thirdPartyCache) {
     const ctx = document.getElementById('chartThirdPartyTimeline');
     if (!ctx) return;
 
     const groups = {};
-    thirdPartyCache.forEach(item => {
+    dataToRender.forEach(item => {
         const d = item.date;
         if (!groups[d]) groups[d] = { conf: 0, leve: 0, grave: 0 };
 

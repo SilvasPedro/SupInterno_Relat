@@ -230,15 +230,7 @@ h1 {
     width: fit-content;
 }
 
-h1::after {
-    content: '';
-    display: block;
-    width: 100%;
-    height: 2px;
-    background: var(--color-main-red);
-    margin-top: 8px;
-    border-radius: 2px;
-}
+
 
 /* ============================================================
    4. CARDS DE KPI (DASHBOARD)
