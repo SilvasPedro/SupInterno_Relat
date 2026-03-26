@@ -227,7 +227,7 @@ h1 {
     font-weight: 700;
     color: var(--color-dark-brown);
     position: relative;
-    width: fit-content;
+    /* width: fit-content; */
 }
 
 
@@ -254,7 +254,7 @@ h1 {
 }
 
 .metric-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-1px);
     box-shadow: var(--shadow-hover);
     border-color: rgba(227, 2, 36, 0.2);
 }
@@ -838,15 +838,23 @@ button[onclick*="openHistory"]:hover {
     border-left-color: #6c757d;
 }
 
+/* Reduzir altura das linhas da tabela de histórico de KPIs */
+.compact-table th,
+.compact-table td {
+    padding: 10px 15px !important;
+    font-size: 14px;
+}
+
 /* ============================================================
    12. HUB DE COLABORADORES (CARDS)
    ============================================================ */
 
 .collaborators-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 25px;
-    padding-top: 20px;
+    /* Reduzido de 280px para 220px para diminuir os cards */
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px; /* Reduzi o gap um pouco também para harmonizar */
+    padding-top: 10px;
 }
 
 .collab-card {

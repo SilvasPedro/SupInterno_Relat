@@ -88,8 +88,9 @@ window.showSection = (sectionId) => {
     if (target) target.style.display = 'block';
 
     // 4. Ações específicas por tela
-    if (sectionId === 'colaboradores') {
+if (sectionId === 'colaboradores') {
         loadCollaboratorsHub(); // <--- CHAMA O HUB NOVO
+        window.renderHubAnalytics(); // <--- ADICIONE ESTA LINHA AQUI
     }
 
     if (sectionId !== 'lancamentos' && isEditingMetric) resetMetricFormState();
@@ -240,6 +241,39 @@ function updateSectorKPI(curr, prev, key, elId, trendId, isTime) {
     }
 }
 
+let gaugeChartInstance = null;
+
+function renderQaGauge(value, color) {
+    const ctx = document.getElementById('gaugeQA');
+    if (!ctx) return;
+
+    if (gaugeChartInstance) {
+        gaugeChartInstance.data.datasets[0].data = [value, 100 - value];
+        gaugeChartInstance.data.datasets[0].backgroundColor = [color, '#f0f0f0'];
+        gaugeChartInstance.update();
+    } else {
+        gaugeChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [value, 100 - value],
+                    backgroundColor: [color, '#f0f0f0'],
+                    borderWidth: 0,
+                    circumference: 180, // Corta pela metade
+                    rotation: 270       // Gira para virar um arco para cima
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%', // Espessura do anel
+                plugins: { tooltip: { enabled: false }, legend: { display: false } },
+                animation: { animateRotate: true, animateScale: false }
+            }
+        });
+    }
+}
+
 function processGlobalKPIs(users, globalQaPercent) {
     if (users.length === 0) { resetKpis(); return; }
 
@@ -258,36 +292,32 @@ function processGlobalKPIs(users, globalQaPercent) {
     updateCard('kpi-team-vol', avgVol);
 
     // --- CORREÇÃO DINÂMICA DO CARD QA ---
-    updateCard('kpi-team-qa', globalQaPercent + "%");
+// --- LÓGICA DO CARD QA (GAUGE) ---
+    const numVal = parseFloat(globalQaPercent) || 0;
+    let color = '#dc3545'; // 1% até 74%: Vermelho
 
-    const qaEl = document.getElementById('kpi-team-qa');
-    const qaCard = qaEl ? qaEl.closest('.metric-card') : null; // Pega o card pai para mudar a borda
-
-    if (qaEl) {
-        // Converte para número para garantir que a comparação funcione
-        const numVal = parseFloat(globalQaPercent);
-        let color = '#dc3545'; // Vermelho (Padrão/Baixo)
-
-        if (numVal >= 90) {
-            color = '#28a745'; // Verde (Meta)
-        } else if (numVal >= 75) {
-            color = '#ffc107'; // Amarelo (Atenção)
-        }
-
-        // Aplica a cor no Texto
-        qaEl.style.color = color;
-
-        // Aplica a cor na Borda do Card (Opcional, mas recomendado)
-        if (qaCard) {
-            qaCard.style.borderLeftColor = color;
-        }
+    if (numVal >= 90) {
+        color = '#28a745'; // 90% para cima: Verde
+    } else if (numVal >= 75) {
+        color = '#ffc107'; // 75% até 89%: Amarelo
     }
 
+    // Atualiza o texto central do velocímetro
+    const qaText = document.getElementById('kpi-team-qa-text');
+    if (qaText) {
+        qaText.innerText = numVal.toFixed(1) + "%";
+        qaText.style.color = color;
+    }
+
+    // Renderiza/Atualiza o gráfico do Chart.js
+    renderQaGauge(numVal, color);
+
     // --- Rankings ---
-    const bestMonitoria = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
+ const bestMonitoria = [...users].sort((a, b) => b.avgMonitoria - a.avgMonitoria)[0];
     if (bestMonitoria) {
-        updateCard('kpi-best-qa', bestMonitoria.avgMonitoria);
+        // IMPORTANTE: Aqui invertemos a ordem! O NOME vai para o h1 e a NOTA vai para o parágrafo
         updateCard('kpi-best-qa-name', bestMonitoria.name.split(' ').slice(0, 2).join(' '));
+        updateCard('kpi-best-qa', bestMonitoria.avgMonitoria);
     }
 
     const maxTel = [...users].sort((a, b) => b.avgTmaTel - a.avgTmaTel)[0];
@@ -506,35 +536,176 @@ function resetMetricFormState() {
 // ============================================================
 
 // A. Histórico do Setor (Corrigido)
+let sectorMetricsCache = [];
+let chartSectorInstance = null;
+
+// A. Função para carregar histórico e preencher cache, tabela, gráfico e metas
 window.loadSectorHistory = async () => {
     const tbody = document.getElementById('sector-history-body');
     if (!tbody) return;
-    tbody.innerHTML = "<tr><td colspan='5'>Carregando...</td></tr>";
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Carregando dados...</td></tr>";
 
     try {
         const q = await getDocs(collection(db, "sector_metrics"));
-        let docs = [];
-        q.forEach(doc => docs.push(doc.data()));
-        docs.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
+        sectorMetricsCache = [];
+        q.forEach(doc => sectorMetricsCache.push(doc.data()));
+        sectorMetricsCache.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart)); // Mais recentes primeiro
 
-        tbody.innerHTML = "";
-        if (docs.length === 0) { tbody.innerHTML = "<tr><td colspan='5'>Vazio.</td></tr>"; return; }
+        // Preenche o mês atual no gráfico por padrão, se estiver vazio
+        const hoje = new Date();
+        const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+        if(!document.getElementById('filter-chart-month').value) {
+            document.getElementById('filter-chart-month').value = mesAtual;
+        }
 
-        docs.forEach(d => {
-            const dateFmt = d.weekStart.split('-').reverse().join('/');
-            tbody.innerHTML += `
-                <tr>
-                    <td>${dateFmt}</td>
-                    <td>${d.tmr}</td>
-                    <td>${d.fcr}%</td>
-                    <td>${d.reincidência || d.reincidencia}%</td>
-                    <td>
-                        <button onclick="prepareEditSectorKPI('${d.weekStart}')" class="action-btn btn-edit"><i class="material-icons">edit</i></button>
-                        <button onclick="deleteSectorKPI('${d.weekStart}')" class="action-btn btn-delete"><i class="material-icons">delete</i></button>
-                    </td>
-                </tr>`;
-        });
-    } catch (e) { tbody.innerHTML = "<tr><td colspan='5'>Erro.</td></tr>"; }
+        window.filterSectorHistory();
+        window.renderSectorChart();
+        window.loadKpiTargets();
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Erro ao carregar dados.</td></tr>";
+    }
+};
+
+// B. Filtra e renderiza a tabela compacta
+window.filterSectorHistory = () => {
+    const tbody = document.getElementById('sector-history-body');
+    const monthFilter = document.getElementById('filter-history-month').value; // Formato YYYY-MM
+    
+    let filtrado = sectorMetricsCache;
+    if (monthFilter) {
+        filtrado = sectorMetricsCache.filter(d => d.weekStart.startsWith(monthFilter));
+    }
+
+    tbody.innerHTML = "";
+    if (filtrado.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#666;'>Nenhum registro encontrado para este período.</td></tr>";
+        return;
+    }
+
+    filtrado.forEach(d => {
+        const dateFmt = d.weekStart.split('-').reverse().join('/');
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${dateFmt}</strong></td>
+                <td>${d.tmr}</td>
+                <td><span style="color: #28a745; font-weight: bold;">${d.fcr}%</span></td>
+                <td><span style="color: #dc3545; font-weight: bold;">${d.reincidência || d.reincidencia}%</span></td>
+                <td style="text-align: center;">
+                    <button onclick="deleteSectorKPI('${d.weekStart}')" class="action-btn btn-delete" style="margin: 0 auto; width: 30px; height: 30px;" title="Excluir">
+                        <i class="material-icons" style="font-size: 16px;">delete</i>
+                    </button>
+                </td>
+            </tr>`;
+    });
+};
+
+// C. Renderiza o Gráfico de Evolução (Filtro por mês)
+window.renderSectorChart = () => {
+    const ctx = document.getElementById('chartSectorEvolution');
+    if (!ctx) return;
+
+    const monthFilter = document.getElementById('filter-chart-month').value;
+    let filtrado = sectorMetricsCache;
+    
+    if (monthFilter) {
+        filtrado = sectorMetricsCache.filter(d => d.weekStart.startsWith(monthFilter));
+    }
+
+    // Ordena do mais antigo pro mais novo para o gráfico fazer sentido cronológico (esquerda -> direita)
+    filtrado.sort((a, b) => new Date(a.weekStart) - new Date(b.weekStart));
+
+    const labels = filtrado.map(d => d.weekStart.split('-').reverse().slice(0,2).join('/'));
+    const dataFCR = filtrado.map(d => parseFloat(d.fcr));
+    const dataRein = filtrado.map(d => parseFloat(d.reincidência || d.reincidencia));
+
+    if (chartSectorInstance) chartSectorInstance.destroy();
+
+    chartSectorInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'FCR (%)',
+                    data: dataFCR,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Reincidência (%)',
+                    data: dataRein,
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+};
+
+// D. Evento de Salvar Lançamento direto desta tela
+const formNewHistory = document.getElementById('form-new-sector-metrics');
+if (formNewHistory) {
+    formNewHistory.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const weekStart = document.getElementById('history-kpi-date').value;
+        const data = {
+            weekStart, 
+            createdAt: new Date(),
+            tmr: document.getElementById('history-kpi-tmr').value,
+            fcr: Number(document.getElementById('history-kpi-fcr').value),
+            reincidencia: Number(document.getElementById('history-kpi-reincidencia').value)
+        };
+        try {
+            await setDoc(doc(db, "sector_metrics", weekStart), data);
+            window.showNotification("KPIs salvos com sucesso!", "success"); // Usando o Toastify que já existe no seu projeto
+            formNewHistory.reset();
+            window.loadSectorHistory(); // Atualiza tabela e gráfico
+            if(typeof loadDashboardData === "function") loadDashboardData(); // Atualiza dashboard principal se existir
+        } catch (error) { 
+            window.showNotification("Erro ao salvar: " + error.message, "error"); 
+        }
+    });
+}
+
+// E. Lógica das Metas (Cola)
+window.loadKpiTargets = async () => {
+    try {
+        const snap = await getDoc(doc(db, "configs", "kpi_targets"));
+        if (snap.exists()) {
+            const d = snap.data();
+            document.getElementById('target-tmr').value = d.tmr || '00:20:00';
+            document.getElementById('target-fcr').value = d.fcr || 80;
+            document.getElementById('target-rein').value = d.reincidencia || 20;
+        }
+    } catch(e) { console.error("Erro ao carregar metas", e); }
+};
+
+const formTargets = document.getElementById('form-kpi-targets');
+if (formTargets) {
+    formTargets.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+            tmr: document.getElementById('target-tmr').value,
+            fcr: Number(document.getElementById('target-fcr').value),
+            reincidencia: Number(document.getElementById('target-rein').value)
+        };
+        try {
+            await setDoc(doc(db, "configs", "kpi_targets"), data);
+            window.showNotification("Metas atualizadas com sucesso!", "success");
+        } catch (error) {
+            window.showNotification("Erro ao atualizar metas: " + error.message, "error");
+        }
+    });
 }
 
 window.deleteSectorKPI = async (id) => {
@@ -898,3 +1069,71 @@ window.toggleSidebar = () => {
     }
 };
 
+window.renderHubAnalytics = async () => {
+    try {
+        const q = await getDocs(collection(db, "users"));
+        let total = 0;
+        let turnos = {};
+        let cargos = {};
+
+        q.forEach(docSnap => {
+            const data = docSnap.data();
+            if(data.cargo !== 'admin') { // Ignora admins da contagem
+                total++;
+                let t = data.turno || 'Não Informado';
+                let c = data.cargo || 'Não Informado';
+                turnos[t] = (turnos[t] || 0) + 1;
+                cargos[c] = (cargos[c] || 0) + 1;
+            }
+        });
+
+        // Atualiza o número total
+        document.getElementById('hub-total-colab').innerText = total;
+
+        // Gráfico de Turnos (Doughnut)
+        const ctxTurnos = document.getElementById('hubChartTurnos');
+        if (ctxTurnos && window.hubChartT) window.hubChartT.destroy();
+        if (ctxTurnos) {
+            window.hubChartT = new Chart(ctxTurnos, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(turnos),
+                    datasets: [{ 
+                        data: Object.values(turnos), 
+                        backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: {size: 11} } } } 
+                }
+            });
+        }
+
+        // Gráfico de Cargos (Pie)
+        const ctxCargos = document.getElementById('hubChartCargos');
+        if (ctxCargos && window.hubChartC) window.hubChartC.destroy();
+        if (ctxCargos) {
+            window.hubChartC = new Chart(ctxCargos, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(cargos),
+                    datasets: [{ 
+                        data: Object.values(cargos), 
+                        backgroundColor: ['#17a2b8', '#fd7e14', '#20c997', '#e83e8c', '#6610f2'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: {size: 11} } } } 
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Erro ao gerar gráficos do hub:", e);
+    }
+};

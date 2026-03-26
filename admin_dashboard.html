@@ -70,181 +70,192 @@
     <main class="main-content">
 
         <div id="section-dashboard" class="section">
-            <div class="header-flex">
+            <div class="header-flex"
+                style="background: white; padding: 20px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; margin-bottom: 30px; align-items: center;">
                 <div>
-                    <h1>Visão Geral da Gestão</h1>
-                    <p style="color: #666; font-size: 13px;">Monitoramento consolidado de toda a operação.</p>
+                    <h1 style="margin: 0;">Visão Geral da Gestão</h1>
+                    <p style="color: #666; font-size: 13px; margin-top: 5px;">Monitoramento consolidado de toda a
+                        operação.</p>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <span id="last-update" style="font-size:12px; color:#888; align-self:center;"></span>
+                <div style="display:flex; gap:10px; align-items: center;">
+                    <span id="last-update" style="font-size:12px; color:#888;"></span>
                     <button onclick="forceDashboardRefresh()" class="btn-primary" title="Recalcular Dados"
-                        style="padding: 10px 15px;">
-                        <i class="material-icons" style="font-size: 20px; vertical-align: middle;">sync</i>
+                        style="padding: 10px 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="material-icons" style="font-size: 20px;">sync</i>
                     </button>
                 </div>
             </div>
 
-            <h3
-                style="margin-bottom: 15px; color: var(--color-taupe); font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
-                🚀 KPIs Globais do Setor
-            </h3>
-            <div class="metrics-grid">
-                <div class="metric-card kpi-card">
-                    <h3>⏱️ TMR (Setor)</h3>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <h1 id="kpi-sector-tmr" style="font-size: 2.5em;">--:--</h1>
-                        <span id="trend-tmr" style="font-size: 1.5em; font-weight: bold;"></span>
-                    </div>
-                    <p>Meta: ≦ 00:20:00</p>
-                </div>
+<h3 style="margin-bottom: 15px; color: var(--color-taupe); font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
+    🚀 KPIs Globais do Setor
+</h3>
+<div class="metrics-grid">
+    <div class="metric-card kpi-card">
+        <h3>⏱️ TMR (Setor)</h3>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <h1 id="kpi-sector-tmr" style="font-size: 2.5em;">--:--</h1>
+            <span id="trend-tmr" style="font-size: 1.5em; font-weight: bold;"></span>
+        </div>
+        <p>Meta: ≦ 00:20:00</p>
+    </div>
 
-                <div class="metric-card kpi-card">
-                    <h3>🎯 FCR (Setor)</h3>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <h1 id="kpi-sector-fcr" style="font-size: 2.5em;">--%</h1>
-                        <span id="trend-fcr" style="font-size: 1.5em; font-weight: bold;"></span>
-                    </div>
-                    <p>Meta: ≧ 80%</p>
-                </div>
+    <div class="metric-card kpi-card">
+        <h3>🎯 FCR (Setor)</h3>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <h1 id="kpi-sector-fcr" style="font-size: 2.5em;">--%</h1>
+            <span id="trend-fcr" style="font-size: 1.5em; font-weight: bold;"></span>
+        </div>
+        <p>Meta: ≧ 80%</p>
+    </div>
 
-                <div class="metric-card kpi-card">
-                    <h3>🔄 Reincidência</h3>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <h1 id="kpi-sector-rein" style="font-size: 2.5em;">--%</h1>
-                        <span id="trend-rein" style="font-size: 1.5em; font-weight: bold;"></span>
-                    </div>
-                    <p>Meta: ≦ 20%</p>
-                </div>
+    <div class="metric-card kpi-card">
+        <h3>🔄 Reincidência</h3>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <h1 id="kpi-sector-rein" style="font-size: 2.5em;">--%</h1>
+            <span id="trend-rein" style="font-size: 1.5em; font-weight: bold;"></span>
+        </div>
+        <p>Meta: ≦ 20%</p>
+    </div>
+    
+    <div class="metric-card kpi-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <h3 style="margin-bottom: 10px; text-align: center;">⭐ % QA (Equipe)</h3>
+        
+        <div style="position: relative; width: 100%; height: 110px; display: flex; justify-content: center;">
+            <canvas id="gaugeQA"></canvas>
+            
+            <div style="position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; z-index: 10;">
+                <h1 id="kpi-team-qa-text" style="font-size: 26px; line-height: 1; margin: 0; padding: 0;">--%</h1>
+            </div>
+        </div>
+        
+        <p style="text-align: center; margin-top: 10px;">Média do departamento</p>
+    </div>
+</div>
+
+        <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0 30px 0;">
+
+        <h3
+            style="margin-bottom: 15px; color: var(--color-main-red); font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
+            👥 Performance Média da Equipe
+        </h3>
+        <div class="metrics-grid">
+
+            <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')" style="cursor:pointer;">
+                <h3>✅ Vol. Médio / Agente</h3>
+                <h1 id="kpi-team-vol">0</h1>
+                <p>Finalizações Semanais</p>
             </div>
 
-            <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0 30px 0;">
-
-            <h3
-                style="margin-bottom: 15px; color: var(--color-main-red); font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
-                👥 Performance Média da Equipe
-            </h3>
-            <div class="metrics-grid">
-                <div class="metric-card kpi-card">
-                    <h3>⭐ Média QA (Equipe)</h3>
-                    <h1 id="kpi-team-qa">--</h1>
-                    <p>Média do departamento</p>
-                </div>
-
-                <div class="metric-card kpi-card" onclick="openDetailModal('team-vol')" style="cursor:pointer;">
-                    <h3>✅ Vol. Médio / Agente</h3>
-                    <h1 id="kpi-team-vol">0</h1>
-                    <p>Finalizações Semanais</p>
-                </div>
-
-                <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')" style="cursor:pointer;">
-                    <h3>📞 TMA Médio (Voz)</h3>
-                    <h1 id="kpi-team-tel">--:--</h1>
-                    <p>Tempo Médio em Linha</p>
-                </div>
-
-                <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')" style="cursor:pointer;">
-                    <h3>💬 TMA Médio (Chat)</h3>
-                    <h1 id="kpi-team-chat">--:--</h1>
-                    <p>Tempo Médio de Chat</p>
-                </div>
+            <div class="metric-card kpi-card" onclick="openDetailModal('team-tel')" style="cursor:pointer;">
+                <h3>📞 TMA Médio (Voz)</h3>
+                <h1 id="kpi-team-tel">--:--</h1>
+                <p>Tempo Médio em Linha</p>
             </div>
 
-            <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0 30px 0;">
-
-            <h3
-                style="margin-bottom: 15px; color: #555; font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
-                🏆 Destaques & Pontos de Atenção
-            </h3>
-            <div class="metrics-grid">
-                <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')" style="cursor:pointer;">
-                    <h3>🥇 Top 1 Qualidade</h3>
-                    <h1 id="kpi-best-qa" style="color: #bd992d;">--</h1>
-                    <p id="kpi-best-qa-name" style="font-weight:bold; color:#555;">--</p>
-                </div>
-
-                <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')" style="cursor:pointer;">
-                    <h3>⚠️ Maior TMA (Voz)</h3>
-                    <h1 id="kpi-max-tel" style="color: #dc3545;">--:--</h1>
-                    <p id="kpi-max-tel-name" style="font-weight:bold; color:#555;">--</p>
-                </div>
-
-                <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')" style="cursor:pointer;">
-                    <h3>⚠️ Maior TMA (Chat)</h3>
-                    <h1 id="kpi-max-chat" style="color: #dc3545;">--:--</h1>
-                    <p id="kpi-max-chat-name" style="font-weight:bold; color:#555;">--</p>
-                </div>
-            </div>
-
-            <br>
-
-            <h3 style="margin-top: 20px; margin-bottom: 20px; color: var(--color-dark-brown);">📈 Análise Gráfica</h3>
-            <div class="charts-container"
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
-                <div class="metric-card">
-                    <h4 style="margin-bottom: 15px; color: #666;">Ranking Qualidade (Monitoria)</h4>
-                    <div style="height: 300px;"><canvas id="chartRankingMonitoria"></canvas></div>
-                </div>
-                <div class="metric-card">
-                    <h4 style="margin-bottom: 15px; color: #666;">Ranking Agilidade (Chat)</h4>
-                    <div style="height: 300px;"><canvas id="chartRankingChat"></canvas></div>
-                </div>
-                <div class="metric-card">
-                    <h4 style="margin-bottom: 15px; color: #666;">Evolução do TMA Médio (Semanas)</h4>
-                    <div style="height: 300px;"><canvas id="chartEvolucaoTma"></canvas></div>
-                </div>
-                <div class="metric-card">
-                    <h4 style="margin-bottom: 15px; color: #666;">Evolução da Produtividade (Média por Agente)</h4>
-                    <div style="height: 300px;"><canvas id="chartEvolucaoVol"></canvas></div>
-                </div>
+            <div class="metric-card kpi-card" onclick="openDetailModal('team-chat')" style="cursor:pointer;">
+                <h3>💬 TMA Médio (Chat)</h3>
+                <h1 id="kpi-team-chat">--:--</h1>
+                <p>Tempo Médio de Chat</p>
             </div>
         </div>
 
-        <div id="section-colaboradores" class="section" style="display:none;">
-            <div class="header-flex">
-                <div>
-                    <h1>Hub de Colaboradores</h1>
-                    <p style="color: #666; font-size: 13px;">Selecione um card para ver a análise profunda.</p>
-                </div>
-                <button onclick="openNewCollaboratorModal()" class="btn-primary">+ Novo Colaborador</button>
+        <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0 30px 0;">
+
+        <h3
+            style="margin-bottom: 15px; color: #555; font-size: 14px; text-transform: uppercase; font-weight:bold; letter-spacing:1px;">
+            🏆 Destaques & Pontos de Atenção
+        </h3>
+        <div class="metrics-grid">
+            <div class="metric-card kpi-card" onclick="openDetailModal('best-qa')"
+                style="cursor:pointer; background: linear-gradient(135deg, #28a745, #218838); border: none; box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);">
+                <h3 style="color: rgba(255,255,255,0.9); margin-bottom: 10px;">🥇 Top 1 Qualidade</h3>
+                <h1 id="kpi-best-qa-name"
+                    style="color: white; font-size: 1.8em; line-height: 1.2; margin-bottom: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
+                    --</h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin: 0;">Nota: <strong id="kpi-best-qa"
+                        style="color: white; font-size: 1.2em;">--</strong></p>
             </div>
 
-            <div id="colaboradores-grid" class="collaborators-grid">
+            <div class="metric-card kpi-card" onclick="openDetailModal('max-tel')" style="cursor:pointer;">
+                <h3>⚠️ Maior TMA (Voz)</h3>
+                <h1 id="kpi-max-tel" style="color: #dc3545;">--:--</h1>
+                <p id="kpi-max-tel-name" style="font-weight:bold; color:#555;">--</p>
+            </div>
+
+            <div class="metric-card kpi-card" onclick="openDetailModal('max-chat')" style="cursor:pointer;">
+                <h3>⚠️ Maior TMA (Chat)</h3>
+                <h1 id="kpi-max-chat" style="color: #dc3545;">--:--</h1>
+                <p id="kpi-max-chat-name" style="font-weight:bold; color:#555;">--</p>
             </div>
         </div>
+
+        <br>
+
+        <h3 style="margin-top: 20px; margin-bottom: 20px; color: var(--color-dark-brown);">📈 Análise Gráfica</h3>
+        <div class="charts-container"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px;">
+            <div class="metric-card">
+                <h4 style="margin-bottom: 15px; color: #666;">Ranking Qualidade (Monitoria)</h4>
+                <div style="height: 300px;"><canvas id="chartRankingMonitoria"></canvas></div>
+            </div>
+            <div class="metric-card">
+                <h4 style="margin-bottom: 15px; color: #666;">Ranking Agilidade (Chat)</h4>
+                <div style="height: 300px;"><canvas id="chartRankingChat"></canvas></div>
+            </div>
+            <div class="metric-card">
+                <h4 style="margin-bottom: 15px; color: #666;">Evolução do TMA Médio (Semanas)</h4>
+                <div style="height: 300px;"><canvas id="chartEvolucaoTma"></canvas></div>
+            </div>
+            <div class="metric-card">
+                <h4 style="margin-bottom: 15px; color: #666;">Evolução da Produtividade (Média por Agente)</h4>
+                <div style="height: 300px;"><canvas id="chartEvolucaoVol"></canvas></div>
+            </div>
+        </div>
+        </div>
+
+<div id="section-colaboradores" class="section" style="display:none;">
+    <div class="header-flex" style="background: white; padding: 20px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; margin-bottom: 25px; align-items: center;">
+        <div>
+            <h1 style="margin: 0; color: var(--color-dark-brown);">Hub de Colaboradores</h1>
+            <p style="color: #666; font-size: 13px; margin-top: 5px;">Gestão de equipe, cargos e turnos.</p>
+        </div>
+        <button onclick="openNewCollaboratorModal()" class="btn-primary" style="border-radius: 8px;">
+            + Novo Colaborador
+        </button>
+    </div>
+
+    <div class="charts-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        
+        <div class="metric-card" style="padding: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <h4 style="color: #666; margin-bottom: 10px; font-size: 13px; text-transform: uppercase;">Total Registrados</h4>
+            <h1 id="hub-total-colab" style="font-size: 4em; color: var(--color-main-red); margin: 0;">0</h1>
+        </div>
+        
+        <div class="metric-card" style="padding: 15px;">
+            <h4 style="color: #666; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; text-align: center;">Distribuição por Turno</h4>
+            <div style="height: 140px; position: relative; width: 100%; display: flex; justify-content: center;">
+                <canvas id="hubChartTurnos"></canvas>
+            </div>
+        </div>
+        
+        <div class="metric-card" style="padding: 15px;">
+            <h4 style="color: #666; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; text-align: center;">Distribuição por Cargo</h4>
+            <div style="height: 140px; position: relative; width: 100%; display: flex; justify-content: center;">
+                <canvas id="hubChartCargos"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0 25px 0;">
+
+    <div id="colaboradores-grid" class="collaborators-grid">
+    </div>
+</div>
 
         <div id="section-lancamentos" class="section" style="display:none;">
             <h1>Lançamento de Desempenho</h1>
 
-            <div class="metrics-form" style="margin-top: 30px;">
-                <h2>🚀 Indicadores Globais do Setor</h2>
-                <form id="form-sector-metrics">
-                    <div class="form-group-header">
-                        <div class="input-block">
-                            <label>Semana de Referência</label>
-                            <input type="date" id="sector-date" required>
-                        </div>
-                        <div class="input-block" style="display:flex; align-items:flex-end;">
-                            <button type="submit" class="btn-primary" style="width: 100%;">Salvar KPIs do Setor</button>
-                        </div>
-                    </div>
-                    <div class="metrics-grid">
-                        <div class="input-block">
-                            <label>TMR (HH:MM:SS)</label>
-                            <input type="text" id="kpi-tmr" placeholder="00:00:00" required>
-                        </div>
-                        <div class="input-block">
-                            <label>FCR (%)</label>
-                            <input type="number" step="0.1" id="kpi-fcr" placeholder="0.0" required>
-                        </div>
-                        <div class="input-block">
-                            <label>Reincidência (%)</label>
-                            <input type="number" step="0.1" id="kpi-reincidencia" placeholder="0.0" required>
-                        </div>
-                    </div>
-                </form>
-            </div>
 
-            <hr style="margin: 30px 0;">
 
             <h2 style="color: var(--color-dark-brown); margin-bottom: 20px;">👤 Desempenho Individual</h2>
             <form id="form-metrics" class="metrics-form">
@@ -318,33 +329,105 @@
             </form>
         </div>
 
-        <div id="section-sector-history" class="section" style="display:none;">
-            <div class="header-flex">
-                <h1>Histórico de KPIs do Setor</h1>
-                <button onclick="loadSectorHistory()" class="btn-primary" title="Atualizar Lista">
-                    <i class="material-icons" style="font-size:20px; vertical-align:middle;">refresh</i>
-                </button>
-            </div>
-            <div class="metric-card">
-                <p style="color:#666; margin-bottom:15px; font-size:13px;">
-                    Gerencie aqui os indicadores globais (TMR, FCR, Reincidência).
-                </p>
-                <div style="overflow-x: auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Semana (Ref)</th>
-                                <th>TMR</th>
-                                <th>FCR (%)</th>
-                                <th>Reincidência (%)</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sector-history-body"></tbody>
-                    </table>
+<div id="section-sector-history" class="section" style="display:none;">
+    
+    <div class="header-flex" style="background: white; padding: 20px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; margin-bottom: 30px; align-items: center;">
+        <div>
+            <h1 style="margin: 0; color: var(--color-dark-brown);">Gestão de KPIs do Setor</h1>
+            <p style="color: #666; font-size: 13px; margin-top: 5px;">Lançamento, histórico e acompanhamento de metas.</p>
+        </div>
+        <button onclick="loadSectorHistory()" class="btn-primary" title="Recarregar Dados" style="padding: 10px 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <i class="material-icons" style="font-size: 20px;">sync</i>
+        </button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        
+        <div class="metrics-form" style="padding: 25px;">
+            <h3 style="margin-bottom: 20px; color: var(--color-dark-brown); font-size: 16px;">🚀 Lançar KPIs da Semana</h3>
+            <form id="form-new-sector-metrics">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div class="input-block" style="margin: 0;">
+                        <label>Semana Referência</label>
+                        <input type="date" id="history-kpi-date" required style="padding: 10px;">
+                    </div>
+                    <div class="input-block" style="margin: 0;">
+                        <label>TMR (HH:MM:SS)</label>
+                        <input type="text" id="history-kpi-tmr" placeholder="00:00:00" required style="padding: 10px;">
+                    </div>
+                    <div class="input-block" style="margin: 0;">
+                        <label>FCR (%)</label>
+                        <input type="number" step="0.1" id="history-kpi-fcr" placeholder="0.0" required style="padding: 10px;">
+                    </div>
+                    <div class="input-block" style="margin: 0;">
+                        <label>Reincidência (%)</label>
+                        <input type="number" step="0.1" id="history-kpi-reincidencia" placeholder="0.0" required style="padding: 10px;">
+                    </div>
                 </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">💾 Salvar Lançamento</button>
+            </form>
+        </div>
+
+        <div class="metric-card" style="padding: 25px; border-left: 5px solid var(--color-taupe);">
+            <h3 style="margin-bottom: 20px; color: var(--color-dark-brown); font-size: 16px;">🎯 Metas Atuais (Cola)</h3>
+            <form id="form-kpi-targets">
+                <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                    <div class="input-block" style="flex: 1; margin: 0;">
+                        <label>Meta TMR</label>
+                        <input type="text" id="target-tmr" value="00:20:00" style="padding: 10px; background: #f9f9f9;">
+                    </div>
+                    <div class="input-block" style="flex: 1; margin: 0;">
+                        <label>Meta FCR (%)</label>
+                        <input type="number" step="0.1" id="target-fcr" value="80.0" style="padding: 10px; background: #f9f9f9;">
+                    </div>
+                    <div class="input-block" style="flex: 1; margin: 0;">
+                        <label>Meta Reincid. (%)</label>
+                        <input type="number" step="0.1" id="target-rein" value="20.0" style="padding: 10px; background: #f9f9f9;">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="background: #6c757d; width: 100%;">✏️ Atualizar Metas Globais</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="metric-card" style="margin-bottom: 30px; padding: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+            <h3 style="color: var(--color-dark-brown); margin: 0; font-size: 16px;">📈 Evolução Mensal</h3>
+            <div style="display: flex; gap: 10px; align-items: center; background: #f8f9fa; padding: 5px 15px; border-radius: 8px; border: 1px solid #eee;">
+                <label style="font-size: 12px; font-weight: bold; color: #666; margin: 0;">Visualizar Mês:</label>
+                <input type="month" id="filter-chart-month" onchange="window.renderSectorChart()" style="border: none; background: transparent; outline: none; font-family: inherit; cursor: pointer;">
             </div>
         </div>
+        <div style="height: 300px; width: 100%;">
+            <canvas id="chartSectorEvolution"></canvas>
+        </div>
+    </div>
+
+    <div class="metric-card" style="padding: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+            <h3 style="color: var(--color-dark-brown); margin: 0; font-size: 16px;">📋 Histórico de Lançamentos</h3>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="month" id="filter-history-month" onchange="window.filterSectorHistory()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd;">
+                <button onclick="document.getElementById('filter-history-month').value=''; window.filterSectorHistory();" style="padding: 9px 15px; border: none; background: #6c757d; color: white; border-radius: 6px; cursor: pointer;">Limpar</button>
+            </div>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table class="data-table compact-table">
+                <thead>
+                    <tr>
+                        <th>Semana (Ref)</th>
+                        <th>TMR</th>
+                        <th>FCR (%)</th>
+                        <th>Reincidência (%)</th>
+                        <th style="text-align: center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="sector-history-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
         <div id="section-ocorrencias" class="section" style="display:none;">
             <div class="header-flex">
@@ -509,46 +592,61 @@
         </div>
 
         <div id="section-terceirizada-dash" class="section" style="display:none;">
- <div class="header-flex" style="background: white; padding: 20px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 30px; align-items: center; flex-wrap: wrap; gap: 20px; border: 1px solid #f0f0f0;">
-        
-        <div style="flex: 1; min-width: 250px;">
-            <h1 style="margin: 0; color: var(--color-dark-brown); font-size: 1.6rem; display: flex; align-items: center; gap: 8px;">
-                <i class="material-icons" style="color: var(--color-taupe);">business</i> Painel da Terceirizada
-            </h1>
-            <p style="color: #777; font-size: 13px; margin-top: 5px; margin-left: 32px;">Acompanhamento de qualidade e conformidade.</p>
-        </div>
+            <div class="header-flex"
+                style="background: white; padding: 20px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 30px; align-items: center; flex-wrap: wrap; gap: 20px; border: 1px solid #f0f0f0;">
 
-        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-            
-            <div style="display: flex; align-items: center; background: #f8f9fa; padding: 5px 15px; border-radius: 50px; border: 1px solid #e0e0e0; gap: 10px;">
-                <i class="material-icons" style="color: #888; font-size: 18px;">date_range</i>
-                
-                <input type="date" id="dash-filter-start" title="Data Inicial" style="border: none; background: transparent; font-size: 13px; color: #555; outline: none; cursor: pointer; font-family: inherit;">
-                
-                <span style="color: #ccc; font-weight: bold;">—</span>
-                
-                <input type="date" id="dash-filter-end" title="Data Final" style="border: none; background: transparent; font-size: 13px; color: #555; outline: none; cursor: pointer; font-family: inherit;">
-                
-                <div style="display: flex; gap: 5px; border-left: 1px solid #ddd; padding-left: 10px; margin-left: 5px;">
-                    <button onclick="applyThirdPartyDashFilter()" title="Aplicar Filtro" style="background: #e8f5e9; color: #28a745; border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                        <i class="material-icons" style="font-size: 16px;">check</i>
-                    </button>
-                    <button onclick="clearThirdPartyDashFilter()" title="Limpar Filtro" style="background: #ffebee; color: #dc3545; border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                        <i class="material-icons" style="font-size: 16px;">close</i>
-                    </button>
+                <div style="flex: 1; min-width: 250px;">
+                    <h1
+                        style="margin: 0; color: var(--color-dark-brown); font-size: 1.6rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="material-icons" style="color: var(--color-taupe);">business</i> Painel da Terceirizada
+                    </h1>
+                    <p style="color: #777; font-size: 13px; margin-top: 5px; margin-left: 32px;">Acompanhamento de
+                        qualidade e conformidade.</p>
+                </div>
+
+                <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+
+                    <div
+                        style="display: flex; align-items: center; background: #f8f9fa; padding: 5px 15px; border-radius: 50px; border: 1px solid #e0e0e0; gap: 10px;">
+                        <i class="material-icons" style="color: #888; font-size: 18px;">date_range</i>
+
+                        <input type="date" id="dash-filter-start" title="Data Inicial"
+                            style="border: none; background: transparent; font-size: 13px; color: #555; outline: none; cursor: pointer; font-family: inherit;">
+
+                        <span style="color: #ccc; font-weight: bold;">—</span>
+
+                        <input type="date" id="dash-filter-end" title="Data Final"
+                            style="border: none; background: transparent; font-size: 13px; color: #555; outline: none; cursor: pointer; font-family: inherit;">
+
+                        <div
+                            style="display: flex; gap: 5px; border-left: 1px solid #ddd; padding-left: 10px; margin-left: 5px;">
+                            <button onclick="applyThirdPartyDashFilter()" title="Aplicar Filtro"
+                                style="background: #e8f5e9; color: #28a745; border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;"
+                                onmouseover="this.style.transform='scale(1.1)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <i class="material-icons" style="font-size: 16px;">check</i>
+                            </button>
+                            <button onclick="clearThirdPartyDashFilter()" title="Limpar Filtro"
+                                style="background: #ffebee; color: #dc3545; border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;"
+                                onmouseover="this.style.transform='scale(1.1)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                                <i class="material-icons" style="font-size: 16px;">close</i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btn-open-report-modal" class="btn-primary"
+                            style="background: var(--color-taupe); display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; font-size: 14px;">
+                            <i class="material-icons" style="font-size: 18px;">picture_as_pdf</i> Emitir Relatório
+                        </button>
+                        <button onclick="loadThirdPartyDashboard()" class="btn-primary" title="Recarregar Dados"
+                            style="padding: 10px 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="material-icons" style="font-size: 20px;">sync</i>
+                        </button>
+                    </div>
                 </div>
             </div>
-
-            <div style="display: flex; gap: 10px;">
-                <button id="btn-open-report-modal" class="btn-primary" style="background: var(--color-taupe); display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; font-size: 14px;">
-                    <i class="material-icons" style="font-size: 18px;">picture_as_pdf</i> Emitir Relatório
-                </button>
-                <button onclick="loadThirdPartyDashboard()" class="btn-primary" title="Recarregar Dados" style="padding: 10px 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                    <i class="material-icons" style="font-size: 20px;">sync</i>
-                </button>
-            </div>
-        </div>
-    </div>
 
             <div class="metrics-grid">
                 <div class="metric-card kpi-card" style="border-left: 5px solid #28a745;">
