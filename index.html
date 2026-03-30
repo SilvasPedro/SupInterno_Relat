@@ -211,33 +211,70 @@
 
 <body>
 
-    <div class="login-container">
-        <div class="logo-area">
-            <i class="material-icons">analytics</i>
-            <h2>Hubdesk</h2>
-            <p>Faça login para acessar o painel</p>
+<div class="login-container">
+        
+        <div id="login-box">
+            <div class="logo-area">
+                <i class="material-icons">analytics</i>
+                <h2>Hubdesk</h2>
+                <p>Faça login para acessar o painel</p>
+            </div>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Email Corporativo</label>
+                    <div class="input-wrapper">
+                        <i class="material-icons">email</i>
+                        <input type="email" id="email" placeholder="nome@empresa.com" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Senha</label>
+                    <div class="input-wrapper">
+                        <i class="material-icons">lock</i>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button type="submit">ACESSAR SISTEMA</button>
+                <div id="error-msg"></div>
+                
+                <div style="margin-top: 15px; text-align: center;">
+                    <a href="#" id="forgot-password" style="color: var(--color-mono-light); text-decoration: none; font-size: 13px; font-weight: 600;">Esqueceu a senha?</a>
+                </div>
+            </form>
         </div>
 
-        <form id="login-form">
-            <div class="input-group">
-                <label>Email Corporativo</label>
-                <div class="input-wrapper">
-                    <i class="material-icons">email</i>
-                    <input type="email" id="email" placeholder="nome@empresa.com" required>
-                </div>
+        <div id="first-access-box" style="display: none;">
+            <div class="logo-area">
+                <i class="material-icons">lock_reset</i>
+                <h2>Primeiro Acesso</h2>
+                <p>Por segurança, crie uma nova senha.</p>
             </div>
-
-            <div class="input-group">
-                <label>Senha</label>
-                <div class="input-wrapper">
-                    <i class="material-icons">lock</i>
-                    <input type="password" id="password" placeholder="••••••••" required>
+            
+            <form id="new-password-form">
+                <div class="input-group">
+                    <label>Nova Senha</label>
+                    <div class="input-wrapper">
+                        <i class="material-icons">vpn_key</i>
+                        <input type="password" id="new-pass" placeholder="Mínimo 6 caracteres" required>
+                    </div>
                 </div>
-            </div>
 
-            <button type="submit">ACESSAR SISTEMA</button>
-            <div id="error-msg"></div>
-        </form>
+                <div class="input-group">
+                    <label>Confirmar Nova Senha</label>
+                    <div class="input-wrapper">
+                        <i class="material-icons">vpn_key</i>
+                        <input type="password" id="confirm-pass" placeholder="Repita a nova senha" required>
+                    </div>
+                </div>
+
+                <button type="submit">SALVAR E ENTRAR</button>
+                <div id="first-access-error" style="color: #d32f2f; background: rgba(211, 47, 47, 0.1); border-radius: 6px; padding: 8px; font-weight: 600; font-size: 13px; margin-top: 15px; display: empty;"></div>
+            </form>
+        </div>
+
     </div>
 
     <script type="module" src="js/auth.js"></script>
