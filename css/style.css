@@ -1714,3 +1714,39 @@ button[onclick*="openHistory"]:hover {
     background-color: #ffebee !important;
     border-radius: 50%;
 }
+
+/* ============================================================
+   ESTILOS PARA O UPLOAD EM MASSA (CSV)
+   ============================================================ */
+.csv-input-cell {
+    width: 100%;
+    min-width: 60px;
+    padding: 6px 8px !important;
+    border: 1px solid transparent !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    text-align: center;
+    transition: 0.2s;
+}
+
+.csv-input-cell:hover {
+    border-color: #ddd !important;
+    background: #f9f9f9 !important;
+}
+
+.csv-input-cell:focus {
+    border-color: var(--color-main-red) !important;
+    background: #fff !important;
+    outline: none !important;
+}
+
+.user-match-error {
+    background-color: #ffebee;
+    color: #dc3545;
+    font-size: 11px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 4px;
+}
